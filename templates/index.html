@@ -156,10 +156,10 @@
 
     <!-- Daily Verse -->
     <section id="daily" class="py-5">
-        <div class="container">
+        <div class="container col-11">
             <h2 class="text-center section-title mb-5">Verse of the Day</h2>
             <div class="row justify-content-center">
-                <div class="col-lg-8">
+                <div class="col-lg-8 col-11">
                     <div class="verse-card">
                         {% if daily_verse %}
                             <p class="verse-text">"{{ daily_verse.text }}"</p>
@@ -175,12 +175,12 @@
 
     <!-- Search -->
     <section id="search" class="py-5 bg-light">
-        <div class="container">
+        <div class="container col-11">
             <h2 class="text-center section-title mb-5">Search Scripture</h2>
             <p class="text-center text-muted mb-4">Search for verses by keyword or phrase.</p>
             <div class="search-form">
                 <form method="POST" action="{{ url_for('search') }}">
-                    <div class="input-group input-group-lg shadow-sm">
+                    <div class="input-group input-group-lg shadow-sm col-11">
                         <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
                         <input type="text" name="query" value="{{query}}" class="form-control border-start-0" placeholder="Search by keyword, verse, or phrase..." required>
                         <button class="btn btn-success" type="submit">Search</button>
@@ -190,7 +190,7 @@
                 {% if search_results %}
                     <div class="mt-5 row g-4">
                         {% for result in search_results %}
-                            <div class="col-12">
+                            <div class="col-11 col-md-6 col-lg-4">
                                 <div class="card p-4 shadow-sm">
                                     <p class="verse-text mb-3">{{ result.text }}</p>
                                     <p class="reference text-end mb-0">{{ result.reference }}</p>
@@ -209,12 +209,12 @@
 
     <!-- Books -->
     <section id="books" class="py-5">
-        <div class="container">
+        <div class="container col-11">
             <h2 class="text-center section-title mb-5">Browse the Bible</h2>
             <h2 class="text-center">All Books of the Bible</h2>
             <div class="row g-4">
                 {% for book in books %}
-                    <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="col-lg-3 col-md-4 col-sm-6 col-6">
                         <a href="{{ url_for('books', book_name=book.name.title()) }}" class="text-decoration-none">
                             <div class="book-card">
                                 <i class="fas fa-book-open"></i>
