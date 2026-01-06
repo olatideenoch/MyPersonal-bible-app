@@ -1,8 +1,10 @@
 from flask import Flask, render_template, url_for, redirect, request, Response
 from gtts import gTTS
+from pydub import AudioSegment
 import requests
 import datetime as dt
 import random
+import time
 import io
 import os
 
@@ -122,12 +124,12 @@ BIBLE_BOOKS = [
     {"name": "Joshua", "chapters": 24},
     {"name": "Judges", "chapters": 21},
     {"name": "Ruth", "chapters": 4},
-    {"name": "1 Samuel", "chapters": 31},
-    {"name": "2 Samuel", "chapters": 24},
-    {"name": "1 Kings", "chapters": 22},
-    {"name": "2 Kings", "chapters": 25},
-    {"name": "1 Chronicles", "chapters": 29},
-    {"name": "2 Chronicles", "chapters": 36},
+    {"name": "1Samuel", "chapters": 31},
+    {"name": "2Samuel", "chapters": 24},
+    {"name": "1Kings", "chapters": 22},
+    {"name": "2Kings", "chapters": 25},
+    {"name": "1Chronicles", "chapters": 29},
+    {"name": "2Chronicles", "chapters": 36},
     {"name": "Ezra", "chapters": 10},
     {"name": "Nehemiah", "chapters": 13},
     {"name": "Esther", "chapters": 10},
@@ -159,25 +161,25 @@ BIBLE_BOOKS = [
     {"name": "John", "chapters": 21},
     {"name": "Acts", "chapters": 28},
     {"name": "Romans", "chapters": 16},
-    {"name": "1 Corinthians", "chapters": 16},
-    {"name": "2 Corinthians", "chapters": 13},
+    {"name": "1Corinthians", "chapters": 16},
+    {"name": "2Corinthians", "chapters": 13},
     {"name": "Galatians", "chapters": 6},
     {"name": "Ephesians", "chapters": 6},
     {"name": "Philippians", "chapters": 4},
     {"name": "Colossians", "chapters": 4},
-    {"name": "1 Thessalonians", "chapters": 5},
-    {"name": "2 Thessalonians", "chapters": 3},
-    {"name": "1 Timothy", "chapters": 6},
-    {"name": "2 Timothy", "chapters": 4},
+    {"name": "1Thessalonians", "chapters": 5},
+    {"name": "2Thessalonians", "chapters": 3},
+    {"name": "1Timothy", "chapters": 6},
+    {"name": "2Timothy", "chapters": 4},
     {"name": "Titus", "chapters": 3},
     {"name": "Philemon", "chapters": 1},
     {"name": "Hebrews", "chapters": 13},
     {"name": "James", "chapters": 5},
-    {"name": "1 Peter", "chapters": 5},
-    {"name": "2 Peter", "chapters": 3},
-    {"name": "1 John", "chapters": 5},
-    {"name": "2 John", "chapters": 1},
-    {"name": "3 John", "chapters": 1},
+    {"name": "1Peter", "chapters": 5},
+    {"name": "2Peter", "chapters": 3},
+    {"name": "1John", "chapters": 5},
+    {"name": "2John", "chapters": 1},
+    {"name": "3John", "chapters": 1},
     {"name": "Jude", "chapters": 1},
     {"name": "Revelation", "chapters": 22}
 ]
@@ -336,7 +338,7 @@ def books(book_name):
         return "Book not found", 404
 
     selected_chapter = request.form.get("chapter")
-    selected_version = request.form.get("version", "en-t4t")  # Default
+    selected_version = request.form.get("version", "en-kjv")  # Default
     verses = []
     chapter_text = ""
 
@@ -368,7 +370,7 @@ def books(book_name):
 
 @app.route("/audio/<book_name>/<int:chapter>")
 def chapter_audio(book_name, chapter):
-    selected_version = request.args.get("version", "en-t4t")
+    selected_version = request.args.get("version", "en-kjv")
     cache_key = f"{book_name}_{chapter}_{selected_version}"
     if cache_key not in audio_cache:
         url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{selected_version}/books/{book_name.lower()}/chapters/{chapter}.json"
@@ -381,11 +383,56 @@ def chapter_audio(book_name, chapter):
             chapter_text = " ".join([verse.get("text", "").strip() for verse in verses])
             if not chapter_text:
                 return "Chapter not found", 404   
-            tts = gTTS(text=chapter_text, lang='en')
+            chunks = []
+            current_chunk = ""
+            for word in chapter_text.split():
+                if len(current_chunk) + len(word) + 1 > 4000:
+                    chunks.append(current_chunk.strip())
+                    current_chunk = ""
+                current_chunk += word + ""
+            if current_chunk:
+                chunks.append(current_chunk.strip())
+
+            segments = []
+            for chunk in chunks:
+                tts = gTTS(text=chunk, lang='en')
+                chunk_io = io.BytesIO()
+                tts.write_to_fp(chunk_io)
+                chunk_io.seek(0)
+                segments.append(AudioSegment.from_mp3(chunk_io))
+            full_audio = sum(segments)
             mp3_io = io.BytesIO()
-            tts.write_to_fp(mp3_io)
+            full_audio.export(mp3_io, format="mp3")
             mp3_io.seek(0)
             audio_cache[cache_key] = mp3_io.read()
+            for attempt in range(5):
+                try:
+                    tts = gTTS(
+                        text=chapter_text,
+                        lang="en",
+                        tld="com"
+                    )
+                    import urllib.parse
+                    params = {
+                        "ie": "UTF-8",
+                        "q": chapter_text,
+                        "tl": "en",
+                        "client": "tw-ob",
+                        "ttsspeed": "1"
+                    }
+                    headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                    }
+                    url = "https://translate.google.com/translate_tts?" + urllib.parse.urlencode(params)
+                    response = requests.get(url, headers=headers, timeout=30)
+                    response.raise_for_status()
+                    audio_cache[cache_key] = response.content
+                    break 
+                except Exception as e:
+                    print(f"Audio attempt {attempt+1} failed: {e}")
+                    if attempt == 4:
+                        return "Error generating audio", 500
+                    time.sleep(2 ** attempt)
         except Exception as e:
             print(f"Audio generation failed: {e}")
             return "Error generating audio", 500
