@@ -154,7 +154,7 @@
     <section class="page-header">
         <div class="container">
             <h1 class="head-center">Browse the Holy Scriptures</h1>
-            <p class="lead mt-3">Select a book to begin reading</p>
+            <p class="mt-3 lead">Select a book to begin reading</p>
         </div>
     </section>
 
@@ -177,7 +177,6 @@
                             <button class="btn btn-success" type="submit">Load Chapter</button>
                         </div>
                     </form>
-
                     <!-- Verse Selection Form (Shown after chapter is selected) -->
                     {% if verses %}
                         <form method="POST" action="{{ url_for('books', book_name=book.name|lower|replace(' ', '-')) }}" class="mb-5">
@@ -194,7 +193,6 @@
                             <input type="hidden" name="chapter" value="{{ selected_chapter }}">
                         </form>
                     {% endif %}
-
                     <!-- Version Selection Form  -->
                     {% if selected_chapter %}
                         <form method="POST" class="mb-5">
@@ -214,11 +212,51 @@
                     {% endif %}
                 </div>
             </div>
+            <!-- Play chapter audio button -->
+            {% if chapter_text and selected_chapter %}
+            <div class="my-4 text-center">
+                <button id="playChapterBtn" class="px-5 btn btn-primary btn-lg">
+                    <i class="fas fa-play me-2"></i> Play Chapter {{ selected_chapter }}
+                </button>
+            
+                <audio id="chapterAudio" class="mt-3 w-100" controls></audio>
+            </div>
 
+            <script>
+                document.getElementById('playChapterBtn')?.addEventListener('click', function() {
+                const btn = this;
+                const audio = document.getElementById('chapterAudio');
+                
+                const audioUrl = "{{ url_for('chapter_audio', book_name=book.name|lower|replace(' ', '-'), chapter=selected_chapter) }}?version={{ selected_version }}";
+                
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading audio...';
+                
+                audio.src = audioUrl;
+                audio.style.display = 'block';
+                
+                audio.oncanplaythrough = () => {
+                    audio.play();
+                    btn.innerHTML = '<i class="fas fa-pause me-2"></i> Playing...';
+                };
+                
+                audio.onended = () => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-play me-2"></i> Play Chapter {{ selected_chapter }}';
+                };
+                
+                audio.onerror = () => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Error – Retry';
+                };
+                });
+            </script>
+            {% endif %}
+            
             <!-- Display Verses -->
             {% if verses %}
                 <div class="verse-container">
-                    <h3 class="text-center mb-4">{{ book.name }} {{ selected_chapter }}</h3>
+                    <h3 class="mb-4 text-center">{{ book.name }} {{ selected_chapter }}</h3>
                     <div class="row g-6">
                         {% for verse in verses %}
                             <div class="col-12 verse-item" id="verse-{{ loop.index }}">
@@ -231,7 +269,7 @@
             {% endif %}
         </div>
     </section>
-
+    
     <!-- Footer -->
     <footer>
         <div class="container text-center">
