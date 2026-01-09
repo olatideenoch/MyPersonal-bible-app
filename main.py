@@ -369,6 +369,8 @@ def books(book_name):
                            verses=verses,
                            versions=VERSION_LIST) 
 
+
+
 # @app.route("/audio/<book_name>/<int:chapter>")
 # def chapter_audio(book_name, chapter):
 #     selected_version = request.args.get("version", "en-kjv")
