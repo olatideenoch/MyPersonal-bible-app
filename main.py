@@ -337,7 +337,7 @@ def books(book_name):
         return "Book not found", 404
 
     selected_chapter = request.form.get("chapter")
-    selected_version = request.form.get("version", "en-t4t")  # Default
+    selected_version = request.form.get("version", "en-kjv")  # Default
     verses = []
     chapter_text = ""
 
@@ -369,7 +369,7 @@ def books(book_name):
 
 @app.route("/audio/<book_name>/<int:chapter>")
 def chapter_audio(book_name, chapter):
-    selected_version = request.args.get("version", "en-t4t")
+    selected_version = request.args.get("version", "en-kjv")  # Default to KJV
     cache_key = f"{book_name}_{chapter}_{selected_version}"
     if cache_key not in audio_cache:
         url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{selected_version}/books/{book_name.lower()}/chapters/{chapter}.json"
