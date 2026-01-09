@@ -212,8 +212,7 @@
                     {% endif %}
                 </div>
             </div>
-            
-            <!-- Play chapter audio button
+            <!-- Play chapter audio button -->
             {% if chapter_text and selected_chapter %}
             <div class="my-4 text-center">
                 <button id="playChapterBtn" class="px-5 btn btn-primary btn-lg">
@@ -248,11 +247,11 @@
                 
                 audio.onerror = () => {
                     btn.disabled = false;
-                    btn.innerHTML = 'Error – Retry';
+                    btn.innerHTML = 'Error – Unable to load audio';
                 };
                 });
             </script>
-            {% endif %} -->
+            {% endif %}
             
             <!-- Display Verses -->
             {% if verses %}

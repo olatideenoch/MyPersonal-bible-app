@@ -1,7 +1,5 @@
 from flask import Flask, render_template, url_for, redirect, request, Response
-# from gtts import gTTS
-# from pydub import AudioSegment
-# from elevenlabs import generate, stream
+from gtts import gTTS
 import requests
 import datetime as dt
 import random
@@ -339,7 +337,7 @@ def books(book_name):
         return "Book not found", 404
 
     selected_chapter = request.form.get("chapter")
-    selected_version = request.form.get("version", "en-kjv")  # Default
+    selected_version = request.form.get("version", "en-t4t")  # Default
     verses = []
     chapter_text = ""
 
@@ -369,35 +367,34 @@ def books(book_name):
                            verses=verses,
                            versions=VERSION_LIST) 
 
-
-
-# @app.route("/audio/<book_name>/<int:chapter>")
-# def chapter_audio(book_name, chapter):
-#     selected_version = request.args.get("version", "en-kjv")
-#     cache_key = f"{book_name}_{chapter}_{selected_version}"
-#     if cache_key not in audio_cache:
-#         url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{selected_version}/books/{book_name.lower()}/chapters/{chapter}.json"
-#         try:
-#             response = requests.get(url)
-#             if response.status_code != 200:
-#                 return "Chapter not found", 404
-#             data = response.json()
-#             verses = data.get("data", [])
-#             chapter_text = " ".join([verse.get("text", "").strip() for verse in verses])
-#             if not chapter_text:
-#                 return "Chapter not found", 404 
-#             audio_bytes = generate(
-#                 text=chapter_text,
-#                 voice="Rachel",
-#                 model="eleven_monolingual_v1",
-#                 api_key=os.environ.get("ELEVENLABS_API_KEY")
-#             )
-#             audio_cache[cache_key] = audio_bytes
-#             return Response(audio_bytes, mimetype="audio/mpeg")  
-#         except Exception as e:
-#             print(f"Error fetching chapter for audio: {e}")
-#             return "Chapter not found", 404
-#     return Response()
+@app.route("/audio/<book_name>/<int:chapter>")
+def chapter_audio(book_name, chapter):
+    selected_version = request.args.get("version", "en-t4t")
+    cache_key = f"{book_name}_{chapter}_{selected_version}"
+    if cache_key not in audio_cache:
+        url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{selected_version}/books/{book_name.lower()}/chapters/{chapter}.json"
+        try:
+            response = requests.get(url)
+            if response.status_code != 200:
+                return "Chapter not found", 404
+            data = response.json()
+            verses = data.get("data", [])
+            chapter_text = " ".join([verse.get("text", "").strip() for verse in verses])
+            if not chapter_text:
+                return "Chapter not found", 404   
+            tts = gTTS(text=chapter_text, lang='en')
+            mp3_io = io.BytesIO()
+            tts.write_to_fp(mp3_io)
+            mp3_io.seek(0)
+            audio_cache[cache_key] = mp3_io.read()
+        except Exception as e:
+            print(f"Audio generation failed: {e}")
+            return "Error generating audio", 500
+    return Response(
+        audio_cache[cache_key],
+        mimetype="audio/mpeg",
+        headers={"Content-Disposition": "inline", "cache-Control": "no-cache"}
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)
