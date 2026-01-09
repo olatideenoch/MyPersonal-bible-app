@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, Response
-from gtts import gTTS
-from pydub import AudioSegment
-from elevenlabs import generate, stream
+# from gtts import gTTS
+# from pydub import AudioSegment
+# from elevenlabs import generate, stream
 import requests
 import datetime as dt
 import random
