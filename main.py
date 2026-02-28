@@ -1,10 +1,7 @@
-from flask import Flask, render_template, url_for, redirect, request, Response
-from gtts import gTTS
+from flask import Flask, render_template, url_for, redirect, request, jsonify
 import requests
 import datetime as dt
 import random
-import time
-import io
 import os
 
 app = Flask(__name__)
@@ -329,7 +326,6 @@ def search():
                            search_performed=search_performed,
                            query=query)
 
-audio_cache = {}
 @app.route("/books/<book_name>", methods=["GET", "POST"])
 def books(book_name):
     book = next((b for b in BIBLE_BOOKS if b['name'].lower().replace(' ', '-') == book_name.lower()), None)
@@ -367,34 +363,31 @@ def books(book_name):
                            verses=verses,
                            versions=VERSION_LIST) 
 
-@app.route("/audio/<book_name>/<int:chapter>")
-def chapter_audio(book_name, chapter):
-    selected_version = request.args.get("version", "en-kjv")  # Default to KJV
-    cache_key = f"{book_name}_{chapter}_{selected_version}"
-    if cache_key not in audio_cache:
-        url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{selected_version}/books/{book_name.lower()}/chapters/{chapter}.json"
-        try:
-            response = requests.get(url)
-            if response.status_code != 200:
-                return "Chapter not found", 404
-            data = response.json()
-            verses = data.get("data", [])
-            chapter_text = " ".join([verse.get("text", "").strip() for verse in verses])
-            if not chapter_text:
-                return "Chapter not found", 404   
-            tts = gTTS(text=chapter_text, lang='en')
-            mp3_io = io.BytesIO()
-            tts.write_to_fp(mp3_io)
-            mp3_io.seek(0)
-            audio_cache[cache_key] = mp3_io.read()
-        except Exception as e:
-            print(f"Audio generation failed: {e}")
-            return "Error generating audio", 500
-    return Response(
-        audio_cache[cache_key],
-        mimetype="audio/mpeg",
-        headers={"Content-Disposition": "inline", "cache-Control": "no-cache"}
-    )
+
+@app.route('/api/chapter/<book_name>/<int:chapter>')
+def api_chapter(book_name, chapter):
+    """Return chapter data as JSON so the client can fetch large text
+    without embedding it into the page HTML.
+    """
+    selected_version = request.args.get('version', 'en-kjv')
+    url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{selected_version}/books/{book_name.lower()}/chapters/{chapter}.json"
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code != 200:
+            return jsonify({'error': 'Chapter not found'}), 404
+        data = response.json()
+        verses = data.get('data', [])
+        chapter_text = ' '.join([v.get('text', '').strip() for v in verses])
+        return jsonify({
+            'book': book_name,
+            'chapter': chapter,
+            'version': selected_version,
+            'chapter_text': chapter_text,
+            'verses': verses
+        })
+    except Exception as e:
+        print(f"API chapter fetch failed: {e}")
+        return jsonify({'error': 'Request failed'}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
