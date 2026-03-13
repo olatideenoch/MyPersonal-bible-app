@@ -396,7 +396,8 @@
                         if (currentUtteranceIndex === 0 && allUtterances.length === 0) {
                             createUtterances();
                         }
-                        synth.resume();
+                        // Cancel any queued speech to force immediate start
+                        synth.cancel();
                         speakNext();
                         startProgressTimer();
                         playBtn.innerHTML = '<i class="fas fa-pause me-2"></i> Pause';
@@ -422,11 +423,33 @@
                     });
                 });
 
-                // Download via server-side TTS endpoint
+                // Download via server-side TTS endpoint (fetch and handle JSON errors)
                 downloadBtn.addEventListener('click', async () => {
                     try {
                         const url = `/download/chapter/${bookSlug}/${chapterNum}?version=${selectedVersion}`;
-                        window.open(url, '_blank');
+                        const res = await fetch(url);
+                        if (!res.ok) {
+                            // try to parse JSON error
+                            const json = await res.json().catch(() => null);
+                            alert(json?.error || `Server returned ${res.status}`);
+                            return;
+                        }
+
+                        const ct = res.headers.get('content-type') || '';
+                        if (ct.startsWith('audio/')) {
+                            const blob = await res.blob();
+                            const blobUrl = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = blobUrl;
+                            a.download = `${bookSlug}${chapterNum}.mp3`;
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                            URL.revokeObjectURL(blobUrl);
+                        } else {
+                            const json = await res.json().catch(() => null);
+                            alert(json?.error || 'Unexpected server response for download.');
+                        }
                     } catch (e) {
                         console.error('Download failed', e);
                         alert('Download failed. See console for details.');
