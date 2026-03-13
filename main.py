@@ -1,8 +1,21 @@
-from flask import Flask, render_template, url_for, redirect, request, jsonify
+from flask import Flask, render_template, url_for, redirect, request, jsonify, send_file
 import requests
 import datetime as dt
 import random
 import os
+import io
+import tempfile
+import shutil
+import re
+
+# Optional server-side TTS/concatenation
+try:
+    from gtts import gTTS
+    from pydub import AudioSegment
+    from pydub.utils import which as pydub_which
+    _PYDUB_AVAILABLE = True
+except Exception:
+    _PYDUB_AVAILABLE = False
 
 app = Flask(__name__)
 
@@ -268,6 +281,87 @@ VERSION_LIST = [
     {"id": "pes-opcb", "version": "Persian Old Persian Catholic Bible"}
 ]
 
+
+def clean_text(text: str) -> str:
+    """Clean verse text from API using regex:
+    - remove zero-width/control characters
+    - strip bracketed footnotes/markers like [1], {note}, <...>
+    - replace punctuation stuck between words with a single space
+    - collapse multiple whitespace to single spaces
+    - remove simple HTML entities
+    """
+    if not text:
+        return text
+
+    # Remove verse footnote numbers like 12.1
+    text = re.sub(r'\b\d+\.\d+\b', '', text)
+
+    # Remove translator notes (Heb., Gr., etc.)
+    text = re.sub(r'\b(Heb|Gr|Lat)\.\s*[^.;]*', '', text)
+
+    # Remove alternate translation notes starting with "or,"
+    text = re.sub(r'\bor,\s*[^.;]*', '', text)
+
+    # Remove bracketed or parenthesis commentary
+    text = re.sub(r'\(.*?\)|\[.*?\]', '', text)
+
+    # Remove ellipsis artifacts
+    text = text.replace('…', '')
+
+    # Fix spacing around punctuation
+    text = re.sub(r'\s+([.,;:])', r'\1', text)
+
+    # Collapse multiple spaces
+    text = re.sub(r'\s+', ' ', text)
+
+    # Remove stray punctuation leftovers
+    text = re.sub(r'\s+[.;:]', '', text)
+    
+    # Remove zero-width and BOM characters
+    text = re.sub(r'[\u200B-\u200F\uFEFF]', '', text)
+
+    # Replace HTML entities with a space
+    text = re.sub(r'&[#A-Za-z0-9]+;', ' ', text)
+
+    # Remove bracketed footnotes or inline markers
+    text = re.sub(r"\[.*?\]|\{.*?\}|<.*?>", ' ', text)
+
+    # Replace non-word punctuation between word characters with a space
+    text = re.sub(r'(?<=\w)[^\w\s]+(?=\w)', ' ', text)
+
+    # Remove any remaining unusual non-word sequences (keep basic sentence punctuation)
+    text = re.sub(r"[^\w\s\.\,\?\!\;\:\'\-]", ' ', text)
+
+    # Collapse whitespace and trim
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    dot_pos = text.find('.')
+    if dot_pos != -1:
+        text = text[: dot_pos + 1 ].strip()
+    else:
+        colon_pos = text.find(':')
+        semi_pos = text.find(';')
+        candidates = [p for p in (colon_pos, semi_pos) if p != -1]
+        if candidates:
+            pos = min(candidates)
+            text = text[: pos + 1 ].strip()
+
+    return text
+
+
+def dedupe_verses(raw_verses: list) -> list:
+    """Remove duplicate verse entries while preserving order.
+    """
+    seen = set()
+    out = []
+    for v in raw_verses:
+        key = v.get('verse') or v.get('reference') or v.get('text')
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(v)
+    return out
+
 @app.route("/")
 def index():
     daily_verse = random.choice(DAILY_VERSES)
@@ -304,8 +398,9 @@ def search():
                 # Extract verses from search results
                 if "data" in data and "verses" in data["data"]:
                     for verse in data["data"]["verses"]:
+                        cleaned = clean_text(verse.get("text", ""))
                         search_results.append({
-                            "text": verse.get("text", ""),
+                            "text": cleaned,
                             "reference": verse.get("reference", "")
                         })
             else:
@@ -344,8 +439,10 @@ def books(book_name):
             response = requests.get(url)
             if response.status_code == 200:
                 data = response.json()
-                verses = data.get("data", [])
-                chapter_text = " ".join([verse.get("text", "").strip() for verse in verses])
+                raw_verses = data.get("data", [])
+                raw_verses = dedupe_verses(raw_verses)
+                verses = [{**v, 'text': clean_text(v.get('text', ''))} for v in raw_verses]
+                chapter_text = " ".join([v.get("text", "").strip() for v in verses])
             else:
                 verses = []
                 chapter_text = ""
@@ -376,7 +473,9 @@ def api_chapter(book_name, chapter):
         if response.status_code != 200:
             return jsonify({'error': 'Chapter not found'}), 404
         data = response.json()
-        verses = data.get('data', [])
+        raw_verses = data.get('data', [])
+        raw_verses = dedupe_verses(raw_verses)
+        verses = [{**v, 'text': clean_text(v.get('text', ''))} for v in raw_verses]
         chapter_text = ' '.join([v.get('text', '').strip() for v in verses])
         return jsonify({
             'book': book_name,
@@ -388,6 +487,75 @@ def api_chapter(book_name, chapter):
     except Exception as e:
         print(f"API chapter fetch failed: {e}")
         return jsonify({'error': 'Request failed'}), 500
+
+
+@app.route('/download/chapter/<book_name>/<int:chapter>')
+def download_chapter(book_name, chapter):
+    """Generate an MP3 for the chapter server-side (gTTS + pydub).
+    This requires `gtts` and `pydub` and an ffmpeg binary available to pydub.
+    If not available, returns a 501 with instructions.
+    """
+    if not _PYDUB_AVAILABLE:
+        return jsonify({'error': 'Server-side TTS not available. Install gTTS and pydub with ffmpeg.'}), 501
+
+    selected_version = request.args.get('version', 'en-kjv')
+    url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{selected_version}/books/{book_name.lower()}/chapters/{chapter}.json"
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code != 200:
+            return jsonify({'error': 'Chapter not found'}), 404
+        data = response.json()
+        raw_verses = data.get('data', [])
+        raw_verses = dedupe_verses(raw_verses)
+        verses = [{**v, 'text': clean_text(v.get('text', ''))} for v in raw_verses]
+        chapter_text = ' '.join([v.get('text', '').strip() for v in verses])
+
+        # Check ffmpeg
+        ffmpeg_path = pydub_which('ffmpeg')
+        if not ffmpeg_path:
+            return jsonify({'error': 'ffmpeg not found on server. Install ffmpeg to enable MP3 generation.'}), 501
+
+        # Create temporary directory for chunk mp3s
+        tmpdir = tempfile.mkdtemp(prefix='tts_')
+        files = []
+        try:
+            # Split into reasonable chunks for gTTS
+            max_chars = 2500
+            idx = 0
+            count = 0
+            while idx < len(chapter_text):
+                piece = chapter_text[idx: idx + max_chars]
+                idx += max_chars
+                count += 1
+                fname = os.path.join(tmpdir, f'part_{count}.mp3')
+                tts = gTTS(text=piece, lang='en')
+                tts.save(fname)
+                files.append(fname)
+
+            # Concatenate using pydub
+            combined = None
+            for f in files:
+                seg = AudioSegment.from_file(f, format='mp3')
+                if combined is None:
+                    combined = seg
+                else:
+                    combined += seg
+
+            out_io = io.BytesIO()
+            combined.export(out_io, format='mp3')
+            out_io.seek(0)
+
+            filename = f"{book_name.title().replace('-', '').replace(' ', '')}{chapter}.mp3"
+            return send_file(out_io, download_name=filename, mimetype='audio/mpeg')
+        finally:
+            try:
+                shutil.rmtree(tmpdir)
+            except Exception:
+                pass
+
+    except Exception as e:
+        print(f"Download generation failed: {e}")
+        return jsonify({'error': 'Generation failed'}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)

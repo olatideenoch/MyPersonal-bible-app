@@ -217,13 +217,21 @@
             <div class="my-4">
                 <div class="d-flex align-items-center justify-content-center gap-3">
                     <!-- Play Button -->
-                    <button id="audioPlayBtn" class="btn btn-primary btn-lg rounded-pill px-5">
-                        <i class="fas fa-play me-2"></i> Play Chapter {{ selected_chapter }}
-                    </button>
-                    
-                    <!-- Time Display -->
-                    <div class="text-center" style="min-width: 100px;">
-                        <small class="text-muted"><span id="audioCurrentTime">0:00</span> / <span id="audioDuration">0:00</span></small>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="skipBackBtn" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-backward"></i>
+                        </button>
+                        <button id="audioPlayBtn" class="btn btn-primary btn-lg rounded-pill px-5">
+                            <i class="fas fa-play me-2"></i> Play Chapter {{ selected_chapter }}
+                        </button>
+                        <button id="skipForwardBtn" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-forward"></i>
+                        </button>
+
+                        <!-- Time Display -->
+                        <div class="text-center" style="min-width: 110px;">
+                            <small class="text-muted"><span id="audioCurrentTime">0:00</span> / <span id="audioDuration">0:00</span></small>
+                        </div>
                     </div>
 
                     <!-- Menu Button (Three dots) -->
@@ -275,11 +283,19 @@
 
                 const synth = window.speechSynthesis;
                 const playBtn = document.getElementById('audioPlayBtn');
+                const skipBackBtn = document.getElementById('skipBackBtn');
+                const skipForwardBtn = document.getElementById('skipForwardBtn');
                 const speedOptions = document.querySelectorAll('.speed-option');
                 const downloadBtn = document.getElementById('audioDownloadBtn');
+                const progressContainer = document.getElementById('audioProgressContainer');
                 const progressBar = document.getElementById('audioProgress');
                 const currentTimeSpan = document.getElementById('audioCurrentTime');
                 const durationSpan = document.getElementById('audioDuration');
+
+                // Timing helpers
+                let perUtteranceDurations = []; // seconds
+                let cumulativeDurations = []; // seconds
+                let progressTimer = null;
 
                 let playing = false;
                 let currentUtteranceIndex = 0;
@@ -308,18 +324,26 @@
 
                     const rate = parseFloat(document.querySelector('input[name="speed"]:checked')?.value || 1);
 
+                    perUtteranceDurations = [];
+                    cumulativeDurations = [];
+                    let cumulative = 0;
+
                     while (idx < chapterText.length) {
                         const piece = chapterText.slice(idx, idx + maxLen);
                         const u = new SpeechSynthesisUtterance(piece);
                         u.lang = 'en-US';
                         u.rate = rate;
+                        // estimate duration for this piece
+                        const wc = piece.split(/\s+/).filter(Boolean).length;
+                        const dur = (wc / 150) * (1 / rate);
+                        perUtteranceDurations.push(dur);
+                        cumulative += dur;
+                        cumulativeDurations.push(cumulative);
                         allUtterances.push(u);
                         idx += maxLen;
                     }
 
-                    // Estimate duration (rough estimate: ~150 words per minute)
-                    const wordCount = chapterText ? chapterText.split(/\s+/).length : 0;
-                    totalDuration = Math.round((wordCount / 150) * (1 / rate));
+                    totalDuration = Math.round(cumulative);
                     durationSpan.textContent = formatTime(totalDuration);
                     updateProgress();
                 }
@@ -340,18 +364,22 @@
                     if (currentUtteranceIndex < allUtterances.length && playing) {
                         const u = allUtterances[currentUtteranceIndex];
                         u.onend = () => {
+                            // advance to next utterance
                             currentUtteranceIndex++;
-                            currentTime += u.text.split(/\s+/).length / 150 * (1 / u.rate);
+                            // update currentTime to cumulative for finished utterances
+                            currentTime = cumulativeDurations[currentUtteranceIndex - 1] || 0;
                             updateProgress();
                             speakNext();
                         };
                         u.onerror = (e) => {
                             console.error('TTS error', e);
                             playing = false;
+                            stopProgressTimer();
                         };
                         synth.speak(u);
                     } else if (currentUtteranceIndex >= allUtterances.length && playing) {
                         playing = false;
+                        stopProgressTimer();
                         playBtn.innerHTML = '<i class="fas fa-play me-2"></i> Play Chapter ' + chapterNum;
                         playBtn.disabled = false;
                     }
@@ -370,10 +398,12 @@
                         }
                         synth.resume();
                         speakNext();
+                        startProgressTimer();
                         playBtn.innerHTML = '<i class="fas fa-pause me-2"></i> Pause';
                     } else {
                         synth.pause();
                         playing = false;
+                        stopProgressTimer();
                         playBtn.innerHTML = '<i class="fas fa-play me-2"></i> Play Chapter ' + chapterNum;
                     }
                 });
@@ -385,72 +415,71 @@
                         if (allUtterances.length > 0) {
                             allUtterances.forEach(u => u.rate = newSpeed);
                         }
-                        // Recalculate estimated duration
+                        // Recalculate estimated duration using perUtterance recalculation
                         const wordCount = chapterText ? chapterText.split(/\s+/).length : 0;
                         totalDuration = Math.round((wordCount / 150) * (1 / newSpeed));
                         durationSpan.textContent = formatTime(totalDuration);
                     });
                 });
 
-                // Download: record via MediaRecorder while synthesizing
-                downloadBtn.addEventListener('click', () => {
-                    recordedChunks = [];
-                    recordAudioAndDownload();
+                // Download via server-side TTS endpoint
+                downloadBtn.addEventListener('click', async () => {
+                    try {
+                        const url = `/download/chapter/${bookSlug}/${chapterNum}?version=${selectedVersion}`;
+                        window.open(url, '_blank');
+                    } catch (e) {
+                        console.error('Download failed', e);
+                        alert('Download failed. See console for details.');
+                    }
                 });
 
-                async function recordAudioAndDownload() {
-                    try {
-                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        const dest = audioContext.createMediaStreamDestination();
-                        const mediaRecorder = new MediaRecorder(dest.stream);
-                        mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
-                        mediaRecorder.onstop = () => {
-                            const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-                            downloadAudio(blob);
-                        };
-
-                        // Start recording
-                        mediaRecorder.start();
-
-                        // speak temp utterances
-                        const tempUtterances = [];
-                        const maxLen = 2000;
-                        let idx = 0;
-                        const rate = parseFloat(document.querySelector('input[name="speed"]:checked')?.value || 1);
-                        while (idx < chapterText.length) {
-                            const piece = chapterText.slice(idx, idx + maxLen);
-                            const u = new SpeechSynthesisUtterance(piece);
-                            u.lang = 'en-US';
-                            u.rate = rate;
-                            tempUtterances.push(u);
-                            idx += maxLen;
-                        }
-
-                        let ri = 0;
-                        const next = () => {
-                            if (ri < tempUtterances.length) {
-                                const u = tempUtterances[ri];
-                                u.onend = () => { ri++; next(); };
-                                synth.speak(u);
-                            } else {
-                                setTimeout(() => mediaRecorder.stop(), 500);
-                            }
-                        };
-                        next();
-                    } catch (e) {
-                        console.error('Recording failed', e);
+                // Seek helper - set time (seconds) within chapter
+                function seekTo(seconds) {
+                    if (!cumulativeDurations.length) return;
+                    // find utterance index where cumulativeDurations[index] >= seconds
+                    let idx = cumulativeDurations.findIndex(c => c >= seconds);
+                    if (idx === -1) idx = cumulativeDurations.length - 1;
+                    currentUtteranceIndex = Math.max(0, idx);
+                    currentTime = Math.max(0, Math.min(seconds, totalDuration));
+                    // restart speaking at new index if playing
+                    synth.cancel();
+                    if (playing) {
+                        speakNext();
                     }
+                    updateProgress();
                 }
 
-                function downloadAudio(blob) {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${bookSlug}${chapterNum}.mp3`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
+                // Progress click to seek
+                progressContainer.addEventListener('click', (e) => {
+                    const rect = progressContainer.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const pct = x / rect.width;
+                    const target = pct * totalDuration;
+                    seekTo(target);
+                });
+
+                // skip buttons
+                skipBackBtn.addEventListener('click', () => {
+                    seekTo(Math.max(0, currentTime - 10));
+                });
+                skipForwardBtn.addEventListener('click', () => {
+                    seekTo(Math.min(totalDuration, currentTime + 10));
+                });
+
+                function startProgressTimer() {
+                    if (progressTimer) return;
+                    progressTimer = setInterval(() => {
+                        // small increment for smoother UI; keep within bounds
+                        currentTime = Math.min(totalDuration, currentTime + 0.5);
+                        updateProgress();
+                    }, 500);
+                }
+
+                function stopProgressTimer() {
+                    if (progressTimer) {
+                        clearInterval(progressTimer);
+                        progressTimer = null;
+                    }
                 }
 
                 // Load chapter on page load
