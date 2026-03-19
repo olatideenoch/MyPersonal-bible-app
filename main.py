@@ -15,21 +15,37 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Determine which TTS backends are available in the current environment.
+# Note: gTTS requires outbound network access to Google TTS servers.
+_GTTS_AVAILABLE = False
 _PYDUB_AVAILABLE = False
 _PYTTSX3_AVAILABLE = False
+_pydub_which = None
+
 try:
     from gtts import gTTS
+    _GTTS_AVAILABLE = True
+except Exception:
+    _GTTS_AVAILABLE = False
+
+try:
     from pydub import AudioSegment
     from pydub.utils import which as pydub_which
     _PYDUB_AVAILABLE = True
 except Exception:
     _PYDUB_AVAILABLE = False
+    pydub_which = None
 
 try:
     import pyttsx3
     _PYTTSX3_AVAILABLE = True
 except Exception:
     _PYTTSX3_AVAILABLE = False
+
+# Allow forcing a specific backend in deployment (e.g. "pyttsx3" to avoid gTTS/network use)
+_TTS_BACKEND = os.environ.get('TTS_BACKEND', 'auto').strip().lower()
+if _TTS_BACKEND not in ('auto', 'gtts', 'pyttsx3'):
+    _TTS_BACKEND = 'auto'
 
 app = Flask(__name__)
 
@@ -489,7 +505,11 @@ Message:
                 smtp.send_message(msg)
         return True, 'Your message was sent successfully. Thank you!'
     except Exception as e:
-        return False, f'Failed to send email: {e}'
+        # Provide a more helpful error when network connectivity fails
+        hint = ''
+        if hasattr(e, 'errno') and e.errno in (101, 110, 113):
+            hint = ' (network unreachable or connection refused; check firewall/Internet access)'
+        return False, f'Failed to send email: {e}{hint} (host={mail_host} port={mail_port})'
 
 
 @app.route('/contact', methods=['GET', 'POST'])
@@ -605,69 +625,106 @@ def api_chapter(book_name, chapter):
 def _generate_tts_audio(text: str, filename_base: str):
     """Generate an audio response from the given text.
 
-    - If gTTS + pydub + ffmpeg are available, generates MP3.
-    - Otherwise, falls back to pyttsx3 (WAV).
+    Backends:
+      - auto (default): try gTTS first, then fallback to pyttsx3
+      - gtts: only use gTTS (requires network access)
+      - pyttsx3: only use local pyttsx3 (requires system speech support)
 
     """
-    if not (_PYDUB_AVAILABLE or _PYTTSX3_AVAILABLE):
-        return jsonify({'error': 'Server-side TTS not available. Install gTTS + pydub + ffmpeg, or pyttsx3 (offline).'}), 501
 
-    # Prefer MP3 (gTTS + pydub) when available
-    if _PYDUB_AVAILABLE:
-        ffmpeg_path = pydub_which('ffmpeg')
-        if ffmpeg_path:
-            tmpdir = tempfile.mkdtemp(prefix='tts_')
-            try:
-                # Split into manageable chunks for gTTS
-                max_chars = 2500
-                idx = 0
-                count = 0
-                files = []
-                while idx < len(text):
-                    piece = text[idx: idx + max_chars]
-                    idx += max_chars
-                    count += 1
-                    fname = os.path.join(tmpdir, f'part_{count}.mp3')
-                    tts = gTTS(text=piece, lang='en')
-                    tts.save(fname)
-                    files.append(fname)
+    use_gtts = _GTTS_AVAILABLE and _TTS_BACKEND in ('auto', 'gtts')
+    use_pyttsx3 = _PYTTSX3_AVAILABLE and _TTS_BACKEND in ('auto', 'pyttsx3')
 
-                combined = None
-                for f in files:
-                    seg = AudioSegment.from_file(f, format='mp3')
-                    combined = seg if combined is None else combined + seg
+    if not (use_gtts or use_pyttsx3):
+        return jsonify({
+            'error': 'Server-side TTS not available.',
+            'details': (
+                'No supported TTS backend is available. Install gTTS (network) or pyttsx3 (offline), '
+                'and ensure required system packages (ffmpeg/espeak) are present.'
+            )
+        }), 501
 
-                out_io = io.BytesIO()
-                combined.export(out_io, format='mp3')
-                out_io.seek(0)
+    last_error = None
 
-                return send_file(out_io, download_name=f"{filename_base}.mp3", mimetype='audio/mpeg')
-            finally:
+    # Try gTTS (preferred in auto mode) if configured
+    if use_gtts:
+        # If pydub + ffmpeg exist, chunk long text and stitch
+        if _PYDUB_AVAILABLE and _pydub_which:
+            ffmpeg_path = _pydub_which('ffmpeg')
+            if ffmpeg_path:
+                tmpdir = tempfile.mkdtemp(prefix='tts_')
                 try:
-                    shutil.rmtree(tmpdir)
-                except Exception:
-                    pass
-        else:
-            if not _PYTTSX3_AVAILABLE:
-                return jsonify({'error': 'ffmpeg not found on server. Install ffmpeg to enable MP3 generation.'}), 501
+                    max_chars = 2500
+                    idx = 0
+                    count = 0
+                    files = []
+                    while idx < len(text):
+                        piece = text[idx: idx + max_chars]
+                        idx += max_chars
+                        count += 1
+                        fname = os.path.join(tmpdir, f'part_{count}.mp3')
+                        tts = gTTS(text=piece, lang='en')
+                        tts.save(fname)
+                        files.append(fname)
 
-    # Fallback to pyttsx3 if MP3 path isn't available
-    if _PYTTSX3_AVAILABLE:
+                    combined = None
+                    for f in files:
+                        seg = AudioSegment.from_file(f, format='mp3')
+                        combined = seg if combined is None else combined + seg
+
+                    out_io = io.BytesIO()
+                    combined.export(out_io, format='mp3')
+                    out_io.seek(0)
+
+                    return send_file(out_io, download_name=f"{filename_base}.mp3", mimetype='audio/mpeg')
+                except Exception as e:
+                    last_error = e
+                finally:
+                    try:
+                        shutil.rmtree(tmpdir)
+                    except Exception:
+                        pass
+            else:
+                last_error = RuntimeError('ffmpeg not found on server')
+
+        # If gTTS did not succeed, try a simple (non-chunked) gTTS run.
+        if last_error is not None or (_PYDUB_AVAILABLE and not _pydub_which):
+            try:
+                tmpdir = tempfile.mkdtemp(prefix='tts_')
+                try:
+                    fname = os.path.join(tmpdir, f"{filename_base}.mp3")
+                    tts = gTTS(text=text, lang='en')
+                    tts.save(fname)
+                    return send_file(fname, download_name=f"{filename_base}.mp3", mimetype='audio/mpeg')
+                finally:
+                    try:
+                        shutil.rmtree(tmpdir)
+                    except Exception:
+                        pass
+            except Exception as e:
+                last_error = e
+
+    # Fallback to pyttsx3 (offline) if gTTS is unavailable or failed
+    if use_pyttsx3:
         tmpdir = tempfile.mkdtemp(prefix='tts_')
         try:
             wav_path = os.path.join(tmpdir, f"{filename_base}.wav")
             engine = pyttsx3.init()
             engine.save_to_file(text, wav_path)
             engine.runAndWait()
-
             return send_file(wav_path, download_name=f"{filename_base}.wav", mimetype='audio/wav')
+        except Exception as e:
+            last_error = e
         finally:
             try:
                 shutil.rmtree(tmpdir)
             except Exception:
                 pass
 
-    return jsonify({'error': 'Unable to generate audio.'}), 500
+    error_payload = {'error': 'Unable to generate audio.'}
+    if last_error:
+        error_payload['details'] = str(last_error)
+    return jsonify(error_payload), 500
 
 
 @app.route('/download/chapter/<book_name>/<int:chapter>')
