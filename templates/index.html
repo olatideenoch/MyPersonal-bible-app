@@ -136,6 +136,7 @@
                     <li class="nav-item"><a class="nav-link" href="#daily">Daily Verse</a></li>
                     <li class="nav-item"><a class="nav-link" href="#search">Search</a></li>
                     <li class="nav-item"><a class="nav-link" href="#books">Books</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
                 </ul>
             </div>
         </div>
@@ -205,6 +206,49 @@
         </div>
     </section>
 
+    <!-- Quick Verse Lookup -->
+    <section id="quick-lookup" class="py-5 bg-white">
+        <div class="container col-11">
+            <h2 class="text-center section-title mb-4">Quick Verse Lookup</h2>
+            <p class="text-center text-muted mb-4">Instantly view a specific verse or verse range (e.g., Psalm 36:2-4).</p>
+
+            <div class="card p-4 shadow-sm">
+                <form id="quickLookupForm" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="qlBook" class="form-label">Book</label>
+                        <select id="qlBook" class="form-select" required>
+                            <option value="" disabled selected>Select a book</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="qlChapter" class="form-label">Chapter</label>
+                        <select id="qlChapter" class="form-select" disabled required>
+                            <option value="" disabled selected>Select chapter</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="qlVerseRange" class="form-label">Verse (or range)</label>
+                        <input id="qlVerseRange" type="text" class="form-control" placeholder="e.g. 2 or 2-4" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="qlVersion" class="form-label">Version</label>
+                        <select id="qlVersion" class="form-select" required>
+                            <option value="" disabled selected>Select version</option>
+                        </select>
+                    </div>
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-success">Lookup Verse</button>
+                    </div>
+                    <div class="col-12">
+                        <div id="qlMessage" class="alert d-none" role="alert"></div>
+                    </div>
+                </form>
+
+                <div id="quickLookupResults" class="mt-4"></div>
+            </div>
+        </div>
+    </section>
+
     <!-- Books -->
     <section id="books" class="py-5">
         <div class="container col-11">
@@ -231,11 +275,176 @@
     <!-- Footer -->
     <footer>
         <div class="container text-center">
-            <p>&copy; {{ current_year }} MyPersonal Bible App • Made with 🤍 by Olatide Enoch.</p>
+            <p class="mt-3">&copy; {{ current_year }} MyPersonal Bible App • Made with reverence for the Holy Scriptures</p>
         </div>
     </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Expose book & version metadata to JS
+        const BIBLE_BOOKS = {{ books | default([]) | tojson | safe }};
+        const BIBLE_VERSIONS = {{ versions | default([]) | tojson | safe }};
+
+        const qlBook = document.getElementById('qlBook');
+        const qlChapter = document.getElementById('qlChapter');
+        const qlVerseRange = document.getElementById('qlVerseRange');
+        const qlVersion = document.getElementById('qlVersion');
+        const qlMessage = document.getElementById('qlMessage');
+        const qlResults = document.getElementById('quickLookupResults');
+
+        function showQlMessage(message, type = 'danger') {
+            qlMessage.className = `alert alert-${type}`;
+            qlMessage.textContent = message;
+            qlMessage.classList.remove('d-none');
+        }
+
+        function clearQlMessage() {
+            qlMessage.className = 'alert d-none';
+            qlMessage.textContent = '';
+        }
+
+        function buildChapterOptions(bookName) {
+            const book = BIBLE_BOOKS.find(b => b.name.toLowerCase() === bookName.toLowerCase());
+            qlChapter.innerHTML = '<option value="" disabled selected>Select chapter</option>';
+            if (!book) {
+                qlChapter.disabled = true;
+                return;
+            }
+            for (let i = 1; i <= book.chapters; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = i;
+                qlChapter.appendChild(opt);
+            }
+            qlChapter.disabled = false;
+        }
+
+        function buildVersionOptions() {
+            qlVersion.innerHTML = '<option value="" disabled selected>Select version</option>';
+            for (const v of BIBLE_VERSIONS) {
+                const opt = document.createElement('option');
+                opt.value = v.id;
+                opt.textContent = v.version;
+                qlVersion.appendChild(opt);
+            }
+            // default to first version if none selected
+            if (qlVersion.options.length > 1) {
+                qlVersion.selectedIndex = 1;
+            }
+        }
+
+        function parseVerseRange(range) {
+            if (!range) return null;
+            range = range.trim();
+            const parts = range.split('-').map(p => p.trim()).filter(Boolean);
+            if (parts.length === 0) return null;
+            const start = parseInt(parts[0], 10);
+            const end = parts.length > 1 ? parseInt(parts[1], 10) : start;
+            if (Number.isNaN(start) || Number.isNaN(end)) return null;
+            return {
+                start: Math.max(1, start),
+                end: Math.max(start, end)
+            };
+        }
+
+        function verseNumberFromItem(item) {
+            if (!item) return NaN;
+            if (item.verse) {
+                const n = parseInt(item.verse, 10);
+                if (!Number.isNaN(n)) return n;
+            }
+            if (item.reference) {
+                const m = item.reference.match(/:(\d+)\b/);
+                if (m) return parseInt(m[1], 10);
+            }
+            return NaN;
+        }
+
+        function renderVerseCards(verses, downloadUrl) {
+            if (!verses || verses.length === 0) {
+                qlResults.innerHTML = '<div class="alert alert-info">No matching verses found for that range.</div>';
+                return;
+            }
+
+            const downloadButton = downloadUrl ? `
+                <div class="d-flex justify-content-end mb-3">
+                    <a class="btn btn-primary" href="${downloadUrl}">
+                        <i class="fas fa-download me-2"></i>Download audio
+                    </a>
+                </div>
+            ` : '';
+
+            const html = verses.map(v => {
+                const ref = v.reference || `${v.book || ''} ${v.chapter || ''}:${v.verse || ''}`;
+                return `
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card p-4 shadow-sm mb-3">
+                            <p class="verse-text mb-3">${v.text}</p>
+                            <p class="reference text-end mb-0">${ref}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            qlResults.innerHTML = `${downloadButton}<div class="row g-4">${html}</div>`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Populate book/chapter/version dropdowns
+            BIBLE_BOOKS.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b.name;
+                opt.textContent = b.name;
+                qlBook.appendChild(opt);
+            });
+
+            buildVersionOptions();
+
+            qlBook.addEventListener('change', (event) => {
+                buildChapterOptions(event.target.value);
+                clearQlMessage();
+                qlResults.innerHTML = '';
+            });
+
+            document.getElementById('quickLookupForm').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                clearQlMessage();
+                qlResults.innerHTML = '';
+
+                const book = qlBook.value;
+                const chapter = qlChapter.value;
+                const version = qlVersion.value;
+                const range = parseVerseRange(qlVerseRange.value);
+
+                if (!book || !chapter || !range) {
+                    showQlMessage('Please select a book, chapter, and enter a valid verse or verse range.', 'warning');
+                    return;
+                }
+
+                const url = `/api/chapter/${encodeURIComponent(book)}/${encodeURIComponent(chapter)}?version=${encodeURIComponent(version)}`;
+
+                try {
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    if (!res.ok) {
+                        showQlMessage(data.error || 'Unable to fetch chapter data.', 'danger');
+                        return;
+                    }
+                    const verses = (data.verses || []).map(v => ({ ...v, book: data.book, chapter: data.chapter }));
+                    const filtered = verses.filter(v => {
+                        const num = verseNumberFromItem(v);
+                        return num >= range.start && num <= range.end;
+                    });
+
+                    const downloadUrl = `/download/verse/${encodeURIComponent(book)}/${encodeURIComponent(chapter)}?version=${encodeURIComponent(version)}&start=${range.start}&end=${range.end}`;
+                    renderVerseCards(filtered, downloadUrl);
+                } catch (err) {
+                    showQlMessage('Failed to fetch verse data. Please try again.', 'danger');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

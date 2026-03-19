@@ -7,8 +7,16 @@ import io
 import tempfile
 import shutil
 import re
+import smtplib
+from email.message import EmailMessage
+from email.utils import formataddr
 
-# Optional server-side TTS/concatenation
+from dotenv import load_dotenv
+
+load_dotenv()
+
+_PYDUB_AVAILABLE = False
+_PYTTSX3_AVAILABLE = False
 try:
     from gtts import gTTS
     from pydub import AudioSegment
@@ -16,6 +24,12 @@ try:
     _PYDUB_AVAILABLE = True
 except Exception:
     _PYDUB_AVAILABLE = False
+
+try:
+    import pyttsx3
+    _PYTTSX3_AVAILABLE = True
+except Exception:
+    _PYTTSX3_AVAILABLE = False
 
 app = Flask(__name__)
 
@@ -368,7 +382,8 @@ def index():
     return render_template("index.html",
                            current_year=dt.datetime.now().year,
                            daily_verse=daily_verse,
-                           books=BIBLE_BOOKS)
+                           books=BIBLE_BOOKS,
+                           versions=VERSION_LIST)
 
 @app.route("/search", methods=["GET", "POST"])
 def search():
@@ -417,9 +432,107 @@ def search():
                            current_year=dt.datetime.now().year,
                            daily_verse=daily_verse,
                            books=BIBLE_BOOKS,
+                           versions=VERSION_LIST,
                            search_results=search_results,
                            search_performed=search_performed,
                            query=query)
+
+
+def _sanitize_header_value(value: str) -> str:
+    if not value:
+        return ''
+    return value.replace('\r', '').replace('\n', '').strip()
+
+
+def _send_contact_email(sender_name: str, sender_email: str, subject: str, message: str):
+    mail_host = os.environ.get('MAIL_HOST')
+    mail_port = int(os.environ.get('MAIL_PORT'))
+    mail_user = os.environ.get('MAIL_USERNAME') 
+    mail_pass = os.environ.get('MAIL_PASSWORD')
+    mail_to = os.environ.get('MAIL_TO') 
+    use_tls = os.environ.get('MAIL_USE_TLS', 'false').lower() in ('1', 'true', 'yes')
+    use_ssl = os.environ.get('MAIL_USE_SSL', 'true').lower() in ('1', 'true', 'yes')
+
+    if not mail_user or not mail_pass:
+        return False, 'Email sending is not configured. Set MAIL_USERNAME and MAIL_PASSWORD in the environment.'
+
+    safe_name = _sanitize_header_value(sender_name)
+    safe_email = _sanitize_header_value(sender_email)
+    safe_subject = _sanitize_header_value(subject) or 'New contact message'
+
+    msg = EmailMessage()
+    msg['Subject'] = f"[MyPersonalBibleApp] {safe_subject}"
+    msg['From'] = formataddr((safe_name or 'Contact Form', mail_user))
+    msg['To'] = mail_to
+    if safe_email:
+        msg['Reply-To'] = safe_email
+
+    body = f"""Name: {safe_name or '(not provided)'}
+Email: {safe_email or '(not provided)'}
+Subject: {safe_subject}
+
+Message:
+{message}
+"""
+    msg.set_content(body)
+
+    try:
+        if use_ssl:
+            with smtplib.SMTP_SSL(mail_host, mail_port, timeout=10) as smtp:
+                smtp.login(mail_user, mail_pass)
+                smtp.send_message(msg)
+        else:
+            with smtplib.SMTP(mail_host, mail_port, timeout=10) as smtp:
+                if use_tls:
+                    smtp.starttls()
+                smtp.login(mail_user, mail_pass)
+                smtp.send_message(msg)
+        return True, 'Your message was sent successfully. Thank you!'
+    except Exception as e:
+        return False, f'Failed to send email: {e}'
+
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    """Render a contact form and send email on submission."""
+    form_data = {
+        'name': '',
+        'email': '',
+        'subject': '',
+        'message': ''
+    }
+    status_message = None
+    status_type = 'info'
+
+    if request.method == 'POST':
+        form_data['name'] = request.form.get('name', '').strip()
+        form_data['email'] = request.form.get('email', '').strip()
+        form_data['subject'] = request.form.get('subject', '').strip()
+        form_data['message'] = request.form.get('message', '').strip()
+
+        if not form_data['email'] or not form_data['message']:
+            status_type = 'warning'
+            status_message = 'Please provide both your email address and a message.'
+        else:
+            success, msg = _send_contact_email(
+                sender_name=form_data['name'],
+                sender_email=form_data['email'],
+                subject=form_data['subject'],
+                message=form_data['message'],
+            )
+            status_type = 'success' if success else 'danger'
+            status_message = msg
+            if success:
+                # Clear the form so user can send another message if desired
+                form_data = {'name': '', 'email': '', 'subject': '', 'message': ''}
+
+    return render_template(
+        'contact.html',
+        current_year=dt.datetime.now().year,
+        status_message=status_message,
+        status_type=status_type,
+        form_data=form_data
+    )
 
 @app.route("/books/<book_name>", methods=["GET", "POST"])
 def books(book_name):
@@ -489,15 +602,77 @@ def api_chapter(book_name, chapter):
         return jsonify({'error': 'Request failed'}), 500
 
 
+def _generate_tts_audio(text: str, filename_base: str):
+    """Generate an audio response from the given text.
+
+    - If gTTS + pydub + ffmpeg are available, generates MP3.
+    - Otherwise, falls back to pyttsx3 (WAV).
+
+    """
+    if not (_PYDUB_AVAILABLE or _PYTTSX3_AVAILABLE):
+        return jsonify({'error': 'Server-side TTS not available. Install gTTS + pydub + ffmpeg, or pyttsx3 (offline).'}), 501
+
+    # Prefer MP3 (gTTS + pydub) when available
+    if _PYDUB_AVAILABLE:
+        ffmpeg_path = pydub_which('ffmpeg')
+        if ffmpeg_path:
+            tmpdir = tempfile.mkdtemp(prefix='tts_')
+            try:
+                # Split into manageable chunks for gTTS
+                max_chars = 2500
+                idx = 0
+                count = 0
+                files = []
+                while idx < len(text):
+                    piece = text[idx: idx + max_chars]
+                    idx += max_chars
+                    count += 1
+                    fname = os.path.join(tmpdir, f'part_{count}.mp3')
+                    tts = gTTS(text=piece, lang='en')
+                    tts.save(fname)
+                    files.append(fname)
+
+                combined = None
+                for f in files:
+                    seg = AudioSegment.from_file(f, format='mp3')
+                    combined = seg if combined is None else combined + seg
+
+                out_io = io.BytesIO()
+                combined.export(out_io, format='mp3')
+                out_io.seek(0)
+
+                return send_file(out_io, download_name=f"{filename_base}.mp3", mimetype='audio/mpeg')
+            finally:
+                try:
+                    shutil.rmtree(tmpdir)
+                except Exception:
+                    pass
+        else:
+            if not _PYTTSX3_AVAILABLE:
+                return jsonify({'error': 'ffmpeg not found on server. Install ffmpeg to enable MP3 generation.'}), 501
+
+    # Fallback to pyttsx3 if MP3 path isn't available
+    if _PYTTSX3_AVAILABLE:
+        tmpdir = tempfile.mkdtemp(prefix='tts_')
+        try:
+            wav_path = os.path.join(tmpdir, f"{filename_base}.wav")
+            engine = pyttsx3.init()
+            engine.save_to_file(text, wav_path)
+            engine.runAndWait()
+
+            return send_file(wav_path, download_name=f"{filename_base}.wav", mimetype='audio/wav')
+        finally:
+            try:
+                shutil.rmtree(tmpdir)
+            except Exception:
+                pass
+
+    return jsonify({'error': 'Unable to generate audio.'}), 500
+
+
 @app.route('/download/chapter/<book_name>/<int:chapter>')
 def download_chapter(book_name, chapter):
-    """Generate an MP3 for the chapter server-side (gTTS + pydub).
-    This requires `gtts` and `pydub` and an ffmpeg binary available to pydub.
-    If not available, returns a 501 with instructions.
-    """
-    if not _PYDUB_AVAILABLE:
-        return jsonify({'error': 'Server-side TTS not available. Install gTTS and pydub with ffmpeg.'}), 501
-
+    """Generate an audio file for the chapter server-side."""
     selected_version = request.args.get('version', 'en-kjv')
     url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{selected_version}/books/{book_name.lower()}/chapters/{chapter}.json"
     try:
@@ -510,49 +685,55 @@ def download_chapter(book_name, chapter):
         verses = [{**v, 'text': clean_text(v.get('text', ''))} for v in raw_verses]
         chapter_text = ' '.join([v.get('text', '').strip() for v in verses])
 
-        # Check ffmpeg
-        ffmpeg_path = pydub_which('ffmpeg')
-        if not ffmpeg_path:
-            return jsonify({'error': 'ffmpeg not found on server. Install ffmpeg to enable MP3 generation.'}), 501
+        filename_base = f"{book_name.title().replace('-', '').replace(' ', '')}{chapter}"
+        return _generate_tts_audio(chapter_text, filename_base)
+    except Exception as e:
+        print(f"Download generation failed: {e}")
+        return jsonify({'error': 'Generation failed'}), 500
 
-        # Create temporary directory for chunk mp3s
-        tmpdir = tempfile.mkdtemp(prefix='tts_')
-        files = []
-        try:
-            # Split into reasonable chunks for gTTS
-            max_chars = 2500
-            idx = 0
-            count = 0
-            while idx < len(chapter_text):
-                piece = chapter_text[idx: idx + max_chars]
-                idx += max_chars
-                count += 1
-                fname = os.path.join(tmpdir, f'part_{count}.mp3')
-                tts = gTTS(text=piece, lang='en')
-                tts.save(fname)
-                files.append(fname)
 
-            # Concatenate using pydub
-            combined = None
-            for f in files:
-                seg = AudioSegment.from_file(f, format='mp3')
-                if combined is None:
-                    combined = seg
-                else:
-                    combined += seg
+@app.route('/download/verse/<book_name>/<int:chapter>')
+def download_verse_range(book_name, chapter):
+    """Generate an audio file for a verse (or verse range) in a chapter."""
+    start = request.args.get('start')
+    end = request.args.get('end', start)
+    selected_version = request.args.get('version', 'en-kjv')
 
-            out_io = io.BytesIO()
-            combined.export(out_io, format='mp3')
-            out_io.seek(0)
+    try:
+        start_n = int(start)
+        end_n = int(end or start)
+    except Exception:
+        return jsonify({'error': 'Invalid verse range parameters.'}), 400
 
-            filename = f"{book_name.title().replace('-', '').replace(' ', '')}{chapter}.mp3"
-            return send_file(out_io, download_name=filename, mimetype='audio/mpeg')
-        finally:
+    if start_n < 1 or end_n < start_n:
+        return jsonify({'error': 'Invalid verse range values.'}), 400
+
+    url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{selected_version}/books/{book_name.lower()}/chapters/{chapter}.json"
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code != 200:
+            return jsonify({'error': 'Chapter not found'}), 404
+        data = response.json()
+        raw_verses = data.get('data', [])
+        raw_verses = dedupe_verses(raw_verses)
+        verses = [{**v, 'text': clean_text(v.get('text', ''))} for v in raw_verses]
+
+        # Filter verses in the requested range
+        filtered = []
+        for v in verses:
             try:
-                shutil.rmtree(tmpdir)
+                num = int(v.get('verse') or 0)
             except Exception:
-                pass
+                num = 0
+            if num >= start_n and num <= end_n:
+                filtered.append(v)
 
+        if not filtered:
+            return jsonify({'error': 'No verses found for that range.'}), 404
+
+        text = ' '.join([v.get('text', '').strip() for v in filtered])
+        filename_base = f"{book_name.title().replace('-', '').replace(' ', '')}{chapter}_{start_n}-{end_n}"
+        return _generate_tts_audio(text, filename_base)
     except Exception as e:
         print(f"Download generation failed: {e}")
         return jsonify({'error': 'Generation failed'}), 500

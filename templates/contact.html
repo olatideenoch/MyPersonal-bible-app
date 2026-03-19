@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - MyPersonal Bible App</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Google Fonts: Crimson Text (serif for verses), Lora for headings -->
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Crimson Text', serif;
+            background-color: #f5f0e6;
+            color: #3c2f2f;
+            min-height: 100vh;
+        }
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        }
+        .navbar-brand {
+            font-family: 'Lora', serif;
+            font-size: 1.8rem;
+            color: #5d4037 !important;
+        }
+        .page-header {
+            background: linear-gradient(rgba(101, 115, 95, 0.8), rgba(198, 216, 157, 0.8)), url('../static/img/bg-1.jpg') no-repeat center/cover;
+            color: white;
+            padding: 100px 0 100px;
+            text-align: center;
+        }
+        .page-header h1 {
+            font-family: 'Lora', serif;
+            font-size: 3.5rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .section-title {
+            font-family: 'Lora', serif;
+            color: #5d4037;
+            position: relative;
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+        .section-title::after {
+            content: '';
+            width: 80px;
+            height: 3px;
+            background: #8d9b6a;
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .contact-card {
+            background: white;
+            border-radius: 18px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-cross text-success me-2"></i>MyPersonal Bible App
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#daily">Daily Verse</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#search">Search</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#books">Books</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('contact') }}">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1 class="head-center">Get in Touch</h1>
+            <p class="mt-3 lead">Have feedback or want to discuss sponsorship? Send your message below.</p>
+        </div>
+    </section>
+
+    <!-- Contact Form -->
+    <section class="py-5">
+        <div class="container col-10">
+            <div class="contact-card mx-auto">
+                {% if status_message %}
+                    <div class="alert alert-{{ status_type }}">
+                        <h4 class="alert-heading">{% if status_type == 'success' %}Thank you!{% else %}Heads up{% endif %}</h4>
+                        <p>{{ status_message }}</p>
+                    </div>
+                {% endif %}
+
+                <h2 class="text-center section-title mb-4">Contact</h2>
+                <form method="POST" action="{{ url_for('contact') }}">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Your Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ form_data.name }}" placeholder="Enter your name">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ form_data.email }}" placeholder="you@example.com" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="subject" class="form-label">Subject</label>
+                            <select class="form-select" id="subject" name="subject">
+                                <option value="" {% if not form_data.subject %}selected{% endif %}>Choose one...</option>
+                                <option value="Feedback" {% if form_data.subject == 'Feedback' %}selected{% endif %}>Feedback</option>
+                                <option value="Sponsorship" {% if form_data.subject == 'Sponsorship' %}selected{% endif %}>Sponsorship</option>
+                                <option value="Other" {% if form_data.subject == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea class="form-control" id="message" name="message" rows="6" placeholder="Write your message here..." required>{{ form_data.message }}</textarea>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Send Message
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="mt-4 text-center text-muted">
+                    <p>Prefer to email directly? You can reach me at <a href="mailto:mypersonalbibleapp@gmail.com" class="text-decoration-none">mypersonalbibleapp@gmail.com</a>.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container text-center">
+            <p class="mt-3">&copy; {{ current_year }} MyPersonal Bible App • Made with reverence for the Holy Scriptures</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
