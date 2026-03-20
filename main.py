@@ -10,23 +10,68 @@ import re
 import smtplib
 import ssl
 import socket
-import asyncio
 from email.message import EmailMessage
 from email.utils import formataddr
 from typing import List
 
 from dotenv import load_dotenv
 
+# Piper TTS & audio conversion
+from piper.voice import PiperVoice
+from pydub import AudioSegment
+
 load_dotenv()
 
-# Import edge-tts for audio generation
-try:
-    import edge_tts
-    _EDGE_TTS_AVAILABLE = True
-except Exception:
-    _EDGE_TTS_AVAILABLE = False
-
 app = Flask(__name__)
+
+# Piper TTS setup – load once when needed
+PIPER_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "en_US-lessac-medium.onnx")
+
+_piper_voice = None
+
+def get_piper_voice():
+    global _piper_voice
+    if _piper_voice is None:
+        if not os.path.exists(PIPER_MODEL_PATH):
+            raise RuntimeError(
+                f"Piper model not found at {PIPER_MODEL_PATH}. "
+                "Please download the model and place it in the 'models' folder."
+            )
+        _piper_voice = PiperVoice.load(PIPER_MODEL_PATH)
+    return _piper_voice
+
+def generate_audio_piper(text: str, output_path: str, add_silence_between_sentences_ms: int = 400):
+    """
+    Generate MP3 from text using Piper TTS.
+    Handles long chapters reasonably well.
+    Uses pydub to export to MP3.
+    """
+    if not text.strip():
+        return False
+
+    voice = get_piper_voice()
+    
+    # Piper synthesizes to WAV → convert to MP3
+    temp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
+    
+    try:
+        with open(temp_wav, "wb") as f:
+            voice.synthesize(text, f)
+        
+        audio = AudioSegment.from_wav(temp_wav)
+        audio.export(output_path, format="mp3", bitrate="128k")
+        return True
+    
+    except Exception as e:
+        print(f"Piper TTS error: {e}")
+        return False
+    
+    finally:
+        if os.path.exists(temp_wav):
+            try:
+                os.unlink(temp_wav)
+            except:
+                pass
 
 # List of inspirational verses for "Verse of the Day" (randomly picked)
 DAILY_VERSES = [
@@ -235,7 +280,7 @@ VERSION_LIST = [
     {"id": "grc-srgnt", "version": "SBL Greek New Testament"},
     {"id": "grc-byz1904", "version": "Byzantine Greek New Testament 1904"},
     {"id": "grc-tcgnt", "version": "Textus Receptus Greek New Testament"},
-    {"id": "grc-grctr", "version": "Tischendorf Greek New Testament"},
+    {"id": "grc-tischendorf", "version": "Tischendorf Greek New Testament"},
     {"id": "grc-f35", "version": "Family 35 Greek New Testament"},
     {"id": "en-engbrent", "version": "Brenton English Septuagint"},
     {"id": "en-US-lxxup", "version": "Lexham English Septuagint"},
@@ -290,153 +335,24 @@ VERSION_LIST = [
     {"id": "pes-opcb", "version": "Persian Old Persian Catholic Bible"}
 ]
 
-async def text_to_speech_edge_simple(text: str, output_path: str, voice: str = "en-US-AriaNeural"):
-    """
-    Convert text to speech using edge-tts
-    Perfect for Render deployment - no system dependencies!
-    """
-    try:
-        communicate = edge_tts.Communicate(text, voice)
-        await communicate.save(output_path)
-        return True
-    except Exception as e:
-        print(f"Error generating audio: {e}")
-        return False
-
-
-def split_text_intelligently(text: str, max_length: int) -> List[str]:
-    """
-    Split text at sentence boundaries to avoid awkward cuts
-    Perfect for long chapters like Psalm 119
-    """
-    # Replace sentence endings with a marker
-    for delimiter in ['. ', '! ', '? ', '.\n', '!\n', '?\n']:
-        text = text.replace(delimiter, delimiter.strip() + '|||')
-    
-    parts = [p.strip() for p in text.split('|||') if p.strip()]
-    
-    chunks = []
-    current = ""
-    
-    for part in parts:
-        if len(current) + len(part) <= max_length:
-            current += " " + part
-        else:
-            if current:
-                chunks.append(current.strip())
-            current = part
-    
-    if current:
-        chunks.append(current.strip())
-    
-    return chunks if chunks else [text]
-
-
-async def text_to_speech_with_chunking(text: str, output_path: str, voice: str = "en-US-AriaNeural"):
-    """
-    For very long texts (like Psalm 119), split into chunks and combine
-    Uses edge-tts - works perfectly on Render for chapters up to 10,000+ characters!
-    """
-    MAX_LENGTH = 5000  # Edge-TTS can handle much longer texts than gTTS
-    
-    if len(text) <= MAX_LENGTH:
-        # Short text, generate directly
-        return await text_to_speech_edge_simple(text, output_path, voice)
-    
-    # For long texts, split smartly
-    chunks = split_text_intelligently(text, MAX_LENGTH)
-    print(f"Split text into {len(chunks)} chunks for audio generation")
-    
-    # Create temp directory
-    temp_dir = tempfile.mkdtemp(prefix='edge_tts_')
-    
-    try:
-        # Generate each chunk
-        chunk_files = []
-        for i, chunk in enumerate(chunks):
-            chunk_path = os.path.join(temp_dir, f"chunk_{i}.mp3")
-            communicate = edge_tts.Communicate(chunk, voice)
-            await communicate.save(chunk_path)
-            chunk_files.append(chunk_path)
-            print(f"Generated chunk {i+1}/{len(chunks)}")
-        
-        # Concatenate MP3 files (binary concatenation works for MP3)
-        with open(output_path, 'wb') as outfile:
-            for chunk_file in chunk_files:
-                with open(chunk_file, 'rb') as infile:
-                    outfile.write(infile.read())
-        
-        print(f"Successfully combined {len(chunk_files)} chunks into {output_path}")
-        return True
-        
-    except Exception as e:
-        print(f"Error in chunking: {e}")
-        return False
-        
-    finally:
-        # Cleanup temporary files
-        for f in chunk_files:
-            if os.path.exists(f):
-                try:
-                    os.remove(f)
-                except Exception as e:
-                    print(f"Could not remove temp file {f}: {e}")
-        try:
-            os.rmdir(temp_dir)
-        except Exception as e:
-            print(f"Could not remove temp dir {temp_dir}: {e}")
-
 def clean_text(text: str) -> str:
-    """Clean verse text from API using regex:
-    - remove zero-width/control characters
-    - strip bracketed footnotes/markers like [1], {note}, <...>
-    - replace punctuation stuck between words with a single space
-    - collapse multiple whitespace to single spaces
-    - remove simple HTML entities
-    """
+    """Clean verse text from API using regex"""
     if not text:
         return text
 
-    # Remove verse footnote numbers like 12.1
     text = re.sub(r'\b\d+\.\d+\b', '', text)
-
-    # Remove translator notes (Heb., Gr., etc.)
     text = re.sub(r'\b(Heb|Gr|Lat)\.\s*[^.;]*', '', text)
-
-    # Remove alternate translation notes starting with "or,"
     text = re.sub(r'\bor,\s*[^.;]*', '', text)
-
-    # Remove bracketed or parenthesis commentary
     text = re.sub(r'\(.*?\)|\[.*?\]', '', text)
-
-    # Remove ellipsis artifacts
     text = text.replace('…', '')
-
-    # Fix spacing around punctuation
     text = re.sub(r'\s+([.,;:])', r'\1', text)
-
-    # Collapse multiple spaces
     text = re.sub(r'\s+', ' ', text)
-
-    # Remove stray punctuation leftovers
     text = re.sub(r'\s+[.;:]', '', text)
-    
-    # Remove zero-width and BOM characters
     text = re.sub(r'[\u200B-\u200F\uFEFF]', '', text)
-
-    # Replace HTML entities with a space
     text = re.sub(r'&[#A-Za-z0-9]+;', ' ', text)
-
-    # Remove bracketed footnotes or inline markers
     text = re.sub(r"\[.*?\]|\{.*?\}|<.*?>", ' ', text)
-
-    # Replace non-word punctuation between word characters with a space
     text = re.sub(r'(?<=\w)[^\w\s]+(?=\w)', ' ', text)
-
-    # Remove any remaining unusual non-word sequences (keep basic sentence punctuation)
     text = re.sub(r"[^\w\s\.\,\?\!\;\:\'\-]", ' ', text)
-
-    # Collapse whitespace and trim
     text = re.sub(r'\s+', ' ', text).strip()
 
     dot_pos = text.find('.')
@@ -454,8 +370,7 @@ def clean_text(text: str) -> str:
 
 
 def dedupe_verses(raw_verses: list) -> list:
-    """Remove duplicate verse entries while preserving order.
-    """
+    """Remove duplicate verse entries while preserving order."""
     seen = set()
     out = []
     for v in raw_verses:
@@ -493,7 +408,6 @@ def search():
     
     if query:
         try:
-            # Search using the REST API Bible endpoint (KJV version)
             search_url = f"https://rest.api.bible/v1/bibles/9879dbb7cfe39e4d-01/search?query={query}"
             response = requests.get(search_url, headers=headers)
             
@@ -501,7 +415,6 @@ def search():
                 data = response.json()
                 search_results = []
                 
-                # Extract verses from search results
                 if "data" in data and "verses" in data["data"]:
                     for verse in data["data"]["verses"]:
                         cleaned = clean_text(verse.get("text", ""))
@@ -580,11 +493,9 @@ Message:
                 smtp.send_message(msg)
         return True, 'Your message was sent successfully. Thank you!'
     except Exception as e:
-        # Provide better hints for common SMTP failure modes.
         hint = ''
         msg = str(e).lower()
 
-        # Common network/connectivity failures
         if hasattr(e, 'errno') and e.errno in (101, 110, 113):
             hint = ' (network unreachable or connection refused; check firewall/Internet access)'
         elif isinstance(e, socket.timeout) or 'timed out' in msg:
@@ -599,7 +510,6 @@ Message:
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
-    """Render a contact form and send email on submission."""
     form_data = {
         'name': '',
         'email': '',
@@ -628,7 +538,6 @@ def contact():
             status_type = 'success' if success else 'danger'
             status_message = msg
             if success:
-                # Clear the form so user can send another message if desired
                 form_data = {'name': '', 'email': '', 'subject': '', 'message': ''}
 
     return render_template(
@@ -682,9 +591,6 @@ def books(book_name):
 
 @app.route('/api/chapter/<book_name>/<int:chapter>')
 def api_chapter(book_name, chapter):
-    """Return chapter data as JSON so the client can fetch large text
-    without embedding it into the page HTML.
-    """
     selected_version = request.args.get('version', 'en-kjv')
     url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{selected_version}/books/{book_name.lower()}/chapters/{chapter}.json"
     try:
@@ -707,17 +613,10 @@ def api_chapter(book_name, chapter):
         print(f"API chapter fetch failed: {e}")
         return jsonify({'error': 'Request failed'}), 500
 
+
 @app.route('/download/chapter/<book_name>/<int:chapter>')
 def download_chapter(book_name, chapter):
-
-    if not _EDGE_TTS_AVAILABLE:
-        return jsonify({
-            'error': 'Audio generation not available',
-            'details': 'edge-tts is not installed. Please install it: pip install edge-tts'
-        }), 501
-    
     selected_version = request.args.get('version', 'en-kjv')
-    voice = request.args.get('voice', 'en-US-AriaNeural')
     
     url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{selected_version}/books/{book_name.lower()}/chapters/{chapter}.json"
     
@@ -735,21 +634,12 @@ def download_chapter(book_name, chapter):
         if not chapter_text:
             return jsonify({'error': 'No text available for this chapter'}), 404
         
-        # Create temp directory
         temp_dir = tempfile.mkdtemp(prefix='bible_audio_')
-        
         try:
-            # Generate safe filename
             filename_base = f"{book_name.title().replace('-', '').replace(' ', '')}{chapter}"
             output_path = os.path.join(temp_dir, f"{filename_base}.mp3")
             
-            # Generate audio with chunking (handles long chapters)
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            success = loop.run_until_complete(
-                text_to_speech_with_chunking(chapter_text, output_path, voice)
-            )
-            loop.close()
+            success = generate_audio_piper(chapter_text, output_path)
             
             if success and os.path.exists(output_path):
                 return send_file(
@@ -759,33 +649,24 @@ def download_chapter(book_name, chapter):
                     as_attachment=True
                 )
             else:
-                return jsonify({'error': 'Failed to generate audio'}), 500
+                return jsonify({'error': 'Failed to generate audio with Piper TTS'}), 500
                 
         finally:
-            # Cleanup temp directory after file is sent
             try:
                 shutil.rmtree(temp_dir)
             except Exception as e:
-                print(f"Could not clean up temp dir: {e}")
+                print(f"Cleanup failed: {e}")
                 
     except Exception as e:
-        print(f"Download generation failed: {e}")
+        print(f"Chapter download failed: {e}")
         return jsonify({'error': f'Generation failed: {str(e)}'}), 500
 
 
 @app.route('/download/verse/<book_name>/<int:chapter>')
 def download_verse_range(book_name, chapter):
-
-    if not _EDGE_TTS_AVAILABLE:
-        return jsonify({
-            'error': 'Audio generation not available',
-            'details': 'edge-tts is not installed. Please install it: pip install edge-tts'
-        }), 501
-    
     start = request.args.get('start')
     end = request.args.get('end', start)
     selected_version = request.args.get('version', 'en-kjv')
-    voice = request.args.get('voice', 'en-US-AriaNeural')
 
     try:
         start_n = int(start)
@@ -808,35 +689,19 @@ def download_verse_range(book_name, chapter):
         raw_verses = dedupe_verses(raw_verses)
         verses = [{**v, 'text': clean_text(v.get('text', ''))} for v in raw_verses]
 
-        # Filter verses in the requested range
-        filtered = []
-        for v in verses:
-            try:
-                num = int(v.get('verse') or 0)
-            except Exception:
-                num = 0
-            if num >= start_n and num <= end_n:
-                filtered.append(v)
+        filtered = [v for v in verses if start_n <= int(v.get('verse') or 0) <= end_n]
 
         if not filtered:
             return jsonify({'error': 'No verses found for that range.'}), 404
 
         text = ' '.join([v.get('text', '').strip() for v in filtered])
         
-        # Create temp directory
         temp_dir = tempfile.mkdtemp(prefix='bible_audio_')
-        
         try:
             filename_base = f"{book_name.title().replace('-', '').replace(' ', '')}{chapter}_{start_n}-{end_n}"
             output_path = os.path.join(temp_dir, f"{filename_base}.mp3")
             
-            # Generate audio
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            success = loop.run_until_complete(
-                text_to_speech_with_chunking(text, output_path, voice)
-            )
-            loop.close()
+            success = generate_audio_piper(text, output_path)
             
             if success and os.path.exists(output_path):
                 return send_file(
@@ -852,10 +717,10 @@ def download_verse_range(book_name, chapter):
             try:
                 shutil.rmtree(temp_dir)
             except Exception as e:
-                print(f"Could not clean up temp dir: {e}")
+                print(f"Cleanup failed: {e}")
                 
     except Exception as e:
-        print(f"Download generation failed: {e}")
+        print(f"Verse range download failed: {e}")
         return jsonify({'error': f'Generation failed: {str(e)}'}), 500
 
 
