@@ -8,44 +8,23 @@ import tempfile
 import shutil
 import re
 import smtplib
+import ssl
+import socket
+import asyncio
 from email.message import EmailMessage
 from email.utils import formataddr
+from typing import List
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Determine which TTS backends are available in the current environment.
-# Note: gTTS requires outbound network access to Google TTS servers.
-_GTTS_AVAILABLE = False
-_PYDUB_AVAILABLE = False
-_PYTTSX3_AVAILABLE = False
-_pydub_which = None
-
+# Import edge-tts for audio generation
 try:
-    from gtts import gTTS
-    _GTTS_AVAILABLE = True
+    import edge_tts
+    _EDGE_TTS_AVAILABLE = True
 except Exception:
-    _GTTS_AVAILABLE = False
-
-try:
-    from pydub import AudioSegment
-    from pydub.utils import which as pydub_which
-    _PYDUB_AVAILABLE = True
-except Exception:
-    _PYDUB_AVAILABLE = False
-    pydub_which = None
-
-try:
-    import pyttsx3
-    _PYTTSX3_AVAILABLE = True
-except Exception:
-    _PYTTSX3_AVAILABLE = False
-
-# Allow forcing a specific backend in deployment (e.g. "pyttsx3" to avoid gTTS/network use)
-_TTS_BACKEND = os.environ.get('TTS_BACKEND', 'auto').strip().lower()
-if _TTS_BACKEND not in ('auto', 'gtts', 'pyttsx3'):
-    _TTS_BACKEND = 'auto'
+    _EDGE_TTS_AVAILABLE = False
 
 app = Flask(__name__)
 
@@ -311,6 +290,101 @@ VERSION_LIST = [
     {"id": "pes-opcb", "version": "Persian Old Persian Catholic Bible"}
 ]
 
+async def text_to_speech_edge_simple(text: str, output_path: str, voice: str = "en-US-AriaNeural"):
+    """
+    Convert text to speech using edge-tts
+    Perfect for Render deployment - no system dependencies!
+    """
+    try:
+        communicate = edge_tts.Communicate(text, voice)
+        await communicate.save(output_path)
+        return True
+    except Exception as e:
+        print(f"Error generating audio: {e}")
+        return False
+
+
+def split_text_intelligently(text: str, max_length: int) -> List[str]:
+    """
+    Split text at sentence boundaries to avoid awkward cuts
+    Perfect for long chapters like Psalm 119
+    """
+    # Replace sentence endings with a marker
+    for delimiter in ['. ', '! ', '? ', '.\n', '!\n', '?\n']:
+        text = text.replace(delimiter, delimiter.strip() + '|||')
+    
+    parts = [p.strip() for p in text.split('|||') if p.strip()]
+    
+    chunks = []
+    current = ""
+    
+    for part in parts:
+        if len(current) + len(part) <= max_length:
+            current += " " + part
+        else:
+            if current:
+                chunks.append(current.strip())
+            current = part
+    
+    if current:
+        chunks.append(current.strip())
+    
+    return chunks if chunks else [text]
+
+
+async def text_to_speech_with_chunking(text: str, output_path: str, voice: str = "en-US-AriaNeural"):
+    """
+    For very long texts (like Psalm 119), split into chunks and combine
+    Uses edge-tts - works perfectly on Render for chapters up to 10,000+ characters!
+    """
+    MAX_LENGTH = 5000  # Edge-TTS can handle much longer texts than gTTS
+    
+    if len(text) <= MAX_LENGTH:
+        # Short text, generate directly
+        return await text_to_speech_edge_simple(text, output_path, voice)
+    
+    # For long texts, split smartly
+    chunks = split_text_intelligently(text, MAX_LENGTH)
+    print(f"Split text into {len(chunks)} chunks for audio generation")
+    
+    # Create temp directory
+    temp_dir = tempfile.mkdtemp(prefix='edge_tts_')
+    
+    try:
+        # Generate each chunk
+        chunk_files = []
+        for i, chunk in enumerate(chunks):
+            chunk_path = os.path.join(temp_dir, f"chunk_{i}.mp3")
+            communicate = edge_tts.Communicate(chunk, voice)
+            await communicate.save(chunk_path)
+            chunk_files.append(chunk_path)
+            print(f"Generated chunk {i+1}/{len(chunks)}")
+        
+        # Concatenate MP3 files (binary concatenation works for MP3)
+        with open(output_path, 'wb') as outfile:
+            for chunk_file in chunk_files:
+                with open(chunk_file, 'rb') as infile:
+                    outfile.write(infile.read())
+        
+        print(f"Successfully combined {len(chunk_files)} chunks into {output_path}")
+        return True
+        
+    except Exception as e:
+        print(f"Error in chunking: {e}")
+        return False
+        
+    finally:
+        # Cleanup temporary files
+        for f in chunk_files:
+            if os.path.exists(f):
+                try:
+                    os.remove(f)
+                except Exception as e:
+                    print(f"Could not remove temp file {f}: {e}")
+        try:
+            os.rmdir(temp_dir)
+        except Exception as e:
+            print(f"Could not remove temp dir {temp_dir}: {e}")
 
 def clean_text(text: str) -> str:
     """Clean verse text from API using regex:
@@ -401,6 +475,7 @@ def index():
                            books=BIBLE_BOOKS,
                            versions=VERSION_LIST)
 
+
 @app.route("/search", methods=["GET", "POST"])
 def search():
     api_key = os.environ.get("API_KEY")
@@ -466,8 +541,8 @@ def _send_contact_email(sender_name: str, sender_email: str, subject: str, messa
     mail_user = os.environ.get('MAIL_USERNAME') 
     mail_pass = os.environ.get('MAIL_PASSWORD')
     mail_to = os.environ.get('MAIL_TO') 
-    use_tls = os.environ.get('MAIL_USE_TLS', 'false').lower() in ('1', 'true', 'yes')
-    use_ssl = os.environ.get('MAIL_USE_SSL', 'true').lower() in ('1', 'true', 'yes')
+    use_tls = os.environ.get('MAIL_USE_TLS', 'true').lower() in ('1', 'true', 'yes')
+    use_ssl = os.environ.get('MAIL_USE_SSL', 'false').lower() in ('1', 'true', 'yes')
 
     if not mail_user or not mail_pass:
         return False, 'Email sending is not configured. Set MAIL_USERNAME and MAIL_PASSWORD in the environment.'
@@ -505,10 +580,20 @@ Message:
                 smtp.send_message(msg)
         return True, 'Your message was sent successfully. Thank you!'
     except Exception as e:
-        # Provide a more helpful error when network connectivity fails
+        # Provide better hints for common SMTP failure modes.
         hint = ''
+        msg = str(e).lower()
+
+        # Common network/connectivity failures
         if hasattr(e, 'errno') and e.errno in (101, 110, 113):
             hint = ' (network unreachable or connection refused; check firewall/Internet access)'
+        elif isinstance(e, socket.timeout) or 'timed out' in msg:
+            hint = ' (timeout; check that your server can reach the SMTP host and port, and that outbound SMTP is allowed)' 
+        elif isinstance(e, ssl.SSLError) or 'handshake' in msg:
+            hint = ' (SSL/TLS handshake failed; verify port/SSL settings and that the SMTP host supports the chosen SSL/TLS mode)' 
+        elif isinstance(e, smtplib.SMTPAuthenticationError):
+            hint = ' (authentication failed; check username/password or use an app password if using Gmail with 2FA)' 
+
         return False, f'Failed to send email: {e}{hint} (host={mail_host} port={mail_port})'
 
 
@@ -553,6 +638,7 @@ def contact():
         status_type=status_type,
         form_data=form_data
     )
+
 
 @app.route("/books/<book_name>", methods=["GET", "POST"])
 def books(book_name):
@@ -621,140 +707,85 @@ def api_chapter(book_name, chapter):
         print(f"API chapter fetch failed: {e}")
         return jsonify({'error': 'Request failed'}), 500
 
-
-def _generate_tts_audio(text: str, filename_base: str):
-    """Generate an audio response from the given text.
-
-    Backends:
-      - auto (default): try gTTS first, then fallback to pyttsx3
-      - gtts: only use gTTS (requires network access)
-      - pyttsx3: only use local pyttsx3 (requires system speech support)
-
-    """
-
-    use_gtts = _GTTS_AVAILABLE and _TTS_BACKEND in ('auto', 'gtts')
-    use_pyttsx3 = _PYTTSX3_AVAILABLE and _TTS_BACKEND in ('auto', 'pyttsx3')
-
-    if not (use_gtts or use_pyttsx3):
-        return jsonify({
-            'error': 'Server-side TTS not available.',
-            'details': (
-                'No supported TTS backend is available. Install gTTS (network) or pyttsx3 (offline), '
-                'and ensure required system packages (ffmpeg/espeak) are present.'
-            )
-        }), 501
-
-    last_error = None
-
-    # Try gTTS (preferred in auto mode) if configured
-    if use_gtts:
-        # If pydub + ffmpeg exist, chunk long text and stitch
-        if _PYDUB_AVAILABLE and _pydub_which:
-            ffmpeg_path = _pydub_which('ffmpeg')
-            if ffmpeg_path:
-                tmpdir = tempfile.mkdtemp(prefix='tts_')
-                try:
-                    max_chars = 2500
-                    idx = 0
-                    count = 0
-                    files = []
-                    while idx < len(text):
-                        piece = text[idx: idx + max_chars]
-                        idx += max_chars
-                        count += 1
-                        fname = os.path.join(tmpdir, f'part_{count}.mp3')
-                        tts = gTTS(text=piece, lang='en')
-                        tts.save(fname)
-                        files.append(fname)
-
-                    combined = None
-                    for f in files:
-                        seg = AudioSegment.from_file(f, format='mp3')
-                        combined = seg if combined is None else combined + seg
-
-                    out_io = io.BytesIO()
-                    combined.export(out_io, format='mp3')
-                    out_io.seek(0)
-
-                    return send_file(out_io, download_name=f"{filename_base}.mp3", mimetype='audio/mpeg')
-                except Exception as e:
-                    last_error = e
-                finally:
-                    try:
-                        shutil.rmtree(tmpdir)
-                    except Exception:
-                        pass
-            else:
-                last_error = RuntimeError('ffmpeg not found on server')
-
-        # If gTTS did not succeed, try a simple (non-chunked) gTTS run.
-        if last_error is not None or (_PYDUB_AVAILABLE and not _pydub_which):
-            try:
-                tmpdir = tempfile.mkdtemp(prefix='tts_')
-                try:
-                    fname = os.path.join(tmpdir, f"{filename_base}.mp3")
-                    tts = gTTS(text=text, lang='en')
-                    tts.save(fname)
-                    return send_file(fname, download_name=f"{filename_base}.mp3", mimetype='audio/mpeg')
-                finally:
-                    try:
-                        shutil.rmtree(tmpdir)
-                    except Exception:
-                        pass
-            except Exception as e:
-                last_error = e
-
-    # Fallback to pyttsx3 (offline) if gTTS is unavailable or failed
-    if use_pyttsx3:
-        tmpdir = tempfile.mkdtemp(prefix='tts_')
-        try:
-            wav_path = os.path.join(tmpdir, f"{filename_base}.wav")
-            engine = pyttsx3.init()
-            engine.save_to_file(text, wav_path)
-            engine.runAndWait()
-            return send_file(wav_path, download_name=f"{filename_base}.wav", mimetype='audio/wav')
-        except Exception as e:
-            last_error = e
-        finally:
-            try:
-                shutil.rmtree(tmpdir)
-            except Exception:
-                pass
-
-    error_payload = {'error': 'Unable to generate audio.'}
-    if last_error:
-        error_payload['details'] = str(last_error)
-    return jsonify(error_payload), 500
-
-
 @app.route('/download/chapter/<book_name>/<int:chapter>')
 def download_chapter(book_name, chapter):
-    """Generate an audio file for the chapter server-side."""
+
+    if not _EDGE_TTS_AVAILABLE:
+        return jsonify({
+            'error': 'Audio generation not available',
+            'details': 'edge-tts is not installed. Please install it: pip install edge-tts'
+        }), 501
+    
     selected_version = request.args.get('version', 'en-kjv')
+    voice = request.args.get('voice', 'en-US-AriaNeural')
+    
     url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{selected_version}/books/{book_name.lower()}/chapters/{chapter}.json"
+    
     try:
         response = requests.get(url, timeout=10)
         if response.status_code != 200:
             return jsonify({'error': 'Chapter not found'}), 404
+        
         data = response.json()
         raw_verses = data.get('data', [])
         raw_verses = dedupe_verses(raw_verses)
         verses = [{**v, 'text': clean_text(v.get('text', ''))} for v in raw_verses]
         chapter_text = ' '.join([v.get('text', '').strip() for v in verses])
-
-        filename_base = f"{book_name.title().replace('-', '').replace(' ', '')}{chapter}"
-        return _generate_tts_audio(chapter_text, filename_base)
+        
+        if not chapter_text:
+            return jsonify({'error': 'No text available for this chapter'}), 404
+        
+        # Create temp directory
+        temp_dir = tempfile.mkdtemp(prefix='bible_audio_')
+        
+        try:
+            # Generate safe filename
+            filename_base = f"{book_name.title().replace('-', '').replace(' ', '')}{chapter}"
+            output_path = os.path.join(temp_dir, f"{filename_base}.mp3")
+            
+            # Generate audio with chunking (handles long chapters)
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            success = loop.run_until_complete(
+                text_to_speech_with_chunking(chapter_text, output_path, voice)
+            )
+            loop.close()
+            
+            if success and os.path.exists(output_path):
+                return send_file(
+                    output_path,
+                    download_name=f"{filename_base}.mp3",
+                    mimetype='audio/mpeg',
+                    as_attachment=True
+                )
+            else:
+                return jsonify({'error': 'Failed to generate audio'}), 500
+                
+        finally:
+            # Cleanup temp directory after file is sent
+            try:
+                shutil.rmtree(temp_dir)
+            except Exception as e:
+                print(f"Could not clean up temp dir: {e}")
+                
     except Exception as e:
         print(f"Download generation failed: {e}")
-        return jsonify({'error': 'Generation failed'}), 500
+        return jsonify({'error': f'Generation failed: {str(e)}'}), 500
 
 
 @app.route('/download/verse/<book_name>/<int:chapter>')
 def download_verse_range(book_name, chapter):
-    """Generate an audio file for a verse (or verse range) in a chapter."""
+
+    if not _EDGE_TTS_AVAILABLE:
+        return jsonify({
+            'error': 'Audio generation not available',
+            'details': 'edge-tts is not installed. Please install it: pip install edge-tts'
+        }), 501
+    
     start = request.args.get('start')
     end = request.args.get('end', start)
     selected_version = request.args.get('version', 'en-kjv')
+    voice = request.args.get('voice', 'en-US-AriaNeural')
 
     try:
         start_n = int(start)
@@ -766,10 +797,12 @@ def download_verse_range(book_name, chapter):
         return jsonify({'error': 'Invalid verse range values.'}), 400
 
     url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{selected_version}/books/{book_name.lower()}/chapters/{chapter}.json"
+    
     try:
         response = requests.get(url, timeout=10)
         if response.status_code != 200:
             return jsonify({'error': 'Chapter not found'}), 404
+        
         data = response.json()
         raw_verses = data.get('data', [])
         raw_verses = dedupe_verses(raw_verses)
@@ -789,11 +822,42 @@ def download_verse_range(book_name, chapter):
             return jsonify({'error': 'No verses found for that range.'}), 404
 
         text = ' '.join([v.get('text', '').strip() for v in filtered])
-        filename_base = f"{book_name.title().replace('-', '').replace(' ', '')}{chapter}_{start_n}-{end_n}"
-        return _generate_tts_audio(text, filename_base)
+        
+        # Create temp directory
+        temp_dir = tempfile.mkdtemp(prefix='bible_audio_')
+        
+        try:
+            filename_base = f"{book_name.title().replace('-', '').replace(' ', '')}{chapter}_{start_n}-{end_n}"
+            output_path = os.path.join(temp_dir, f"{filename_base}.mp3")
+            
+            # Generate audio
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            success = loop.run_until_complete(
+                text_to_speech_with_chunking(text, output_path, voice)
+            )
+            loop.close()
+            
+            if success and os.path.exists(output_path):
+                return send_file(
+                    output_path,
+                    download_name=f"{filename_base}.mp3",
+                    mimetype='audio/mpeg',
+                    as_attachment=True
+                )
+            else:
+                return jsonify({'error': 'Failed to generate audio'}), 500
+                
+        finally:
+            try:
+                shutil.rmtree(temp_dir)
+            except Exception as e:
+                print(f"Could not clean up temp dir: {e}")
+                
     except Exception as e:
         print(f"Download generation failed: {e}")
-        return jsonify({'error': 'Generation failed'}), 500
+        return jsonify({'error': f'Generation failed: {str(e)}'}), 500
+
 
 if __name__ == "__main__":
     app.run(debug=True)
