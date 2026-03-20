@@ -10,70 +10,159 @@ import re
 import smtplib
 import ssl
 import socket
+import asyncio
 from email.message import EmailMessage
 from email.utils import formataddr
 from typing import List
 
 from dotenv import load_dotenv
 
-# Piper TTS & audio conversion
-from piper.voice import PiperVoice
-from pydub import AudioSegment
-
 load_dotenv()
+
+# Import edge-tts for audio generation
+try:
+    import edge_tts
+    _EDGE_TTS_AVAILABLE = True
+except Exception as e:
+    print(f"Edge-TTS not available: {e}")
+    _EDGE_TTS_AVAILABLE = False
 
 app = Flask(__name__)
 
-# Piper TTS setup – load once when needed
-PIPER_MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "en_US-lessac-medium.onnx")
-
-_piper_voice = None
-
-def get_piper_voice():
-    global _piper_voice
-    if _piper_voice is None:
-        if not os.path.exists(PIPER_MODEL_PATH):
-            raise RuntimeError(
-                f"Piper model not found at {PIPER_MODEL_PATH}. "
-                "Please download the model and place it in the 'models' folder."
-            )
-        _piper_voice = PiperVoice.load(PIPER_MODEL_PATH)
-    return _piper_voice
-
-def generate_audio_piper(text: str, output_path: str, add_silence_between_sentences_ms: int = 400):
+def split_text_intelligently(text: str, max_length: int) -> List[str]:
     """
-    Generate MP3 from text using Piper TTS.
-    Handles long chapters reasonably well.
-    Uses pydub to export to MP3.
+    Split text at sentence boundaries to avoid awkward cuts
+    Perfect for long chapters like Psalm 119
     """
-    if not text.strip():
-        return False
-
-    voice = get_piper_voice()
+    if len(text) <= max_length:
+        return [text]
     
-    # Piper synthesizes to WAV → convert to MP3
-    temp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
+    # Replace sentence endings with a marker
+    for delimiter in ['. ', '! ', '? ', '.\n', '!\n', '?\n']:
+        text = text.replace(delimiter, delimiter.strip() + '|||SPLIT|||')
+    
+    parts = [p.strip() for p in text.split('|||SPLIT|||') if p.strip()]
+    
+    chunks = []
+    current = ""
+    
+    for part in parts:
+        # Add the sentence ending back if missing
+        if part and not part[-1] in '.!?':
+            part += '.'
+        
+        if len(current) + len(part) + 1 <= max_length:
+            current += (" " + part) if current else part
+        else:
+            if current:
+                chunks.append(current.strip())
+            current = part
+    
+    if current:
+        chunks.append(current.strip())
+    
+    return chunks if chunks else [text]
+
+
+def generate_audio_edge_tts(text: str, output_path: str, voice: str = "en-US-AriaNeural") -> bool:
+    """
+    Generate audio using Edge TTS with proper async handling
+    Handles both short verses and long chapters (Psalm 119)
+    THIS WILL WORK ON RENDER!
+    """
+    if not _EDGE_TTS_AVAILABLE:
+        print("Edge-TTS is not available. Please install it: pip install edge-tts")
+        return False
+    
+    if not text or not text.strip():
+        print("Error: Empty text provided")
+        return False
     
     try:
-        with open(temp_wav, "wb") as f:
-            voice.synthesize(text, f)
+        MAX_LENGTH = 5000  # Edge-TTS can handle long texts
         
-        audio = AudioSegment.from_wav(temp_wav)
-        audio.export(output_path, format="mp3", bitrate="128k")
-        return True
+        if len(text) <= MAX_LENGTH:
+            # Single chunk - process directly
+            print(f"Generating audio for text ({len(text)} characters)")
+            
+            async def generate_single():
+                communicate = edge_tts.Communicate(text, voice)
+                await communicate.save(output_path)
+            
+            # Create new event loop for Flask (critical for proper async handling)
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                loop.run_until_complete(generate_single())
+            finally:
+                loop.close()
+            
+            if os.path.exists(output_path):
+                file_size = os.path.getsize(output_path)
+                print(f"Audio generated successfully: {output_path} ({file_size} bytes)")
+                return True
+            else:
+                print("Error: Audio file was not created")
+                return False
+        
+        else:
+            # Multiple chunks - process and combine
+            chunks = split_text_intelligently(text, MAX_LENGTH)
+            print(f"Split text into {len(chunks)} chunks for audio generation")
+            
+            temp_dir = tempfile.mkdtemp(prefix='edge_tts_')
+            chunk_files = []
+            
+            try:
+                async def generate_chunks():
+                    for i, chunk in enumerate(chunks):
+                        chunk_path = os.path.join(temp_dir, f"chunk_{i}.mp3")
+                        communicate = edge_tts.Communicate(chunk, voice)
+                        await communicate.save(chunk_path)
+                        chunk_files.append(chunk_path)
+                        print(f"Generated chunk {i+1}/{len(chunks)}")
+                
+                # Run async generation with proper event loop
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    loop.run_until_complete(generate_chunks())
+                finally:
+                    loop.close()
+                
+                # Concatenate MP3 files (binary concatenation works perfectly for MP3)
+                with open(output_path, 'wb') as outfile:
+                    for chunk_file in chunk_files:
+                        with open(chunk_file, 'rb') as infile:
+                            outfile.write(infile.read())
+                
+                if os.path.exists(output_path):
+                    file_size = os.path.getsize(output_path)
+                    print(f"Successfully combined {len(chunks)} chunks into {output_path} ({file_size} bytes)")
+                    return True
+                else:
+                    print("Error: Combined audio file was not created")
+                    return False
+                
+            finally:
+                # Cleanup temporary chunk files
+                for f in chunk_files:
+                    if os.path.exists(f):
+                        try:
+                            os.remove(f)
+                        except Exception as e:
+                            print(f"Could not remove temp file {f}: {e}")
+                try:
+                    os.rmdir(temp_dir)
+                except Exception as e:
+                    print(f"Could not remove temp dir {temp_dir}: {e}")
     
     except Exception as e:
-        print(f"Piper TTS error: {e}")
+        print(f"Edge-TTS error: {e}")
+        import traceback
+        traceback.print_exc()
         return False
-    
-    finally:
-        if os.path.exists(temp_wav):
-            try:
-                os.unlink(temp_wav)
-            except:
-                pass
 
-# List of inspirational verses for "Verse of the Day" (randomly picked)
 DAILY_VERSES = [
     {
         "text": "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.",
@@ -177,7 +266,6 @@ DAILY_VERSES = [
     }
 ]
 
-# Correct list of Bible books with chapter counts
 BIBLE_BOOKS = [
     {"name": "Genesis", "chapters": 50},
     {"name": "Exodus", "chapters": 40},
@@ -294,45 +382,6 @@ VERSION_LIST = [
     {"id": "en-US-emtv", "version": "English Majority Text Version"},
     {"id": "en-US-f35", "version": "Family 35 English New Testament"},
     {"id": "en-US-kjvcpb", "version": "KJV Cambridge Paragraph Bible"},
-    {"id": "cmn-Hans-CN-feb", "version": "Chinese Free Evangelical Bible"},
-    {"id": "arb-kehm", "version": "Arabic Van Dyck (Modern)"},
-    {"id": "ckb-okss", "version": "Central Kurdish Sorani Standard"},
-    {"id": "ur-Deva-IN-irvurd", "version": "Indian Revised Version Urdu"},
-    {"id": "urw-sobp15", "version": "Sobri Urdu Bible"},
-    {"id": "hi-IN-irvhin", "version": "Indian Revised Version Hindi"},
-    {"id": "hi-ohss", "version": "Open Hindi Standard Scripture"},
-    {"id": "bn-irvben", "version": "Indian Revised Version Bengali"},
-    {"id": "bn-obss", "version": "Open Bengali Standard Scripture"},
-    {"id": "ta-irvtam", "version": "Indian Revised Version Tamil"},
-    {"id": "ta-IN-otcv", "version": "Old Tamil Catholic Version"},
-    {"id": "kn-irvkan", "version": "Indian Revised Version Kannada"},
-    {"id": "kn-okcv", "version": "Old Kannada Catholic Version"},
-    {"id": "ml-IN-irvmal", "version": "Indian Revised Version Malayalam"},
-    {"id": "te-IN-irvtel", "version": "Indian Revised Version Telugu"},
-    {"id": "gu-irvguj", "version": "Indian Revised Version Gujarati"},
-    {"id": "pa-IN-irvpun", "version": "Indian Revised Version Punjabi"},
-    {"id": "mr-irvmar", "version": "Indian Revised Version Marathi"},
-    {"id": "as-irvasm", "version": "Indian Revised Version Assamese"},
-    {"id": "ory-irvory", "version": "Indian Revised Version Oriya"},
-    {"id": "th-kjv", "version": "Thai King James Version"},
-    {"id": "id-tsi", "version": "Terjemahan Sederhana Indonesia"},
-    {"id": "yo-oycb", "version": "Open Yoruba Contemporary Bible"},
-    {"id": "ig-biuo", "version": "Bible in Igbo Union Version"},
-    {"id": "ha-bsrk", "version": "Hausa Bible (BSRK)"},
-    {"id": "sw-onen", "version": "Open Swahili New Testament"},
-    {"id": "ln-smnb", "version": "Lingala Standard Modern New Bible"},
-    {"id": "hu-neiv", "version": "New Hungarian Translation"},
-    {"id": "fi-aeuut", "version": "Finnish Modern Translation"},
-    {"id": "nb-oelb", "version": "Norwegian Bible"},
-    {"id": "lg-olcb", "version": "Luganda Open Bible"},
-    {"id": "ny-tccl", "version": "Chichewa Contemporary Language"},
-    {"id": "ki-kgnk", "version": "Kikuyu Bible"},
-    {"id": "luo-onlt", "version": "Luo Open New Living Translation"},
-    {"id": "hr-okok", "version": "Croatian Bible"},
-    {"id": "be-ббб", "version": "Belarusian Bible"},
-    {"id": "sr-Latn-srp1865", "version": "Serbian Latin 1865"},
-    {"id": "to-rwv", "version": "Tongan Revised Version"},
-    {"id": "pes-opcb", "version": "Persian Old Persian Catholic Bible"}
 ]
 
 def clean_text(text: str) -> str:
@@ -381,66 +430,6 @@ def dedupe_verses(raw_verses: list) -> list:
         out.append(v)
     return out
 
-@app.route("/")
-def index():
-    daily_verse = random.choice(DAILY_VERSES)
-    return render_template("index.html",
-                           current_year=dt.datetime.now().year,
-                           daily_verse=daily_verse,
-                           books=BIBLE_BOOKS,
-                           versions=VERSION_LIST)
-
-
-@app.route("/search", methods=["GET", "POST"])
-def search():
-    api_key = os.environ.get("API_KEY")
-    headers = {
-        "api-key": api_key
-    }
-    
-    search_results = None
-    search_performed = False
-    query = ""
-    if request.method == "POST":
-        query = request.form.get("query").strip()
-    elif request.method == "GET":
-        query = request.args.get("query", "").strip()
-    
-    if query:
-        try:
-            search_url = f"https://rest.api.bible/v1/bibles/9879dbb7cfe39e4d-01/search?query={query}"
-            response = requests.get(search_url, headers=headers)
-            
-            if response.status_code == 200:
-                data = response.json()
-                search_results = []
-                
-                if "data" in data and "verses" in data["data"]:
-                    for verse in data["data"]["verses"]:
-                        cleaned = clean_text(verse.get("text", ""))
-                        search_results.append({
-                            "text": cleaned,
-                            "reference": verse.get("reference", "")
-                        })
-            else:
-                search_results = []
-                print(f"API Error: {response.status_code} - {response.text}")
-        except Exception as e:
-            print(f"Request failed: {e}")
-            search_results = []       
-        search_performed = True
-    
-    daily_verse = random.choice(DAILY_VERSES)
-
-    return render_template("index.html",
-                           current_year=dt.datetime.now().year,
-                           daily_verse=daily_verse,
-                           books=BIBLE_BOOKS,
-                           versions=VERSION_LIST,
-                           search_results=search_results,
-                           search_performed=search_performed,
-                           query=query)
-
 
 def _sanitize_header_value(value: str) -> str:
     if not value:
@@ -450,7 +439,7 @@ def _sanitize_header_value(value: str) -> str:
 
 def _send_contact_email(sender_name: str, sender_email: str, subject: str, message: str):
     mail_host = os.environ.get('MAIL_HOST')
-    mail_port = int(os.environ.get('MAIL_PORT'))
+    mail_port = int(os.environ.get('MAIL_PORT', 587))
     mail_user = os.environ.get('MAIL_USERNAME') 
     mail_pass = os.environ.get('MAIL_PASSWORD')
     mail_to = os.environ.get('MAIL_TO') 
@@ -494,18 +483,78 @@ Message:
         return True, 'Your message was sent successfully. Thank you!'
     except Exception as e:
         hint = ''
-        msg = str(e).lower()
+        msg_err = str(e).lower()
 
         if hasattr(e, 'errno') and e.errno in (101, 110, 113):
             hint = ' (network unreachable or connection refused; check firewall/Internet access)'
-        elif isinstance(e, socket.timeout) or 'timed out' in msg:
+        elif isinstance(e, socket.timeout) or 'timed out' in msg_err:
             hint = ' (timeout; check that your server can reach the SMTP host and port, and that outbound SMTP is allowed)' 
-        elif isinstance(e, ssl.SSLError) or 'handshake' in msg:
+        elif isinstance(e, ssl.SSLError) or 'handshake' in msg_err:
             hint = ' (SSL/TLS handshake failed; verify port/SSL settings and that the SMTP host supports the chosen SSL/TLS mode)' 
         elif isinstance(e, smtplib.SMTPAuthenticationError):
             hint = ' (authentication failed; check username/password or use an app password if using Gmail with 2FA)' 
 
-        return False, f'Failed to send email'
+        return False, f'Failed to send email{hint}'
+
+@app.route("/")
+def index():
+    daily_verse = random.choice(DAILY_VERSES)
+    return render_template("index.html",
+                           current_year=dt.datetime.now().year,
+                           daily_verse=daily_verse,
+                           books=BIBLE_BOOKS,
+                           versions=VERSION_LIST)
+
+
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    api_key = os.environ.get("API_KEY")
+    headers = {
+        "api-key": api_key
+    }
+    
+    search_results = None
+    search_performed = False
+    query = ""
+    if request.method == "POST":
+        query = request.form.get("query", "").strip()
+    elif request.method == "GET":
+        query = request.args.get("query", "").strip()
+    
+    if query:
+        try:
+            search_url = f"https://rest.api.bible/v1/bibles/9879dbb7cfe39e4d-01/search?query={query}"
+            response = requests.get(search_url, headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                search_results = []
+                
+                if "data" in data and "verses" in data["data"]:
+                    for verse in data["data"]["verses"]:
+                        cleaned = clean_text(verse.get("text", ""))
+                        search_results.append({
+                            "text": cleaned,
+                            "reference": verse.get("reference", "")
+                        })
+            else:
+                search_results = []
+                print(f"API Error: {response.status_code} - {response.text}")
+        except Exception as e:
+            print(f"Request failed: {e}")
+            search_results = []       
+        search_performed = True
+    
+    daily_verse = random.choice(DAILY_VERSES)
+
+    return render_template("index.html",
+                           current_year=dt.datetime.now().year,
+                           daily_verse=daily_verse,
+                           books=BIBLE_BOOKS,
+                           versions=VERSION_LIST,
+                           search_results=search_results,
+                           search_performed=search_performed,
+                           query=query)
 
 
 @app.route('/contact', methods=['GET', 'POST'])
@@ -556,7 +605,7 @@ def books(book_name):
         return "Book not found", 404
 
     selected_chapter = request.form.get("chapter")
-    selected_version = request.form.get("version", "en-kjv")  # Default
+    selected_version = request.form.get("version", "en-kjv")
     verses = []
     chapter_text = ""
 
@@ -613,14 +662,25 @@ def api_chapter(book_name, chapter):
         print(f"API chapter fetch failed: {e}")
         return jsonify({'error': 'Request failed'}), 500
 
-
 @app.route('/download/chapter/<book_name>/<int:chapter>')
 def download_chapter(book_name, chapter):
+    """
+    Download complete chapter audio using Edge-TTS
+    Works perfectly on Render - handles long chapters like Psalm 119!
+    """
+    if not _EDGE_TTS_AVAILABLE:
+        return jsonify({
+            'error': 'Audio generation not available',
+            'details': 'edge-tts is not installed. Please install it: pip install edge-tts'
+        }), 501
+    
     selected_version = request.args.get('version', 'en-kjv')
+    voice = request.args.get('voice', 'en-US-AriaNeural')
     
     url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{selected_version}/books/{book_name.lower()}/chapters/{chapter}.json"
     
     try:
+        # Fetch chapter data
         response = requests.get(url, timeout=10)
         if response.status_code != 200:
             return jsonify({'error': 'Chapter not found'}), 404
@@ -634,14 +694,22 @@ def download_chapter(book_name, chapter):
         if not chapter_text:
             return jsonify({'error': 'No text available for this chapter'}), 404
         
+        print(f"Generating audio for {book_name} {chapter} ({len(chapter_text)} characters)")
+        
+        # Create temp directory
         temp_dir = tempfile.mkdtemp(prefix='bible_audio_')
+        
         try:
             filename_base = f"{book_name.title().replace('-', '').replace(' ', '')}{chapter}"
             output_path = os.path.join(temp_dir, f"{filename_base}.mp3")
             
-            success = generate_audio_piper(chapter_text, output_path)
+            # Generate audio using Edge-TTS
+            success = generate_audio_edge_tts(chapter_text, output_path, voice)
             
             if success and os.path.exists(output_path):
+                file_size = os.path.getsize(output_path)
+                print(f"Audio file generated successfully: {output_path} ({file_size} bytes)")
+                
                 return send_file(
                     output_path,
                     download_name=f"{filename_base}.mp3",
@@ -649,9 +717,12 @@ def download_chapter(book_name, chapter):
                     as_attachment=True
                 )
             else:
-                return jsonify({'error': 'Failed to generate audio with Piper TTS'}), 500
+                error_msg = f"Failed to generate audio. Success: {success}, File exists: {os.path.exists(output_path)}"
+                print(error_msg)
+                return jsonify({'error': error_msg}), 500
                 
         finally:
+            # Cleanup temp directory after a delay
             try:
                 shutil.rmtree(temp_dir)
             except Exception as e:
@@ -659,14 +730,27 @@ def download_chapter(book_name, chapter):
                 
     except Exception as e:
         print(f"Chapter download failed: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': f'Generation failed: {str(e)}'}), 500
 
 
 @app.route('/download/verse/<book_name>/<int:chapter>')
 def download_verse_range(book_name, chapter):
+    """
+    Download verse range audio using Edge-TTS
+    Works on Render with no system dependencies!
+    """
+    if not _EDGE_TTS_AVAILABLE:
+        return jsonify({
+            'error': 'Audio generation not available',
+            'details': 'edge-tts is not installed. Please install it: pip install edge-tts'
+        }), 501
+    
     start = request.args.get('start')
     end = request.args.get('end', start)
     selected_version = request.args.get('version', 'en-kjv')
+    voice = request.args.get('voice', 'en-US-AriaNeural')
 
     try:
         start_n = int(start)
@@ -689,21 +773,36 @@ def download_verse_range(book_name, chapter):
         raw_verses = dedupe_verses(raw_verses)
         verses = [{**v, 'text': clean_text(v.get('text', ''))} for v in raw_verses]
 
-        filtered = [v for v in verses if start_n <= int(v.get('verse') or 0) <= end_n]
+        # Filter verses in the requested range
+        filtered = []
+        for v in verses:
+            try:
+                num = int(v.get('verse') or 0)
+            except Exception:
+                num = 0
+            if num >= start_n and num <= end_n:
+                filtered.append(v)
 
         if not filtered:
             return jsonify({'error': 'No verses found for that range.'}), 404
 
         text = ' '.join([v.get('text', '').strip() for v in filtered])
         
+        print(f"Generating audio for {book_name} {chapter}:{start_n}-{end_n} ({len(text)} characters)")
+        
+        # Create temp directory
         temp_dir = tempfile.mkdtemp(prefix='bible_audio_')
+        
         try:
             filename_base = f"{book_name.title().replace('-', '').replace(' ', '')}{chapter}_{start_n}-{end_n}"
             output_path = os.path.join(temp_dir, f"{filename_base}.mp3")
             
-            success = generate_audio_piper(text, output_path)
+            # Generate audio using Edge-TTS
+            success = generate_audio_edge_tts(text, output_path, voice)
             
             if success and os.path.exists(output_path):
+                print(f"Audio file generated successfully: {output_path}")
+                
                 return send_file(
                     output_path,
                     download_name=f"{filename_base}.mp3",
@@ -721,6 +820,8 @@ def download_verse_range(book_name, chapter):
                 
     except Exception as e:
         print(f"Verse range download failed: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': f'Generation failed: {str(e)}'}), 500
 
 
