@@ -3,5 +3,6 @@ requests==2.32.3
 gunicorn==23.0.0
 piper-tts==1.4.1
 pydub==0.25.1
+audioop-lts==0.2.2
 pyttsx3==2.90
 python-dotenv==1.0.0
