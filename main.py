@@ -505,7 +505,7 @@ Message:
         elif isinstance(e, smtplib.SMTPAuthenticationError):
             hint = ' (authentication failed; check username/password or use an app password if using Gmail with 2FA)' 
 
-        return False, f'Failed to send email: {e}{hint} (host={mail_host} port={mail_port})'
+        return False, f'Failed to send email'
 
 
 @app.route('/contact', methods=['GET', 'POST'])
