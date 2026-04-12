@@ -27,22 +27,6 @@ A beautiful, user-friendly web application for reading, searching, and exploring
 - **Email**: SMTP integration for contact form submissions
 - **Deployment**: Render.com with Gunicorn
 
-## 📁 Project Structure
-
-MyPersonal-bible-app/
-├── app.py # Main Flask application
-├── requirements.txt # Python dependencies
-├── .env # Environment variables (not tracked in git)
-├── templates/
-│ ├── index.html # Homepage with daily verse, search, and quick lookup
-│ ├── books.html # Book/chapter reading page with audio controls
-│ └── contact.html # Contact form page
-└── static/
-    - img/
-    ├── bg.jpg # Hero background image
-    └── bg-1.jpg # Page header background image
-
-
 ## 🚀 Local Development
 
 ### Prerequisites
@@ -56,6 +40,7 @@ MyPersonal-bible-app/
 ```bash
 git clone https://github.com/olatideenoch/MyPersonal-bible-app.git
 cd MyPersonal-bible-app
+```
 
 2. **Create a virtual environment**
 # Windows
@@ -74,10 +59,10 @@ pip install -r requirements.txt
 4. **Set up environment variables**
 Create a .env file in the root directory with the following variables:
 
-# Bible Search API (optional - for search functionality)
+### Bible Search API (optional - for search functionality)
 API_KEY=your_bible_api_key_here
 
-# Email Configuration (for contact form)
+### Email Configuration (for contact form)
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
 MAIL_USERNAME=your_email@gmail.com
@@ -86,7 +71,7 @@ MAIL_TO=recipient_email@gmail.com
 MAIL_USE_TLS=true
 MAIL_USE_SSL=false
 
-# Voice RSS API Key
+### Voice RSS API Key
 VOICE_RSS_API_KEY=your_voice_rss_api_key_here
 
 5. Run the app
@@ -190,7 +175,7 @@ Content-Type: application/json
 
 ## Example Responses
 
-*/api/books*
+**`/api/books`**
 
 {
   "total": 66,
@@ -205,7 +190,7 @@ Content-Type: application/json
   ]
 }
 
-*/api/daily-verse*
+**`/api/daily-verse`**
 
 {
   "date": "2024-01-15",
@@ -215,7 +200,7 @@ Content-Type: application/json
   }
 }
 
-*/api/chapter/John/3*
+**`/api/chapter/John/3`**
 
 {
   "book": "John",
@@ -238,7 +223,7 @@ Content-Type: application/json
   "verse_range": null
 }
 
-*/api/versions*
+**`/api/version`s**
 
 {
   "total": 6,
@@ -250,7 +235,7 @@ Content-Type: application/json
   ]
 }
 
-*/api/daily-verse*
+**`/api/daily-verse`**
 
 {
   "date": "2024-01-15",
@@ -260,7 +245,7 @@ Content-Type: application/json
   }
 }
 
-*/api/search?q=love*
+**`/api/search?q=love`**
 
 {
   "query": "love",
@@ -274,7 +259,7 @@ Content-Type: application/json
   ]
 }
 
-*/api/verse/John/3/16*
+**`/api/verse/John/3/16`**
 
 {
   "book": "John",
