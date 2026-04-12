@@ -59,10 +59,10 @@ pip install -r requirements.txt
 4. **Set up environment variables**
 Create a .env file in the root directory with the following variables:
 
-### Bible Search API (optional - for search functionality)
+*Bible Search API (optional - for search functionality)*
 API_KEY=your_bible_api_key_here
 
-### Email Configuration (for contact form)
+*Email Configuration (for contact form)*
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
 MAIL_USERNAME=your_email@gmail.com
@@ -71,7 +71,7 @@ MAIL_TO=recipient_email@gmail.com
 MAIL_USE_TLS=true
 MAIL_USE_SSL=false
 
-### Voice RSS API Key
+*Voice RSS API Key*
 VOICE_RSS_API_KEY=your_voice_rss_api_key_here
 
 5. Run the app
