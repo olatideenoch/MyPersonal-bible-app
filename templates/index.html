@@ -182,11 +182,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        /* ── Template data injected by Flask ─────────────────────────── */
         const BIBLE_BOOKS    = {{ books|tojson|safe }};
         const BIBLE_VERSIONS = {{ versions|tojson|safe }};
 
-        /* ── Element refs ────────────────────────────────────────────── */
         const qlBook       = document.getElementById('qlBook');
         const qlChapter    = document.getElementById('qlChapter');
         const qlVerseRange = document.getElementById('qlVerseRange');
@@ -194,13 +192,11 @@
         const qlMessage    = document.getElementById('qlMessage');
         const qlResults    = document.getElementById('quickLookupResults');
 
-        /* ── Audio state ─────────────────────────────────────────────── */
         let audioPlayer = null;
         let isPlaying = false;
         let isDownloading = false;
         let currentAudioText = '';
 
-        /* ── Helpers ─────────────────────────────────────────────────── */
         function showQlMessage(msg, type = 'danger') {
             qlMessage.className = `alert alert-${type}`;
             qlMessage.textContent = msg;
@@ -211,7 +207,6 @@
             qlMessage.textContent = '';
         }
 
-        /* ── Dropdown builders ───────────────────────────────────────── */
         function buildChapterOptions(bookName) {
             const book = BIBLE_BOOKS.find(b => b.name.toLowerCase() === bookName.toLowerCase());
             qlChapter.innerHTML = '<option value="" disabled selected>Select chapter</option>';
@@ -234,7 +229,6 @@
             if (qlVersion.options.length > 1) qlVersion.selectedIndex = 1;
         }
 
-        /* ── Verse range parser ──────────────────────────────────────── */
         function parseVerseRange(raw) {
             if (!raw) return null;
             const parts = raw.trim().split('-').map(p => parseInt(p.trim(), 10));
@@ -250,7 +244,6 @@
             return NaN;
         }
 
-        /* ── Stop any playing audio ──────────────────────────────────── */
         function stopAudio() {
             if (audioPlayer) {
                 audioPlayer.pause();
@@ -259,7 +252,6 @@
             }
         }
 
-        /* ── Play audio function ─────────────────────────────────────── */
         async function playAudio(text) {
             if (!text) {
                 alert('No text to play');
@@ -326,7 +318,6 @@
             }
         }
 
-        /* ── Download function using Python backend ──────────────────── */
         async function downloadAudio(text, filename) {
             if (!text) {
                 alert('No text to download');
@@ -386,7 +377,6 @@
             }
         }
 
-        /* ── Render verse cards ──────────────────────────────────────── */
         let currentVerses = [];
 
         function renderVerseCards(verses) {
@@ -448,7 +438,6 @@
             });
         }
 
-        /* ── DOMContentLoaded ────────────────────────────────────────── */
         document.addEventListener('DOMContentLoaded', () => {
 
             BIBLE_BOOKS.forEach(b => {

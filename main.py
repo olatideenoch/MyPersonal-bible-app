@@ -494,19 +494,263 @@ def books(book_name):
 
 @app.route('/api/chapter/<book_name>/<int:chapter>')
 def api_chapter(book_name, chapter):
+    """
+    Get chapter data with optional verse range filtering.
+    Query params:
+    - version: Bible version ID (default: en-kjv)
+    - verse_start: Starting verse number (optional)
+    - verse_end: Ending verse number (optional)
+    - format: 'full' or 'simple' (default: full)
+    """
     selected_version = request.args.get('version', 'en-kjv')
+    verse_start = request.args.get('verse_start', type=int)
+    verse_end = request.args.get('verse_end', type=int)
+    format_type = request.args.get('format', 'full')
+    
+    # Validate book exists
+    book = next((b for b in BIBLE_BOOKS if b['name'].lower() == book_name.lower()), None)
+    if not book:
+        return jsonify({'error': f'Book "{book_name}" not found'}), 404
+    
+    # Validate chapter number
+    if chapter < 1 or chapter > book['chapters']:
+        return jsonify({'error': f'Chapter {chapter} not found in {book_name}. Valid chapters: 1-{book["chapters"]}'}), 404
+    
     verses, chapter_text = fetch_chapter_bibleapi(book_name, chapter, selected_version)
 
     if not verses:
         return jsonify({'error': 'Chapter not found or request failed'}), 404
 
+    # Filter by verse range if specified
+    filtered_verses = verses
+    if verse_start is not None or verse_end is not None:
+        filtered_verses = []
+        for verse in verses:
+            verse_num = int(verse.get('verse', 0))
+            if verse_num:
+                if verse_start and verse_num < verse_start:
+                    continue
+                if verse_end and verse_num > verse_end:
+                    continue
+                filtered_verses.append(verse)
+        
+        # Update chapter_text for filtered verses
+        if filtered_verses:
+            chapter_text = " ".join(v["text"] for v in filtered_verses)
+        else:
+            chapter_text = ""
+
+    # Build response based on format
+    response_data = {
+        'book': book_name,
+        'book_full': book['name'],
+        'chapter': chapter,
+        'total_chapters': book['chapters'],
+        'version': selected_version,
+        'version_name': next((v['version'] for v in VERSION_LIST if v['id'] == selected_version), selected_version),
+        'verse_count': len(verses),
+        'filtered_count': len(filtered_verses) if (verse_start or verse_end) else len(verses)
+    }
+    
+    if format_type == 'simple':
+        response_data['verses'] = filtered_verses if (verse_start or verse_end) else verses
+    else:
+        response_data.update({
+            'chapter_text': chapter_text,
+            'verses': filtered_verses if (verse_start or verse_end) else verses,
+            'has_filter': verse_start is not None or verse_end is not None,
+            'verse_range': {
+                'start': verse_start if verse_start else 1,
+                'end': verse_end if verse_end else len(verses)
+            } if (verse_start or verse_end) else None
+        })
+
+    return jsonify(response_data)
+
+
+@app.route('/api/books', methods=['GET'])
+def api_books():
+    """
+    Get list of all Bible books with metadata.
+    Query params:
+    - testament: 'old', 'new', or 'all' (default: all)
+    """
+    testament = request.args.get('testament', 'all').lower()
+    
+    books = BIBLE_BOOKS.copy()
+    
+    if testament == 'old':
+        books = books[:39]  # First 39 books are Old Testament
+    elif testament == 'new':
+        books = books[39:]  # Books 40-66 are New Testament
+    
+    # Add full book names and slugs
+    enriched_books = []
+    for book in books:
+        enriched_books.append({
+            'name': book['name'],
+            'slug': book['name'].lower().replace(' ', '-'),
+            'chapters': book['chapters'],
+            'testament': 'Old' if BIBLE_BOOKS.index(book) < 39 else 'New'
+        })
+    
     return jsonify({
-        'book':         book_name,
-        'chapter':      chapter,
-        'version':      selected_version,
-        'chapter_text': chapter_text,
-        'verses':       verses,
+        'total': len(enriched_books),
+        'testament': testament,
+        'books': enriched_books
     })
+
+
+@app.route('/api/versions', methods=['GET'])
+def api_versions():
+    """Get list of available Bible versions."""
+    return jsonify({
+        'total': len(VERSION_LIST),
+        'versions': VERSION_LIST
+    })
+
+
+@app.route('/api/daily-verse', methods=['GET'])
+def api_daily_verse():
+    """Get the verse of the day."""
+    daily_verse = get_daily_verse()
+    return jsonify({
+        'date': dt.date.today().isoformat(),
+        'verse': daily_verse
+    })
+
+
+@app.route('/api/search', methods=['GET'])
+def api_search():
+    """
+    Search Bible verses by keyword.
+    Query params:
+    - q: Search query (required)
+    - version: Bible version ID (default: en-kjv)
+    - limit: Max results (default: 20)
+    """
+    query = request.args.get('q', '').strip()
+    version = request.args.get('version', 'en-kjv')
+    limit = request.args.get('limit', 20, type=int)
+    
+    if not query:
+        return jsonify({'error': 'Missing search query parameter "q"'}), 400
+    
+    api_key = os.environ.get("API_KEY")
+    headers = {"api-key": api_key}
+    
+    try:
+        search_url = f"https://rest.api.bible/v1/bibles/9879dbb7cfe39e4d-01/search?query={query}&limit={limit}"
+        response = requests.get(search_url, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            results = []
+            
+            if "data" in data and "verses" in data["data"]:
+                for verse in data["data"]["verses"]:
+                    cleaned = clean_text(verse.get("text", ""))
+                    results.append({
+                        "text": cleaned,
+                        "reference": verse.get("reference", "")
+                    })
+            
+            return jsonify({
+                'query': query,
+                'version': version,
+                'total': len(results),
+                'results': results
+            })
+        else:
+            return jsonify({'error': f'Search API error: {response.status_code}'}), response.status_code
+            
+    except Exception as e:
+        return jsonify({'error': f'Search request failed: {str(e)}'}), 500
+
+
+@app.route('/api/verse/<book_name>/<int:chapter>/<int:verse>')
+def api_verse(book_name, chapter, verse):
+    """
+    Get a single verse.
+    Query params:
+    - version: Bible version ID (default: en-kjv)
+    """
+    selected_version = request.args.get('version', 'en-kjv')
+    
+    verses, _ = fetch_chapter_bibleapi(book_name, chapter, selected_version)
+    
+    if not verses:
+        return jsonify({'error': 'Chapter not found or request failed'}), 404
+    
+    # Find the specific verse
+    target_verse = None
+    for v in verses:
+        if v.get('verse') == str(verse):
+            target_verse = v
+            break
+    
+    if not target_verse:
+        return jsonify({'error': f'Verse {verse} not found in {book_name} {chapter}'}), 404
+    
+    return jsonify({
+        'book': book_name,
+        'chapter': chapter,
+        'verse': verse,
+        'reference': target_verse['reference'],
+        'text': target_verse['text'],
+        'version': selected_version
+    })
+
+@app.route("/api/play-audio", methods=["POST"])
+def play_audio():
+    """
+    Stream MP3 audio for playback.
+    Expects JSON with 'text' field.
+    """
+    data = request.get_json()
+    if not data or 'text' not in data:
+        return jsonify({"error": "Missing text parameter"}), 400
+    
+    text = data['text'].strip()
+    
+    audio_data = text_to_speech_voicerss(text)
+    
+    if audio_data is None:
+        return jsonify({"error": "Failed to generate audio"}), 500
+    
+    return send_file(
+        io.BytesIO(audio_data),
+        mimetype="audio/mpeg"
+    )
+
+@app.route("/api/download-audio", methods=["POST"])
+def download_audio():
+    """
+    Generate and download MP3 audio for given text.
+    Expects JSON with 'text' and optional 'filename' fields.
+    """
+    data = request.get_json()
+    if not data or 'text' not in data:
+        return jsonify({"error": "Missing text parameter"}), 400
+    
+    text = data['text'].strip()
+    filename = data.get('filename', 'bible-audio.mp3')
+    
+    # Ensure .mp3 extension
+    if not filename.endswith('.mp3'):
+        filename += '.mp3'
+    
+    audio_data = text_to_speech_voicerss(text)
+    
+    if audio_data is None:
+        return jsonify({"error": "Failed to generate audio. Voice RSS API may be unavailable or text too long."}), 500
+    
+    return send_file(
+        io.BytesIO(audio_data),
+        mimetype="audio/mpeg",
+        as_attachment=True,
+        download_name=filename
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)
