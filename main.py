@@ -701,56 +701,5 @@ def api_verse(book_name, chapter, verse):
         'version': selected_version
     })
 
-@app.route("/api/play-audio", methods=["POST"])
-def play_audio():
-    """
-    Stream MP3 audio for playback.
-    Expects JSON with 'text' field.
-    """
-    data = request.get_json()
-    if not data or 'text' not in data:
-        return jsonify({"error": "Missing text parameter"}), 400
-    
-    text = data['text'].strip()
-    
-    audio_data = text_to_speech_voicerss(text)
-    
-    if audio_data is None:
-        return jsonify({"error": "Failed to generate audio"}), 500
-    
-    return send_file(
-        io.BytesIO(audio_data),
-        mimetype="audio/mpeg"
-    )
-
-@app.route("/api/download-audio", methods=["POST"])
-def download_audio():
-    """
-    Generate and download MP3 audio for given text.
-    Expects JSON with 'text' and optional 'filename' fields.
-    """
-    data = request.get_json()
-    if not data or 'text' not in data:
-        return jsonify({"error": "Missing text parameter"}), 400
-    
-    text = data['text'].strip()
-    filename = data.get('filename', 'bible-audio.mp3')
-    
-    # Ensure .mp3 extension
-    if not filename.endswith('.mp3'):
-        filename += '.mp3'
-    
-    audio_data = text_to_speech_voicerss(text)
-    
-    if audio_data is None:
-        return jsonify({"error": "Failed to generate audio. Voice RSS API may be unavailable or text too long."}), 500
-    
-    return send_file(
-        io.BytesIO(audio_data),
-        mimetype="audio/mpeg",
-        as_attachment=True,
-        download_name=filename
-    )
-
 if __name__ == "__main__":
     app.run(debug=True)
