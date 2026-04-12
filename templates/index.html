@@ -5,124 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyPersonal Bible App</title>
 
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-    <!-- Google Fonts: Crimson Text (serif for verses), Lora for headings -->
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&display=swap" rel="stylesheet">
 
     <style>
-        body {
-            font-family: 'Crimson Text', serif;
-            background-color: #f5f0e6; /* Warm parchment */
-            color: #3c2f2f;
-            min-height: 100vh;
-        }
-        .navbar {
-            background-color: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
-        }
-        .navbar-brand {
-            font-family: 'Lora', serif;
-            font-size: 1.8rem;
-            color: #5d4037 !important;
-        }
-        .hero {
-            background-image: url('../static/img/bg.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: white;
-            padding: 120px 0;
-            text-align: center;
-        }
-        .hero h1 {
-            font-family: 'Lora', serif;
-            font-size: 4rem;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-        .hero p {
-            font-size: 1.4rem;
-            max-width: 800px;
-            margin: 0 auto;
-            opacity: 0.95;
-        }
-        .section-title {
-            font-family: 'Lora', serif;
-            color: #5d4037;
-            position: relative;
-            display: inline-block;
-        }
-        .section-title::after {
-            content: '';
-            width: 60px;
-            height: 3px;
-            background: #8d9b6a;
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        .verse-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            padding: 40px;
-            text-align: center;
-        }
-        .verse-text {
-            font-size: 1.8rem;
-            line-height: 2;
-            font-style: italic;
-            color: #4a3c2d;
-        }
-        .reference {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #8d9b6a;
-            margin-top: 30px;
-        }
-        .search-form {
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        .book-card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            transition: all 0.3s ease;
-            height: 100%;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-        }
-        .book-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-        }
-        .book-card i {
-            font-size: 3rem;
-            color: #8d9b6a;
-            margin-bottom: 20px;
-        }
-        footer {
-            background: #5d4037;
-            color: #d7ccc8;
-            padding: 50px 0 30px;
-            margin-top: 100px;
-        }
-        footer a {
-            color: #d7ccc8;
-            text-decoration: none;
-        }
+        body { font-family: 'Crimson Text', serif; background-color: #f5f0e6; color: #3c2f2f; min-height: 100vh; }
+        .navbar { background-color: rgba(255,255,255,0.95); backdrop-filter: blur(10px); box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
+        .navbar-brand { font-family: 'Lora', serif; font-size: 1.8rem; color: #5d4037 !important; }
+        .hero { background-image: url('../static/img/bg.jpg'); background-size: cover; background-position: center; background-attachment: fixed; color: white; padding: 120px 0; text-align: center; }
+        .hero h1 { font-family: 'Lora', serif; font-size: 4rem; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .hero p { font-size: 1.4rem; max-width: 800px; margin: 0 auto; opacity: 0.95; }
+        .section-title { font-family: 'Lora', serif; color: #5d4037; position: relative; display: inline-block; }
+        .section-title::after { content: ''; width: 60px; height: 3px; background: #8d9b6a; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); }
+        .verse-card { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 40px; text-align: center; }
+        .verse-text { font-size: 1.8rem; line-height: 2; font-style: italic; color: #4a3c2d; }
+        .reference { font-size: 1.3rem; font-weight: 600; color: #8d9b6a; margin-top: 30px; }
+        .search-form { max-width: 700px; margin: 0 auto; }
+        .book-card { background: white; border-radius: 15px; padding: 30px; text-align: center; transition: all 0.3s ease; height: 100%; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+        .book-card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .book-card i { font-size: 3rem; color: #8d9b6a; margin-bottom: 20px; }
+        footer { background: #5d4037; color: #d7ccc8; padding: 50px 0 30px; margin-top: 100px; }
+        footer a { color: #d7ccc8; text-decoration: none; }
+        .audio-controls { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
+        .progress-container { cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
@@ -142,7 +52,6 @@
         </div>
     </nav>
 
-    <!-- Hero -->
     <section class="hero">
         <div class="container">
             <h1>MyPersonal Bible App</h1>
@@ -153,7 +62,6 @@
         </div>
     </section>
 
-    <!-- Daily Verse -->
     <section id="daily" class="py-5">
         <div class="container col-11">
             <h2 class="text-center section-title mb-5">Verse of the Day</h2>
@@ -172,7 +80,6 @@
         </div>
     </section>
 
-    <!-- Search -->
     <section id="search" class="py-5 bg-light">
         <div class="container col-11">
             <h2 class="text-center section-title mb-5">Search Scripture</h2>
@@ -185,7 +92,6 @@
                         <button class="btn btn-success" type="submit">Search</button>
                     </div>
                 </form>
-
                 {% if search_results %}
                     <div class="mt-5 row g-4">
                         {% for result in search_results %}
@@ -206,12 +112,10 @@
         </div>
     </section>
 
-    <!-- Quick Verse Lookup -->
     <section id="quick-lookup" class="py-5 bg-white">
         <div class="container col-11">
             <h2 class="text-center section-title mb-4">Quick Verse Lookup</h2>
             <p class="text-center text-muted mb-4">Instantly view a specific verse or verse range (e.g., Psalm 36:2-4).</p>
-
             <div class="card p-4 shadow-sm">
                 <form id="quickLookupForm" class="row g-3 align-items-end">
                     <div class="col-md-4">
@@ -243,17 +147,14 @@
                         <div id="qlMessage" class="alert d-none" role="alert"></div>
                     </div>
                 </form>
-
                 <div id="quickLookupResults" class="mt-4"></div>
             </div>
         </div>
     </section>
 
-    <!-- Books -->
     <section id="books" class="py-5">
         <div class="container col-11">
             <h2 class="text-center section-title mb-5">Browse the Bible</h2>
-            <h2 class="text-center">All Books of the Bible</h2>
             <div class="row g-4">
                 {% for book in books %}
                     <div class="col-lg-3 col-md-4 col-sm-6 col-6">
@@ -272,50 +173,52 @@
         </div>
     </section>
 
-    <!-- Footer -->
     <footer>
         <div class="container text-center">
             <p class="mt-3">&copy; {{ current_year }} MyPersonal Bible App • Made with reverence for the Holy Scriptures</p>
         </div>
     </footer>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Expose book & version metadata to JS
-        const BIBLE_BOOKS = {{ books | default([]) | tojson | safe }};
-        const BIBLE_VERSIONS = {{ versions | default([]) | tojson | safe }};
+        /* ── Template data injected by Flask ─────────────────────────── */
+        const BIBLE_BOOKS    = {{ books|tojson|safe }};
+        const BIBLE_VERSIONS = {{ versions|tojson|safe }};
 
-        const qlBook = document.getElementById('qlBook');
-        const qlChapter = document.getElementById('qlChapter');
+        /* ── Element refs ────────────────────────────────────────────── */
+        const qlBook       = document.getElementById('qlBook');
+        const qlChapter    = document.getElementById('qlChapter');
         const qlVerseRange = document.getElementById('qlVerseRange');
-        const qlVersion = document.getElementById('qlVersion');
-        const qlMessage = document.getElementById('qlMessage');
-        const qlResults = document.getElementById('quickLookupResults');
+        const qlVersion    = document.getElementById('qlVersion');
+        const qlMessage    = document.getElementById('qlMessage');
+        const qlResults    = document.getElementById('quickLookupResults');
 
-        function showQlMessage(message, type = 'danger') {
+        /* ── Audio state ─────────────────────────────────────────────── */
+        let audioPlayer = null;
+        let isPlaying = false;
+        let isDownloading = false;
+        let currentAudioText = '';
+
+        /* ── Helpers ─────────────────────────────────────────────────── */
+        function showQlMessage(msg, type = 'danger') {
             qlMessage.className = `alert alert-${type}`;
-            qlMessage.textContent = message;
+            qlMessage.textContent = msg;
             qlMessage.classList.remove('d-none');
         }
-
         function clearQlMessage() {
             qlMessage.className = 'alert d-none';
             qlMessage.textContent = '';
         }
 
+        /* ── Dropdown builders ───────────────────────────────────────── */
         function buildChapterOptions(bookName) {
             const book = BIBLE_BOOKS.find(b => b.name.toLowerCase() === bookName.toLowerCase());
             qlChapter.innerHTML = '<option value="" disabled selected>Select chapter</option>';
-            if (!book) {
-                qlChapter.disabled = true;
-                return;
-            }
+            if (!book) { qlChapter.disabled = true; return; }
             for (let i = 1; i <= book.chapters; i++) {
                 const opt = document.createElement('option');
-                opt.value = i;
-                opt.textContent = i;
+                opt.value = i; opt.textContent = i;
                 qlChapter.appendChild(opt);
             }
             qlChapter.disabled = false;
@@ -323,123 +226,276 @@
 
         function buildVersionOptions() {
             qlVersion.innerHTML = '<option value="" disabled selected>Select version</option>';
-            for (const v of BIBLE_VERSIONS) {
+            BIBLE_VERSIONS.forEach(v => {
                 const opt = document.createElement('option');
-                opt.value = v.id;
-                opt.textContent = v.version;
+                opt.value = v.id; opt.textContent = v.version;
                 qlVersion.appendChild(opt);
-            }
-            // default to first version if none selected
-            if (qlVersion.options.length > 1) {
-                qlVersion.selectedIndex = 1;
-            }
+            });
+            if (qlVersion.options.length > 1) qlVersion.selectedIndex = 1;
         }
 
-        function parseVerseRange(range) {
-            if (!range) return null;
-            range = range.trim();
-            const parts = range.split('-').map(p => p.trim()).filter(Boolean);
-            if (parts.length === 0) return null;
-            const start = parseInt(parts[0], 10);
-            const end = parts.length > 1 ? parseInt(parts[1], 10) : start;
-            if (Number.isNaN(start) || Number.isNaN(end)) return null;
-            return {
-                start: Math.max(1, start),
-                end: Math.max(start, end)
-            };
+        /* ── Verse range parser ──────────────────────────────────────── */
+        function parseVerseRange(raw) {
+            if (!raw) return null;
+            const parts = raw.trim().split('-').map(p => parseInt(p.trim(), 10));
+            if (parts.some(isNaN)) return null;
+            const start = Math.max(1, parts[0]);
+            const end   = parts.length > 1 ? Math.max(start, parts[1]) : start;
+            return { start, end };
         }
 
-        function verseNumberFromItem(item) {
-            if (!item) return NaN;
-            if (item.verse) {
-                const n = parseInt(item.verse, 10);
-                if (!Number.isNaN(n)) return n;
-            }
-            if (item.reference) {
-                const m = item.reference.match(/:(\d+)\b/);
-                if (m) return parseInt(m[1], 10);
-            }
+        function verseNumber(item) {
+            if (item.verse) { const n = parseInt(item.verse, 10); if (!isNaN(n)) return n; }
+            if (item.reference) { const m = item.reference.match(/:(\d+)/); if (m) return parseInt(m[1], 10); }
             return NaN;
         }
 
-        function renderVerseCards(verses, downloadUrl) {
-            if (!verses || verses.length === 0) {
+        /* ── Stop any playing audio ──────────────────────────────────── */
+        function stopAudio() {
+            if (audioPlayer) {
+                audioPlayer.pause();
+                audioPlayer = null;
+                isPlaying = false;
+            }
+        }
+
+        /* ── Play audio function ─────────────────────────────────────── */
+        async function playAudio(text) {
+            if (!text) {
+                alert('No text to play');
+                return;
+            }
+
+            // Stop any currently playing audio
+            stopAudio();
+
+            try {
+                const response = await fetch('/api/play-audio', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to generate audio');
+                }
+
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                audioPlayer = new Audio(audioUrl);
+                audioPlayer.onended = () => {
+                    isPlaying = false;
+                    audioPlayer = null;
+                    updatePlayButtonState();
+                };
+                audioPlayer.onerror = () => {
+                    isPlaying = false;
+                    audioPlayer = null;
+                    updatePlayButtonState();
+                    alert('Error playing audio');
+                };
+                
+                await audioPlayer.play();
+                isPlaying = true;
+                updatePlayButtonState();
+
+            } catch (error) {
+                console.error('Play audio error:', error);
+                alert('Failed to play audio: ' + error.message);
+                isPlaying = false;
+                updatePlayButtonState();
+            }
+        }
+
+        function updatePlayButtonState() {
+            const playBtn = document.getElementById('qlPlayBtn');
+            if (playBtn) {
+                if (isPlaying) {
+                    playBtn.innerHTML = '<i class="fas fa-pause me-2"></i>Pause';
+                    playBtn.classList.remove('btn-success');
+                    playBtn.classList.add('btn-warning');
+                } else {
+                    playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Play';
+                    playBtn.classList.remove('btn-warning');
+                    playBtn.classList.add('btn-success');
+                }
+            }
+        }
+
+        /* ── Download function using Python backend ──────────────────── */
+        async function downloadAudio(text, filename) {
+            if (!text) {
+                alert('No text to download');
+                return;
+            }
+
+            if (isDownloading) {
+                alert('Download already in progress');
+                return;
+            }
+
+            const btn = document.getElementById('qlDownloadBtn');
+            isDownloading = true;
+            btn.disabled = true;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+
+            try {
+                const response = await fetch('/api/download-audio', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        text: text,
+                        filename: filename
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to generate audio');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                btn.innerHTML = '<i class="fas fa-check me-2"></i>Downloaded!';
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                }, 3000);
+
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Failed to download audio: ' + error.message);
+                btn.innerHTML = originalHtml;
+            } finally {
+                btn.disabled = false;
+                isDownloading = false;
+            }
+        }
+
+        /* ── Render verse cards ──────────────────────────────────────── */
+        let currentVerses = [];
+
+        function renderVerseCards(verses) {
+            currentVerses = verses || [];
+            stopAudio(); // Stop any playing audio when new verses load
+            isPlaying = false;
+            
+            if (!verses || !verses.length) {
                 qlResults.innerHTML = '<div class="alert alert-info">No matching verses found for that range.</div>';
                 return;
             }
 
-            const downloadButton = downloadUrl ? `
-                <div class="d-flex justify-content-end mb-3">
-                    <a class="btn btn-primary" href="${downloadUrl}">
-                        <i class="fas fa-download me-2"></i>Download audio
-                    </a>
-                </div>
-            ` : '';
-
-            const html = verses.map(v => {
+            // Build the text for audio
+            const audioText = verses.map(v => {
                 const ref = v.reference || `${v.book || ''} ${v.chapter || ''}:${v.verse || ''}`;
-                return `
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="card p-4 shadow-sm mb-3">
-                            <p class="verse-text mb-3">${v.text}</p>
-                            <p class="reference text-end mb-0">${ref}</p>
-                        </div>
+                return `${ref}. ${v.text}`;
+            }).join(' ');
+
+            currentAudioText = audioText;
+
+            // Generate filename
+            const firstVerse = verses[0];
+            const lastVerse = verses[verses.length - 1];
+            const filename = `${firstVerse.book || 'bible'}_${firstVerse.chapter}_${firstVerse.verse}-${lastVerse.verse}.mp3`;
+
+            const cards = verses.map(v => {
+                const ref = v.reference || `${v.book || ''} ${v.chapter || ''}:${v.verse || ''}`;
+                return `<div class="col-12 col-md-6 col-lg-4">
+                    <div class="card p-4 shadow-sm mb-3">
+                        <p class="verse-text mb-3">${v.text}</p>
+                        <p class="reference text-end mb-0">${ref}</p>
                     </div>
-                `;
+                </div>`;
             }).join('');
 
-            qlResults.innerHTML = `${downloadButton}<div class="row g-4">${html}</div>`;
+            qlResults.innerHTML = `
+                <div class="d-flex justify-content-end mb-3 gap-2">
+                    <button id="qlPlayBtn" class="btn btn-success">
+                        <i class="fas fa-play me-2"></i>Play
+                    </button>
+                    <button id="qlDownloadBtn" class="btn btn-primary">
+                        <i class="fas fa-download me-2"></i>Download MP3
+                    </button>
+                </div>
+                <div class="row g-4">${cards}</div>`;
+
+            // Add event listeners
+            document.getElementById('qlPlayBtn').addEventListener('click', () => {
+                if (isPlaying) {
+                    stopAudio();
+                    updatePlayButtonState();
+                } else {
+                    playAudio(currentAudioText);
+                }
+            });
+
+            document.getElementById('qlDownloadBtn').addEventListener('click', () => {
+                downloadAudio(currentAudioText, filename);
+            });
         }
 
+        /* ── DOMContentLoaded ────────────────────────────────────────── */
         document.addEventListener('DOMContentLoaded', () => {
-            // Populate book/chapter/version dropdowns
+
             BIBLE_BOOKS.forEach(b => {
                 const opt = document.createElement('option');
-                opt.value = b.name;
-                opt.textContent = b.name;
+                opt.value = b.name; opt.textContent = b.name;
                 qlBook.appendChild(opt);
             });
 
             buildVersionOptions();
 
-            qlBook.addEventListener('change', (event) => {
-                buildChapterOptions(event.target.value);
+            qlBook.addEventListener('change', e => {
+                buildChapterOptions(e.target.value);
                 clearQlMessage();
                 qlResults.innerHTML = '';
+                stopAudio();
             });
 
-            document.getElementById('quickLookupForm').addEventListener('submit', async (event) => {
-                event.preventDefault();
+            document.getElementById('quickLookupForm').addEventListener('submit', async e => {
+                e.preventDefault();
                 clearQlMessage();
                 qlResults.innerHTML = '';
+                stopAudio();
 
-                const book = qlBook.value;
+                const book    = qlBook.value;
                 const chapter = qlChapter.value;
                 const version = qlVersion.value;
-                const range = parseVerseRange(qlVerseRange.value);
+                const range   = parseVerseRange(qlVerseRange.value);
 
                 if (!book || !chapter || !range) {
-                    showQlMessage('Please select a book, chapter, and enter a valid verse or verse range.', 'warning');
+                    showQlMessage('Please select a book, chapter, and a valid verse or range.', 'warning');
                     return;
                 }
 
                 const url = `/api/chapter/${encodeURIComponent(book)}/${encodeURIComponent(chapter)}?version=${encodeURIComponent(version)}`;
-
                 try {
-                    const res = await fetch(url);
+                    const res  = await fetch(url);
                     const data = await res.json();
                     if (!res.ok) {
                         showQlMessage(data.error || 'Unable to fetch chapter data.', 'danger');
                         return;
                     }
-                    const verses = (data.verses || []).map(v => ({ ...v, book: data.book, chapter: data.chapter }));
+                    const verses   = (data.verses || []).map(v => ({ ...v, book: data.book, chapter: data.chapter }));
                     const filtered = verses.filter(v => {
-                        const num = verseNumberFromItem(v);
-                        return num >= range.start && num <= range.end;
+                        const n = verseNumber(v);
+                        return n >= range.start && n <= range.end;
                     });
-
-                    const downloadUrl = `/download/verse/${encodeURIComponent(book)}/${encodeURIComponent(chapter)}?version=${encodeURIComponent(version)}&start=${range.start}&end=${range.end}`;
-                    renderVerseCards(filtered, downloadUrl);
+                    renderVerseCards(filtered);
                 } catch (err) {
                     showQlMessage('Failed to fetch verse data. Please try again.', 'danger');
                 }
