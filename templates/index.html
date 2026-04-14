@@ -165,8 +165,6 @@
             margin-top: 100px; 
         }
         footer a { color: var(--footer-text); text-decoration: none; }
-        .audio-controls { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
-        .progress-container { cursor: pointer; margin-top: 10px; }
 
         /* Form controls */
         .form-control, .form-select, .input-group-text {
@@ -300,26 +298,49 @@
         #helpButton:hover { transform: scale(1.1); }
 
         /* Welcome Modal Styling - Fixed centering */
-        .modal.fade .modal-dialog {
-            transition: transform 0.3s ease-out;
+        .modal {
+            padding: 0 !important;
         }
-        
-        .modal.show .modal-dialog {
-            transform: none;
+
+        .modal-dialog {
+            display: flex;
+            align-items: center;
+            min-height: calc(100% - 1rem);
+            margin: 0.5rem auto;
         }
-        
+
         .modal-dialog-centered {
             display: flex;
             align-items: center;
             min-height: calc(100% - 1rem);
         }
-        
+
+        @media (min-width: 576px) {
+            .modal-dialog {
+                min-height: calc(100% - 3.5rem);
+            }
+            
+            .modal-dialog-centered {
+                min-height: calc(100% - 3.5rem);
+            }
+        }
+
         .modal-content {
             background-color: var(--card-bg);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
             margin: 0 auto;
+            width: 100%;
         }
+
+        .modal.fade .modal-dialog {
+            transform: translate(0, 0);
+        }
+
+        .modal.show .modal-dialog {
+            transform: translate(0, 0);
+        }
+
         .modal-header { border-bottom-color: var(--border-color); }
         .modal-footer { border-top-color: var(--border-color); }
         [data-theme="dark"] .btn-close {
@@ -359,10 +380,6 @@
             .modal-dialog { 
                 margin: 0.5rem; 
                 width: auto;
-            }
-            
-            .modal-dialog-centered {
-                min-height: calc(100% - 1rem);
             }
             
             .modal-body { padding: 1rem; }
@@ -450,7 +467,7 @@
 </head>
 <body>
 
-    <!-- Welcome/Features Modal - Mobile Optimized -->
+    <!-- Welcome/Features Modal - Fixed Centering -->
     <div class="modal fade" id="welcomeModal" tabindex="-1" aria-labelledby="welcomeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
@@ -1160,7 +1177,7 @@
             });
         }
 
-        /* ── Dark mode toggle ────────────────────────────────────────── */
+        /* ── Dark mode toggle (Light mode default) ──────────────────── */
         (function() {
             const themeToggle = document.getElementById('themeToggle');
             const themeIcon = document.getElementById('themeIcon');
@@ -1174,7 +1191,7 @@
                 htmlElement.setAttribute('data-theme', savedTheme);
                 updateIcon(savedTheme);
             } else {
-                // Default to light mode - do NOT check system preference
+                // Default to light mode
                 htmlElement.setAttribute('data-theme', 'light');
                 updateIcon('light');
             }
@@ -1208,18 +1225,29 @@
 
         /* ── Welcome Modal ───────────────────────────────────────────── */
         (function() {
-            const welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'));
+            const welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'), {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            });
             const dontShowCheckbox = document.getElementById('dontShowAgain');
             const helpButton = document.getElementById('helpButton');
             
             const APP_VERSION = '2.1.0';
-            
             const dontShowPreference = localStorage.getItem('bibleAppDontShowWelcome');
             
             if (dontShowPreference !== 'true') {
-                setTimeout(() => {
-                    welcomeModal.show();
-                }, 100);
+                // Use requestAnimationFrame to ensure DOM is fully rendered
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        welcomeModal.show();
+                        // Force recalculation of modal position
+                        document.body.style.overflow = 'hidden';
+                        setTimeout(() => {
+                            document.body.style.overflow = '';
+                        }, 10);
+                    }, 150);
+                });
             }
             
             dontShowCheckbox.addEventListener('change', function() {
@@ -1238,6 +1266,13 @@
             
             helpButton.addEventListener('click', function() {
                 welcomeModal.show();
+            });
+            
+            // Fix modal position on window resize
+            window.addEventListener('resize', () => {
+                if (document.querySelector('.modal.show')) {
+                    bootstrap.Modal.getInstance(document.getElementById('welcomeModal')).handleUpdate();
+                }
             });
         })();
 
