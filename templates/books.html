@@ -15,124 +15,682 @@
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&display=swap" rel="stylesheet">
 
     <style>
+        /* Light mode (default) variables */
+        :root {
+            --bg-primary: #f5f0e6;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f8f9fa;
+            --text-primary: #3c2f2f;
+            --text-secondary: #5d4037;
+            --text-muted: #6c757d;
+            --accent-primary: #8d9b6a;
+            --accent-secondary: #5d4037;
+            --card-bg: #ffffff;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --border-color: rgba(141, 155, 106, 0.1);
+            --navbar-bg: rgba(255, 255, 255, 0.95);
+            --footer-bg: #5d4037;
+            --footer-text: #d7ccc8;
+            --hero-overlay: linear-gradient(rgba(101, 115, 95, 0.8), rgba(198, 216, 157, 0.8));
+            --input-bg: #ffffff;
+            --input-border: #ced4da;
+            --highlight-bg: rgba(141, 155, 106, 0.2);
+            --highlight-border: #8d9b6a;
+        }
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --text-primary: #e8e8e8;
+            --text-secondary: #e94560;
+            --text-muted: #a0a0a0;
+            --accent-primary: #e94560;
+            --accent-secondary: #533483;
+            --card-bg: #16213e;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            --border-color: rgba(233, 69, 96, 0.2);
+            --navbar-bg: rgba(26, 26, 46, 0.95);
+            --footer-bg: #0f0f1a;
+            --footer-text: #a0a0a0;
+            --hero-overlay: linear-gradient(rgba(83, 52, 131, 0.8), rgba(233, 69, 96, 0.8));
+            --input-bg: #16213e;
+            --input-border: #533483;
+            --highlight-bg: rgba(233, 69, 96, 0.2);
+            --highlight-border: #e94560;
+        }
+
+        /* Smooth transitions */
+        * {
+            transition: background-color 0.3s ease, 
+                        border-color 0.3s ease, 
+                        box-shadow 0.3s ease,
+                        color 0.2s ease;
+        }
+
         body {
             font-family: 'Crimson Text', serif;
-            background-color: #f5f0e6;
-            color: #3c2f2f;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
         }
+
         .navbar {
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: var(--navbar-bg);
             backdrop-filter: blur(10px);
-            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            box-shadow: var(--card-shadow);
         }
+
         .navbar-brand {
             font-family: 'Lora', serif;
             font-size: 1.8rem;
-            color: #5d4037 !important;
+            color: var(--text-secondary) !important;
         }
+
+        .nav-link { color: var(--text-primary) !important; }
+        .nav-link:hover { color: var(--accent-primary) !important; }
+
         .page-header {
-            background: linear-gradient(rgba(101, 115, 95, 0.8), rgba(198, 216, 157, 0.8)), url('../static/img/bg-1.jpg') no-repeat center/cover;
+            background: var(--hero-overlay), url('../static/img/bg-1.jpg') no-repeat center/cover;
             color: white;
             padding: 100px 0 100px;
             text-align: center;
         }
+
         .head-center {
             margin-top: 20px;
             text-align: center;
         }
+
         .page-header h1 {
             font-family: 'Lora', serif;
             font-size: 3.5rem;
             text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
+
         .section-title {
             font-family: 'Lora', serif;
-            color: #5d4037;
+            color: var(--text-secondary);
             position: relative;
             display: inline-block;
             margin-bottom: 50px;
         }
+
         .section-title::after {
             content: '';
             width: 80px;
             height: 3px;
-            background: #8d9b6a;
+            background: var(--accent-primary);
             position: absolute;
             bottom: -15px;
             left: 50%;
             transform: translateX(-50%);
         }
+
         .verse-container {
-            background: white;
+            background: var(--card-bg);
             border-radius: 15px;
             padding: 30px;
             margin-top: 40px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-            position: relative; 
+            box-shadow: var(--card-shadow);
+            position: relative;
+            border: 1px solid var(--border-color);
         }
-        .chapter-nav-btn {
-            border-radius: 50%;
-            width: 48px;
-            height: 48px;
-            display: inline-flex;
+
+        /* Reading Progress Bar */
+        .reading-progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: transparent;
+            z-index: 1030;
+        }
+
+        .reading-progress-bar {
+            height: 4px;
+            background: var(--accent-primary);
+            width: 0%;
+            transition: width 0.1s ease;
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        /* Font Size Controls - New Position */
+        .font-size-controls-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .font-size-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        .font-size-header i {
+            font-size: 1.2rem;
+            color: var(--accent-primary);
+        }
+
+        .font-size-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .font-size-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
             align-items: center;
             justify-content: center;
-            background: #8d9b6a;
-            color: #fff;
-            border: none;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: bold;
+            font-size: 1.1rem;
         }
-        .chapter-nav-btn:disabled { opacity: 0.5 }
-        .side-nav { display: none; position: absolute; top: 50%; transform: translateY(-50%); z-index: 6; }
-        .side-nav.left { left: -150px; }
-        .side-nav.right { right: -150px; }
-        .mobile-nav { display: flex; gap: 300px; justify-content: center; margin-top: 18px; z-index: 6; }
 
-        @media (min-width: 992px) {
-            .mobile-nav { display: none; }
-            .side-nav {
-                display: block;
-                position: fixed;
-                top: 50%;
-                transform: translateY(-50%);
-            }
-            .side-nav.left { left: 50px; }
-            .side-nav.right { right: 50px; }
-            .verse-container { padding-left: 150px; padding-right: 150px; }
+        .font-size-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+            transform: scale(1.05);
         }
-        @media (max-width: 991px) {
-            .mobile-nav .chapter-nav-btn { width: 56px; height: 56px; }
+
+        .font-size-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+            font-weight: 600;
+            color: var(--accent-primary);
         }
+
+        /* Verse Highlighting */
         .verse-item {
             margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
         }
+
+        .verse-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .verse-item.highlighted {
+            background: var(--highlight-bg);
+            border-left: 4px solid var(--highlight-border);
+        }
+
+        .verse-content {
+            flex: 1;
+            min-width: 0;
+        }
+
         .verse-number {
             font-weight: bold;
-            color: #8d9b6a;
+            color: var(--accent-primary);
+            margin-right: 10px;
+            font-size: 1.1rem;
+            display: inline;
         }
+
         .verse-text {
             font-size: 1.2rem;
             line-height: 1.8;
+            display: inline;
         }
+
+        /* Bookmark Button - Improved mobile positioning */
+        .bookmark-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0;
+            padding: 5px 10px;
+            border-radius: 20px;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+
+        .verse-item:hover .bookmark-btn {
+            opacity: 1;
+        }
+
+        .bookmark-btn:hover {
+            color: var(--accent-primary);
+            transform: scale(1.1);
+        }
+
+        .bookmark-btn.bookmarked {
+            opacity: 1;
+            color: #ffd700;
+        }
+
+        /* Mobile verse adjustments */
+        @media (max-width: 768px) {
+            .verse-item {
+                padding: 15px 12px;
+            }
+            
+            .bookmark-btn {
+                opacity: 1;
+                padding: 3px 8px;
+                margin-left: 5px;
+            }
+            
+            .verse-text {
+                font-size: 1.1rem;
+                padding-right: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .verse-item {
+                padding: 12px 10px;
+            }
+            
+            .verse-text {
+                font-size: 1rem;
+            }
+            
+            .bookmark-btn {
+                padding: 2px 5px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Bookmarks Panel */
+        .bookmarks-panel {
+            position: fixed;
+            right: -350px;
+            top: 80px;
+            width: 320px;
+            max-height: calc(100vh - 100px);
+            background: var(--card-bg);
+            border-radius: 12px 0 0 12px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            transition: right 0.3s ease;
+            z-index: 1020;
+            overflow-y: auto;
+        }
+
+        .bookmarks-panel.open {
+            right: 0;
+        }
+
+        .bookmarks-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bookmarks-list {
+            padding: 10px;
+        }
+
+        .bookmark-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        .bookmark-item:hover {
+            transform: translateX(-5px);
+            box-shadow: var(--card-shadow);
+        }
+
+        .bookmark-reference {
+            font-weight: bold;
+            color: var(--accent-primary);
+            margin-bottom: 5px;
+        }
+
+        .bookmark-text {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .delete-bookmark {
+            float: right;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+
+        .delete-bookmark:hover {
+            color: #dc3545;
+        }
+
+        .bookmarks-toggle {
+            position: fixed;
+            right: 20px;
+            bottom: 80px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1021;
+            transition: all 0.3s ease;
+        }
+
+        .bookmarks-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .bookmarks-toggle .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.7rem;
+        }
+
+        /* Chapter Navigation - Improved */
+        .chapter-navigation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .chapter-nav-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--card-shadow);
+            font-size: 1.2rem;
+        }
+
+        .chapter-nav-btn:hover:not(:disabled) {
+            transform: scale(1.1);
+            background: var(--text-secondary);
+        }
+
+        .chapter-nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .chapter-indicator {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 2.5rem; }
+            .verse-container { padding: 20px 15px; }
+            .chapter-navigation { gap: 15px; }
+            .chapter-nav-btn { width: 45px; height: 45px; }
+            .bookmarks-panel { width: 280px; }
+        }
+
+        @media (max-width: 480px) {
+            .navbar-brand { font-size: 1.4rem; }
+            .page-header h1 { font-size: 2rem; }
+            .bookmarks-panel { width: 100%; right: -100%; }
+            .bookmarks-panel.open { right: 0; }
+            .chapter-indicator { font-size: 0.9rem; }
+        }
+
+        /* Form controls */
+        .form-control, .form-select, .input-group-text {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-primary);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--input-bg);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
+        }
+
+        .input-group-text { color: var(--text-muted); }
+
+        /* Theme toggle button */
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+            transform: rotate(360deg);
+        }
+
+        /* Audio controls - Improved mobile */
+        .audio-controls-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .audio-main-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .audio-play-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .audio-play-btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            white-space: nowrap;
+        }
+
+        .audio-time-display {
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .audio-menu-section {
+            display: flex;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .audio-controls-container {
+                padding: 15px;
+            }
+            
+            .audio-main-controls {
+                gap: 10px;
+            }
+            
+            .audio-play-btn {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+            
+            .audio-time-display {
+                min-width: 80px;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .audio-play-section {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .audio-play-btn {
+                padding: 10px 25px;
+                width: auto;
+            }
+            
+            .audio-menu-section {
+                margin-top: 10px;
+                justify-content: center;
+            }
+            
+            .skip-buttons {
+                display: flex;
+                gap: 5px;
+            }
+        }
+
+        .progress {
+            background-color: var(--bg-tertiary);
+            cursor: pointer;
+        }
+
+        .dropdown-menu {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+        }
+
+        .dropdown-item {
+            color: var(--text-primary);
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--accent-primary);
+            color: white;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+        /* Toast notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            z-index: 2000;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { bottom: -50px; opacity: 0; }
+            to { bottom: 20px; opacity: 1; }
+        }
+
         footer {
-            background: #5d4037;
-            color: #d7ccc8;
+            background: var(--footer-bg);
+            color: var(--footer-text);
             padding: 50px 0 30px;
             margin-top: 120px;
         }
+
         .back-link {
-            color: #d7ccc8;
+            color: var(--footer-text);
             text-decoration: none;
         }
+
         .back-link:hover {
             text-decoration: underline;
+            color: white;
         }
     </style>
 </head>
 <body>
+
+    <!-- Reading Progress Bar -->
+    <div class="reading-progress-container">
+        <div class="reading-progress-bar" id="readingProgressBar"></div>
+    </div>
+
+    <!-- Bookmarks Panel -->
+    <div class="bookmarks-panel" id="bookmarksPanel">
+        <div class="bookmarks-header">
+            <h5 class="mb-0"><i class="fas fa-bookmark me-2" style="color: #ffd700;"></i>My Bookmarks</h5>
+            <button class="btn-close" id="closeBookmarksPanel"></button>
+        </div>
+        <div class="bookmarks-list" id="bookmarksList">
+            <!-- Bookmarks will be dynamically added here -->
+        </div>
+    </div>
+
+    <!-- Bookmarks Toggle Button -->
+    <button class="bookmarks-toggle" id="bookmarksToggle" title="View Bookmarks">
+        <i class="fas fa-bookmark"></i>
+        <span class="badge" id="bookmarkCount" style="display: none;">0</span>
+    </button>
 
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg fixed-top">
@@ -149,6 +707,11 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#search">Search</a></li>
                     <li class="nav-item"><a class="nav-link active" href="{{ url_for('books', book_name=book.name.title()) }}">Books</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
+                    <li class="nav-item d-flex align-items-center ms-2">
+                        <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
+                            <i class="fas fa-moon" id="themeIcon"></i>
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -167,7 +730,7 @@
         <div class="container col-11">
             <h2 class="text-center section-title">Select Chapter and Verse in {{ book.name }}</h2>
             <div class="row justify-content-center">
-                <div class="col-lg-6">
+                <div class="col-lg-8">
                     <!-- Chapter Selection Form -->
                     <form method="POST" action="{{ url_for('books', book_name=book.name|lower|replace(' ', '-')) }}" class="mb-4">
                         <div class="input-group">
@@ -181,13 +744,14 @@
                             <button class="btn btn-success" type="submit">Load Chapter</button>
                         </div>
                     </form>
+                    
                     <!-- Verse Selection Form -->
                     {% if verses %}
-                        <form method="POST" action="{{ url_for('books', book_name=book.name|lower|replace(' ', '-')) }}" class="mb-5">
+                        <form method="POST" action="{{ url_for('books', book_name=book.name|lower|replace(' ', '-')) }}" class="mb-3">
                             <div class="input-group">
-                                <label class="input-group-text" for="verseSelect">Verse</label>
+                                <label class="input-group-text" for="verseSelect">Jump to Verse</label>
                                 <select class="form-select" id="verseSelect" name="verse">
-                                    <option value="" selected>Jump to verse...</option>
+                                    <option value="" selected>Select verse...</option>
                                     {% for vs in range(1, verses|length + 1) %}
                                         <option value="{{ vs }}">{{ vs }}</option>
                                     {% endfor %}
@@ -197,9 +761,10 @@
                             <input type="hidden" name="chapter" value="{{ selected_chapter }}">
                         </form>
                     {% endif %}
+                    
                     <!-- Version Selection Form -->
                     {% if selected_chapter %}
-                        <form method="POST" class="mb-5">
+                        <form method="POST" class="mb-4">
                             <div class="input-group">
                                 <label class="input-group-text">Version</label>
                                 <select class="form-select" name="version">
@@ -219,60 +784,78 @@
 
             <!-- Audio Controls -->
             {% if chapter_text and selected_chapter %}
-            <div class="my-4">
-                <div class="d-flex align-items-center justify-content-center gap-3">
-                    <!-- Play/Pause Button -->
-                    <div class="d-flex align-items-center gap-2">
-                        <button id="skipBackBtn" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-backward"></i>
+            <div class="audio-controls-container">
+                <div class="audio-main-controls">
+                    <div class="audio-play-section">
+                        <div class="skip-buttons">
+                            <button id="skipBackBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-backward"></i>
+                            </button>
+                        </div>
+                        <button id="audioPlayBtn" class="btn btn-success rounded-pill audio-play-btn">
+                            <i class="fas fa-play me-2"></i>Play Chapter {{ selected_chapter }}
                         </button>
-                        <button id="audioPlayBtn" class="btn btn-success btn-lg rounded-pill px-5">
-                            <i class="fas fa-play me-2"></i> Play Chapter {{ selected_chapter }}
-                        </button>
-                        <button id="skipForwardBtn" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-forward"></i>
-                        </button>
-
-                        <!-- Time Display -->
-                        <div class="text-center" style="min-width: 110px;">
-                            <small class="text-muted"><span id="audioCurrentTime">0:00</span> / <span id="audioDuration">0:00</span></small>
+                        <div class="skip-buttons">
+                            <button id="skipForwardBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-forward"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Menu Button -->
-                    <div class="dropdown">
-                        <button class="btn btn-outline-secondary" id="audioMenuBtn" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="audioMenuBtn">
-                            <li><h6 class="dropdown-header">Playback Speed</h6></li>
-                            <li>
-                                <div class="dropdown-item">
-                                    <div class="btn-group btn-group-sm w-100" role="group">
-                                        <input type="radio" class="btn-check speed-option" name="speed" id="speed050" value="0.5">
-                                        <label class="btn btn-outline-secondary" for="speed050">0.5x</label>
-                                        <input type="radio" class="btn-check speed-option" name="speed" id="speed075" value="0.75">
-                                        <label class="btn btn-outline-secondary" for="speed075">0.75x</label>
-                                        <input type="radio" class="btn-check speed-option" name="speed" id="speed100" value="1" checked>
-                                        <label class="btn btn-outline-secondary" for="speed100">1x</label>
-                                        <input type="radio" class="btn-check speed-option" name="speed" id="speed125" value="1.25">
-                                        <label class="btn btn-outline-secondary" for="speed125">1.25x</label>
-                                        <input type="radio" class="btn-check speed-option" name="speed" id="speed150" value="1.5">
-                                        <label class="btn btn-outline-secondary" for="speed150">1.5x</label>
+                    <div class="audio-time-display">
+                        <small class="text-muted"><span id="audioCurrentTime">0:00</span> / <span id="audioDuration">0:00</span></small>
+                    </div>
+
+                    <div class="audio-menu-section">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary" id="audioMenuBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="audioMenuBtn">
+                                <li><h6 class="dropdown-header">Playback Speed</h6></li>
+                                <li>
+                                    <div class="dropdown-item">
+                                        <div class="btn-group btn-group-sm w-100" role="group">
+                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed050" value="0.5">
+                                            <label class="btn btn-outline-secondary" for="speed050">0.5x</label>
+                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed075" value="0.75">
+                                            <label class="btn btn-outline-secondary" for="speed075">0.75x</label>
+                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed100" value="1" checked>
+                                            <label class="btn btn-outline-secondary" for="speed100">1x</label>
+                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed125" value="1.25">
+                                            <label class="btn btn-outline-secondary" for="speed125">1.25x</label>
+                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed150" value="1.5">
+                                            <label class="btn btn-outline-secondary" for="speed150">1.5x</label>
+                                        </div>
                                     </div>
-                                </div>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><button id="audioDownloadBtn" class="dropdown-item"><i class="fas fa-download me-2"></i> Download as MP3</button></li>
-                        </ul>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><button id="audioDownloadBtn" class="dropdown-item"><i class="fas fa-download me-2"></i> Download as MP3</button></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Progress Bar -->
                 <div class="mt-3">
-                    <div class="progress" style="height: 6px; cursor: pointer;" id="audioProgressContainer">
+                    <div class="progress" style="height: 6px;" id="audioProgressContainer">
                         <div id="audioProgress" class="progress-bar bg-primary" role="progressbar" style="width: 0%;"></div>
                     </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Font Size Controls - New Position -->
+            {% if verses %}
+            <div class="font-size-controls-container">
+                <div class="font-size-header">
+                    <i class="fas fa-text-height"></i>
+                    <span>Text Size Control</span>
+                </div>
+                <div class="font-size-controls">
+                    <button class="font-size-btn" id="fontSizeDown" title="Decrease font size">A-</button>
+                    <span class="font-size-indicator" id="fontSizeIndicator">100%</span>
+                    <button class="font-size-btn" id="fontSizeReset" title="Reset font size">A</button>
+                    <button class="font-size-btn" id="fontSizeUp" title="Increase font size">A+</button>
                 </div>
             </div>
             {% endif %}
@@ -281,34 +864,30 @@
             {% if verses %}
                 <div class="verse-container">
                     <h3 class="mb-4 text-center">{{ book.name }} {{ selected_chapter }}</h3>
-                    <div class="row g-6">
+                    <div class="row g-0" id="versesContainer">
                         {% for verse in verses %}
-                            <div class="col-12 verse-item" id="verse-{{ loop.index }}">
-                                <span class="verse-number">{{ loop.index }} </span>
-                                <span class="verse-text">{{ verse.text }}</span>
+                            <div class="col-12 verse-item" id="verse-{{ loop.index }}" data-verse="{{ loop.index }}" data-reference="{{ book.name }} {{ selected_chapter }}:{{ loop.index }}">
+                                <div class="verse-content">
+                                    <span class="verse-number">{{ loop.index }}.</span>
+                                    <span class="verse-text" id="verse-text-{{ loop.index }}">{{ verse.text }}</span>
+                                </div>
+                                <button class="bookmark-btn" data-verse="{{ loop.index }}" data-reference="{{ book.name }} {{ selected_chapter }}:{{ loop.index }}" data-text="{{ verse.text }}" title="Bookmark this verse">
+                                    <i class="far fa-bookmark"></i>
+                                </button>
                             </div>
                         {% endfor %}
                     </div>
                     
-                    <!-- Side navigation buttons (desktop) -->
-                    <div class="side-nav left">
-                        <button id="prevChapterSide" class="chapter-nav-btn" title="Previous chapter">
-                            <i class="fas fa-arrow-left"></i>
+                    <!-- Chapter Navigation -->
+                    <div class="chapter-navigation">
+                        <button id="prevChapterBtn" class="chapter-nav-btn" title="Previous Chapter">
+                            <i class="fas fa-chevron-left"></i>
                         </button>
-                    </div>
-                    <div class="side-nav right">
-                        <button id="nextChapterSide" class="chapter-nav-btn" title="Next chapter">
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-
-                    <!-- Mobile navigation -->
-                    <div class="mobile-nav">
-                        <button id="prevChapterMobile" class="chapter-nav-btn" title="Previous chapter">
-                            <i class="fas fa-arrow-left"></i>
-                        </button>
-                        <button id="nextChapterMobile" class="chapter-nav-btn" title="Next chapter">
-                            <i class="fas fa-arrow-right"></i>
+                        <span class="chapter-indicator">
+                            Chapter {{ selected_chapter }} of {{ book.chapters }}
+                        </span>
+                        <button id="nextChapterBtn" class="chapter-nav-btn" title="Next Chapter">
+                            <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
 
@@ -336,38 +915,368 @@
     <!-- Chapter text data for JavaScript -->
     {% if chapter_text and selected_chapter %}
     <script>
-        // Pass chapter data to JavaScript
         const CHAPTER_TEXT = {{ chapter_text|tojson|safe }};
         const BOOK_NAME = "{{ book.name }}";
         const CHAPTER_NUM = {{ selected_chapter }};
         const BOOK_SLUG = "{{ book.name|lower|replace(' ', '-') }}";
         const SELECTED_VERSION = "{{ selected_version|default('en-kjv') }}";
+        const MAX_CHAPTERS = {{ book.chapters }};
     </script>
     {% endif %}
 
     <script>
         (function() {
-            // Audio state
+            // ========== DARK MODE ==========
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const htmlElement = document.documentElement;
+            
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            if (savedTheme) {
+                htmlElement.setAttribute('data-theme', savedTheme);
+                updateThemeIcon(savedTheme);
+            }
+            
+            if (!savedTheme) {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (prefersDark) {
+                    htmlElement.setAttribute('data-theme', 'dark');
+                    updateThemeIcon('dark');
+                }
+            }
+            
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const currentTheme = htmlElement.getAttribute('data-theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    
+                    htmlElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('bibleAppTheme', newTheme);
+                    updateThemeIcon(newTheme);
+                    
+                    themeToggle.style.transform = 'scale(0.9)';
+                    setTimeout(() => themeToggle.style.transform = 'scale(1)', 200);
+                });
+            }
+            
+            function updateThemeIcon(theme) {
+                if (themeIcon) {
+                    if (theme === 'dark') {
+                        themeIcon.className = 'fas fa-sun';
+                        themeToggle.title = 'Switch to light mode';
+                    } else {
+                        themeIcon.className = 'fas fa-moon';
+                        themeToggle.title = 'Switch to dark mode';
+                    }
+                }
+            }
+
+            // ========== READING PROGRESS TRACKER ==========
+            const progressBar = document.getElementById('readingProgressBar');
+            
+            function updateReadingProgress() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const progress = (scrollTop / scrollHeight) * 100;
+                if (progressBar) progressBar.style.width = progress + '%';
+                
+                if (typeof CHAPTER_NUM !== 'undefined') {
+                    const progressData = {
+                        book: BOOK_NAME,
+                        chapter: CHAPTER_NUM,
+                        progress: Math.round(progress),
+                        timestamp: new Date().toISOString()
+                    };
+                    localStorage.setItem(`reading_progress_${BOOK_NAME}_${CHAPTER_NUM}`, JSON.stringify(progressData));
+                }
+            }
+            
+            window.addEventListener('scroll', updateReadingProgress);
+            window.addEventListener('resize', updateReadingProgress);
+
+            // ========== FONT SIZE ADJUSTER ==========
+            const verseTexts = document.querySelectorAll('.verse-text');
+            const fontSizeIndicator = document.getElementById('fontSizeIndicator');
+            let currentFontSize = parseFloat(localStorage.getItem('bibleFontSize')) || 1.2;
+            const baseFontSize = 1.2;
+            
+            function updateFontSize() {
+                verseTexts.forEach(text => {
+                    text.style.fontSize = currentFontSize + 'rem';
+                });
+                localStorage.setItem('bibleFontSize', currentFontSize);
+                
+                const percentage = Math.round((currentFontSize / baseFontSize) * 100);
+                if (fontSizeIndicator) fontSizeIndicator.textContent = percentage + '%';
+            }
+            
+            const fontSizeUp = document.getElementById('fontSizeUp');
+            const fontSizeDown = document.getElementById('fontSizeDown');
+            const fontSizeReset = document.getElementById('fontSizeReset');
+            
+            if (fontSizeUp) {
+                fontSizeUp.addEventListener('click', () => {
+                    if (currentFontSize < 2.0) {
+                        currentFontSize += 0.1;
+                        updateFontSize();
+                    }
+                });
+            }
+            
+            if (fontSizeDown) {
+                fontSizeDown.addEventListener('click', () => {
+                    if (currentFontSize > 0.9) {
+                        currentFontSize -= 0.1;
+                        updateFontSize();
+                    }
+                });
+            }
+            
+            if (fontSizeReset) {
+                fontSizeReset.addEventListener('click', () => {
+                    currentFontSize = baseFontSize;
+                    updateFontSize();
+                });
+            }
+            
+            updateFontSize();
+
+            // ========== BOOKMARKS SYSTEM ==========
+            let bookmarks = JSON.parse(localStorage.getItem('bibleBookmarks')) || [];
+            const bookmarksPanel = document.getElementById('bookmarksPanel');
+            const bookmarksToggle = document.getElementById('bookmarksToggle');
+            const bookmarksList = document.getElementById('bookmarksList');
+            const bookmarkCount = document.getElementById('bookmarkCount');
+            
+            function saveBookmarks() {
+                localStorage.setItem('bibleBookmarks', JSON.stringify(bookmarks));
+                updateBookmarksList();
+                updateBookmarkCount();
+                updateBookmarkButtons();
+            }
+            
+            function addBookmark(verse, reference, text) {
+                const exists = bookmarks.find(b => b.reference === reference);
+                if (!exists) {
+                    bookmarks.push({
+                        id: Date.now(),
+                        verse: verse,
+                        reference: reference,
+                        text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+                        book: BOOK_NAME,
+                        chapter: CHAPTER_NUM,
+                        timestamp: new Date().toISOString()
+                    });
+                    saveBookmarks();
+                    showToast('Verse bookmarked!');
+                }
+            }
+            
+            function removeBookmark(id) {
+                bookmarks = bookmarks.filter(b => b.id !== id);
+                saveBookmarks();
+                showToast('Bookmark removed');
+            }
+            
+            function updateBookmarksList() {
+                if (!bookmarksList) return;
+                
+                if (bookmarks.length === 0) {
+                    bookmarksList.innerHTML = '<p class="text-center text-muted p-3">No bookmarks yet. Click the bookmark icon on any verse to save it.</p>';
+                    return;
+                }
+                
+                bookmarksList.innerHTML = bookmarks
+                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                    .map(bookmark => `
+                        <div class="bookmark-item" onclick="window.location.href='{{ url_for('books', book_name='') }}/${bookmark.book.toLowerCase().replace(/ /g, '-')}'; document.getElementById('chapterSelect').value='${bookmark.chapter}'; document.querySelector('form').submit();">
+                            <span class="delete-bookmark" onclick="event.stopPropagation(); removeBookmark(${bookmark.id})">
+                                <i class="fas fa-times"></i>
+                            </span>
+                            <div class="bookmark-reference">${bookmark.reference}</div>
+                            <div class="bookmark-text">"${bookmark.text}"</div>
+                        </div>
+                    `).join('');
+            }
+            
+            function updateBookmarkCount() {
+                if (!bookmarkCount) return;
+                if (bookmarks.length > 0) {
+                    bookmarkCount.style.display = 'inline';
+                    bookmarkCount.textContent = bookmarks.length;
+                } else {
+                    bookmarkCount.style.display = 'none';
+                }
+            }
+            
+            function updateBookmarkButtons() {
+                document.querySelectorAll('.bookmark-btn').forEach(btn => {
+                    const reference = btn.dataset.reference;
+                    const isBookmarked = bookmarks.find(b => b.reference === reference);
+                    const icon = btn.querySelector('i');
+                    
+                    if (isBookmarked) {
+                        btn.classList.add('bookmarked');
+                        if (icon) icon.className = 'fas fa-bookmark';
+                    } else {
+                        btn.classList.remove('bookmarked');
+                        if (icon) icon.className = 'far fa-bookmark';
+                    }
+                });
+            }
+            
+            window.removeBookmark = removeBookmark;
+            
+            document.querySelectorAll('.bookmark-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const reference = btn.dataset.reference;
+                    const existingBookmark = bookmarks.find(b => b.reference === reference);
+                    
+                    if (existingBookmark) {
+                        removeBookmark(existingBookmark.id);
+                    } else {
+                        addBookmark(btn.dataset.verse, btn.dataset.reference, btn.dataset.text);
+                    }
+                });
+            });
+            
+            if (bookmarksToggle) {
+                bookmarksToggle.addEventListener('click', () => {
+                    if (bookmarksPanel) bookmarksPanel.classList.toggle('open');
+                });
+            }
+            
+            const closeBtn = document.getElementById('closeBookmarksPanel');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    if (bookmarksPanel) bookmarksPanel.classList.remove('open');
+                });
+            }
+            
+            document.addEventListener('click', (e) => {
+                if (bookmarksPanel && !bookmarksPanel.contains(e.target) && bookmarksToggle && !bookmarksToggle.contains(e.target)) {
+                    bookmarksPanel.classList.remove('open');
+                }
+            });
+            
+            updateBookmarksList();
+            updateBookmarkCount();
+            updateBookmarkButtons();
+
+            // ========== VERSE HIGHLIGHTING ==========
+            let highlights = JSON.parse(localStorage.getItem('bibleHighlights')) || {};
+            const chapterKey = `${BOOK_NAME}_${CHAPTER_NUM}`;
+            
+            function saveHighlights() {
+                localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
+            }
+            
+            function toggleHighlight(verseElement, verseNum) {
+                const chapterHighlights = highlights[chapterKey] || [];
+                const index = chapterHighlights.indexOf(verseNum);
+                
+                if (index > -1) {
+                    chapterHighlights.splice(index, 1);
+                    verseElement.classList.remove('highlighted');
+                } else {
+                    chapterHighlights.push(verseNum);
+                    verseElement.classList.add('highlighted');
+                }
+                
+                if (chapterHighlights.length > 0) {
+                    highlights[chapterKey] = chapterHighlights;
+                } else {
+                    delete highlights[chapterKey];
+                }
+                
+                saveHighlights();
+            }
+            
+            if (highlights[chapterKey]) {
+                highlights[chapterKey].forEach(verseNum => {
+                    const verseElement = document.getElementById(`verse-${verseNum}`);
+                    if (verseElement) verseElement.classList.add('highlighted');
+                });
+            }
+            
+            document.querySelectorAll('.verse-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (!e.target.closest('.bookmark-btn')) {
+                        const verseNum = item.dataset.verse;
+                        toggleHighlight(item, parseInt(verseNum));
+                    }
+                });
+            });
+
+            // ========== TOAST NOTIFICATION ==========
+            function showToast(message) {
+                const toast = document.createElement('div');
+                toast.className = 'toast-notification';
+                toast.innerHTML = `<i class="fas fa-check-circle me-2" style="color: var(--accent-primary);"></i>${message}`;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => toast.remove(), 3000);
+            }
+
+            // ========== CHAPTER NAVIGATION ==========
+            const prevBtn = document.getElementById('prevChapterBtn');
+            const nextBtn = document.getElementById('nextChapterBtn');
+            
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    if (typeof CHAPTER_NUM !== 'undefined' && CHAPTER_NUM > 1) {
+                        document.getElementById('chapterNavInput').value = CHAPTER_NUM - 1;
+                        document.getElementById('chapterNavForm').submit();
+                    }
+                });
+            }
+            
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    if (typeof CHAPTER_NUM !== 'undefined' && typeof MAX_CHAPTERS !== 'undefined' && CHAPTER_NUM < MAX_CHAPTERS) {
+                        document.getElementById('chapterNavInput').value = CHAPTER_NUM + 1;
+                        document.getElementById('chapterNavForm').submit();
+                    }
+                });
+            }
+            
+            if (typeof CHAPTER_NUM !== 'undefined') {
+                if (CHAPTER_NUM <= 1 && prevBtn) prevBtn.disabled = true;
+                if (typeof MAX_CHAPTERS !== 'undefined' && CHAPTER_NUM >= MAX_CHAPTERS && nextBtn) nextBtn.disabled = true;
+            }
+
+            // ========== VERSE JUMP ==========
+            const verseSelect = document.getElementById('verseSelect');
+            if (verseSelect) {
+                verseSelect.addEventListener('change', function() {
+                    const verse = this.value;
+                    if (verse) {
+                        const element = document.getElementById('verse-' + verse);
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                });
+            }
+
+            // ========== AUDIO PLAYER ==========
             let audioPlayer = null;
             let isPlaying = false;
             let isDownloading = false;
-            let currentTime = 0;
-            let duration = 0;
             let progressTimer = null;
             let currentSpeed = 1.0;
 
-            // DOM elements
             const playBtn = document.getElementById('audioPlayBtn');
             const skipBackBtn = document.getElementById('skipBackBtn');
             const skipForwardBtn = document.getElementById('skipForwardBtn');
             const downloadBtn = document.getElementById('audioDownloadBtn');
             const progressContainer = document.getElementById('audioProgressContainer');
-            const progressBar = document.getElementById('audioProgress');
+            const audioProgress = document.getElementById('audioProgress');
             const currentTimeSpan = document.getElementById('audioCurrentTime');
             const durationSpan = document.getElementById('audioDuration');
             const speedOptions = document.querySelectorAll('.speed-option');
 
-            // Helper functions
             function formatTime(seconds) {
                 if (isNaN(seconds) || seconds < 0) seconds = 0;
                 const mins = Math.floor(seconds / 60);
@@ -375,20 +1284,20 @@
                 return `${mins}:${secs.toString().padStart(2, '0')}`;
             }
 
-            function updateProgress() {
+            function updateAudioProgress() {
                 if (audioPlayer && !isNaN(audioPlayer.duration)) {
-                    duration = audioPlayer.duration;
-                    currentTime = audioPlayer.currentTime;
+                    const duration = audioPlayer.duration;
+                    const currentTime = audioPlayer.currentTime;
                     const percent = (currentTime / duration) * 100;
-                    progressBar.style.width = percent + '%';
-                    currentTimeSpan.textContent = formatTime(currentTime);
-                    durationSpan.textContent = formatTime(duration);
+                    if (audioProgress) audioProgress.style.width = percent + '%';
+                    if (currentTimeSpan) currentTimeSpan.textContent = formatTime(currentTime);
+                    if (durationSpan) durationSpan.textContent = formatTime(duration);
                 }
             }
 
             function startProgressTimer() {
                 if (progressTimer) clearInterval(progressTimer);
-                progressTimer = setInterval(updateProgress, 100);
+                progressTimer = setInterval(updateAudioProgress, 100);
             }
 
             function stopProgressTimer() {
@@ -411,25 +1320,23 @@
             function updatePlayButtonState() {
                 if (playBtn) {
                     if (isPlaying) {
-                        playBtn.innerHTML = '<i class="fas fa-pause me-2"></i> Pause Chapter ' + CHAPTER_NUM;
+                        playBtn.innerHTML = '<i class="fas fa-pause me-2"></i>Pause Chapter ' + (typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : '');
                         playBtn.classList.remove('btn-success');
                         playBtn.classList.add('btn-warning');
                     } else {
-                        playBtn.innerHTML = '<i class="fas fa-play me-2"></i> Play Chapter ' + CHAPTER_NUM;
+                        playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Play Chapter ' + (typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : '');
                         playBtn.classList.remove('btn-warning');
                         playBtn.classList.add('btn-success');
                     }
                 }
             }
 
-            // Play audio function using backend API
             async function playChapterAudio() {
-                if (!CHAPTER_TEXT) {
+                if (typeof CHAPTER_TEXT === 'undefined' || !CHAPTER_TEXT) {
                     alert('No chapter text loaded');
                     return;
                 }
 
-                // If already playing, pause
                 if (isPlaying && audioPlayer) {
                     audioPlayer.pause();
                     isPlaying = false;
@@ -438,7 +1345,6 @@
                     return;
                 }
 
-                // If paused, resume
                 if (audioPlayer && !isPlaying) {
                     await audioPlayer.play();
                     isPlaying = true;
@@ -447,16 +1353,13 @@
                     return;
                 }
 
-                // Start new playback
                 try {
-                    playBtn.disabled = true;
-                    playBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Loading...';
+                    if (playBtn) playBtn.disabled = true;
+                    if (playBtn) playBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Loading...';
 
                     const response = await fetch('/api/play-audio', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ text: CHAPTER_TEXT })
                     });
 
@@ -472,8 +1375,7 @@
                     audioPlayer.playbackRate = currentSpeed;
                     
                     audioPlayer.onloadedmetadata = () => {
-                        duration = audioPlayer.duration;
-                        durationSpan.textContent = formatTime(duration);
+                        if (durationSpan) durationSpan.textContent = formatTime(audioPlayer.duration);
                     };
                     
                     audioPlayer.onended = () => {
@@ -481,8 +1383,8 @@
                         audioPlayer = null;
                         stopProgressTimer();
                         updatePlayButtonState();
-                        progressBar.style.width = '0%';
-                        currentTimeSpan.textContent = '0:00';
+                        if (audioProgress) audioProgress.style.width = '0%';
+                        if (currentTimeSpan) currentTimeSpan.textContent = '0:00';
                     };
                     
                     audioPlayer.onerror = (e) => {
@@ -504,13 +1406,12 @@
                     alert('Failed to play audio: ' + error.message);
                     updatePlayButtonState();
                 } finally {
-                    playBtn.disabled = false;
+                    if (playBtn) playBtn.disabled = false;
                 }
             }
 
-            // Download function using backend API
             async function downloadChapterAudio() {
-                if (!CHAPTER_TEXT) {
+                if (typeof CHAPTER_TEXT === 'undefined' || !CHAPTER_TEXT) {
                     alert('No chapter text loaded');
                     return;
                 }
@@ -521,22 +1422,17 @@
                 }
 
                 isDownloading = true;
-                downloadBtn.disabled = true;
-                const originalHtml = downloadBtn.innerHTML;
-                downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Generating MP3...';
+                if (downloadBtn) downloadBtn.disabled = true;
+                const originalHtml = downloadBtn ? downloadBtn.innerHTML : '';
+                if (downloadBtn) downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Generating MP3...';
 
                 try {
                     const filename = `${BOOK_SLUG}_Chapter${CHAPTER_NUM}.mp3`;
                     
                     const response = await fetch('/api/download-audio', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ 
-                            text: CHAPTER_TEXT,
-                            filename: filename
-                        })
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: CHAPTER_TEXT, filename: filename })
                     });
 
                     if (!response.ok) {
@@ -554,50 +1450,42 @@
                     document.body.removeChild(a);
                     window.URL.revokeObjectURL(url);
 
-                    downloadBtn.innerHTML = '<i class="fas fa-check me-2"></i> Downloaded!';
+                    if (downloadBtn) downloadBtn.innerHTML = '<i class="fas fa-check me-2"></i> Downloaded!';
                     setTimeout(() => {
-                        downloadBtn.innerHTML = originalHtml;
+                        if (downloadBtn) downloadBtn.innerHTML = originalHtml;
                     }, 3000);
 
                 } catch (error) {
                     console.error('Download error:', error);
                     alert('Failed to download audio: ' + error.message);
-                    downloadBtn.innerHTML = originalHtml;
+                    if (downloadBtn) downloadBtn.innerHTML = originalHtml;
                 } finally {
-                    downloadBtn.disabled = false;
+                    if (downloadBtn) downloadBtn.disabled = false;
                     isDownloading = false;
                 }
             }
 
-            // Seek function
             function seekTo(seconds) {
                 if (audioPlayer) {
                     audioPlayer.currentTime = Math.max(0, Math.min(seconds, audioPlayer.duration));
-                    updateProgress();
+                    updateAudioProgress();
                 }
             }
 
-            // Event listeners
-            if (playBtn) {
-                playBtn.addEventListener('click', playChapterAudio);
-            }
-
+            if (playBtn) playBtn.addEventListener('click', playChapterAudio);
+            
             if (skipBackBtn) {
                 skipBackBtn.addEventListener('click', () => {
-                    if (audioPlayer) {
-                        seekTo(audioPlayer.currentTime - 10);
-                    }
+                    if (audioPlayer) seekTo(audioPlayer.currentTime - 10);
                 });
             }
-
+            
             if (skipForwardBtn) {
                 skipForwardBtn.addEventListener('click', () => {
-                    if (audioPlayer) {
-                        seekTo(audioPlayer.currentTime + 10);
-                    }
+                    if (audioPlayer) seekTo(audioPlayer.currentTime + 10);
                 });
             }
-
+            
             if (progressContainer) {
                 progressContainer.addEventListener('click', (e) => {
                     if (audioPlayer) {
@@ -607,74 +1495,17 @@
                     }
                 });
             }
-
-            if (downloadBtn) {
-                downloadBtn.addEventListener('click', downloadChapterAudio);
-            }
-
-            // Speed change handlers
+            
+            if (downloadBtn) downloadBtn.addEventListener('click', downloadChapterAudio);
+            
             speedOptions.forEach(option => {
                 option.addEventListener('change', () => {
                     currentSpeed = parseFloat(option.value);
-                    if (audioPlayer) {
-                        audioPlayer.playbackRate = currentSpeed;
-                    }
+                    if (audioPlayer) audioPlayer.playbackRate = currentSpeed;
                 });
             });
 
-            // Chapter navigation
-            const selChapter = parseInt('{{ selected_chapter or 0 }}', 10) || 0;
-            const maxCh = parseInt('{{ book.chapters }}', 10) || 0;
-            
-            if (selChapter) {
-                function go(delta) {
-                    const target = selChapter + delta;
-                    if (target < 1 || target > maxCh) return;
-                    const input = document.getElementById('chapterNavInput');
-                    if (input) {
-                        input.value = target;
-                        document.getElementById('chapterNavForm').submit();
-                    }
-                }
-
-                ['prevChapterSide', 'prevChapterMobile'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.addEventListener('click', () => go(-1));
-                });
-                
-                ['nextChapterSide', 'nextChapterMobile'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.addEventListener('click', () => go(1));
-                });
-
-                // Disable buttons at boundaries
-                if (selChapter <= 1) {
-                    ['prevChapterSide', 'prevChapterMobile'].forEach(id => {
-                        const b = document.getElementById(id);
-                        if (b) b.disabled = true;
-                    });
-                }
-                if (selChapter >= maxCh) {
-                    ['nextChapterSide', 'nextChapterMobile'].forEach(id => {
-                        const b = document.getElementById(id);
-                        if (b) b.disabled = true;
-                    });
-                }
-            }
-
-            // Verse jump functionality
-            const verseSelect = document.getElementById('verseSelect');
-            if (verseSelect) {
-                verseSelect.addEventListener('change', function() {
-                    const verse = this.value;
-                    if (verse) {
-                        const element = document.getElementById('verse-' + verse);
-                        if (element) {
-                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                    }
-                });
-            }
+            updateReadingProgress();
         })();
     </script>
 </body>

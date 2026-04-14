@@ -10,28 +10,469 @@
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Crimson Text', serif; background-color: #f5f0e6; color: #3c2f2f; min-height: 100vh; }
-        .navbar { background-color: rgba(255,255,255,0.95); backdrop-filter: blur(10px); box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
-        .navbar-brand { font-family: 'Lora', serif; font-size: 1.8rem; color: #5d4037 !important; }
-        .hero { background-image: url('../static/img/bg.jpg'); background-size: cover; background-position: center; background-attachment: fixed; color: white; padding: 120px 0; text-align: center; }
-        .hero h1 { font-family: 'Lora', serif; font-size: 4rem; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-        .hero p { font-size: 1.4rem; max-width: 800px; margin: 0 auto; opacity: 0.95; }
-        .section-title { font-family: 'Lora', serif; color: #5d4037; position: relative; display: inline-block; }
-        .section-title::after { content: ''; width: 60px; height: 3px; background: #8d9b6a; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); }
-        .verse-card { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 40px; text-align: center; }
-        .verse-text { font-size: 1.8rem; line-height: 2; font-style: italic; color: #4a3c2d; }
-        .reference { font-size: 1.3rem; font-weight: 600; color: #8d9b6a; margin-top: 30px; }
+        /* Light mode (default) variables */
+        :root {
+            --bg-primary: #f5f0e6;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f8f9fa;
+            --text-primary: #3c2f2f;
+            --text-secondary: #5d4037;
+            --text-muted: #6c757d;
+            --accent-primary: #8d9b6a;
+            --accent-secondary: #5d4037;
+            --card-bg: #ffffff;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --border-color: rgba(141, 155, 106, 0.1);
+            --navbar-bg: rgba(255, 255, 255, 0.95);
+            --footer-bg: #5d4037;
+            --footer-text: #d7ccc8;
+            --hero-overlay: linear-gradient(rgba(101, 115, 95, 0.8), rgba(198, 216, 157, 0.8));
+            --input-bg: #ffffff;
+            --input-border: #ced4da;
+            --btn-light-bg: #f8f9fa;
+            --btn-light-border: #dee2e6;
+            --section-bg: #ffffff;
+        }
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --text-primary: #e8e8e8;
+            --text-secondary: #e94560;
+            --text-muted: #a0a0a0;
+            --accent-primary: #e94560;
+            --accent-secondary: #533483;
+            --card-bg: #16213e;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            --border-color: rgba(233, 69, 96, 0.2);
+            --navbar-bg: rgba(26, 26, 46, 0.95);
+            --footer-bg: #0f0f1a;
+            --footer-text: #a0a0a0;
+            --hero-overlay: linear-gradient(rgba(83, 52, 131, 0.8), rgba(233, 69, 96, 0.8));
+            --input-bg: #16213e;
+            --input-border: #533483;
+            --btn-light-bg: #16213e;
+            --btn-light-border: #533483;
+            --section-bg: #1a1a2e;
+        }
+
+        /* Smooth transitions */
+        * {
+            transition: background-color 0.3s ease, 
+                        border-color 0.3s ease, 
+                        box-shadow 0.3s ease,
+                        color 0.2s ease;
+        }
+
+        /* Apply variables to elements */
+        body { 
+            font-family: 'Crimson Text', serif; 
+            background-color: var(--bg-primary); 
+            color: var(--text-primary); 
+            min-height: 100vh; 
+        }
+        .navbar { 
+            background-color: var(--navbar-bg); 
+            backdrop-filter: blur(10px); 
+            box-shadow: var(--card-shadow); 
+        }
+        .navbar-brand { 
+            font-family: 'Lora', serif; 
+            font-size: 1.8rem; 
+            color: var(--text-secondary) !important; 
+        }
+        .nav-link { color: var(--text-primary) !important; }
+        .nav-link:hover { color: var(--accent-primary) !important; }
+        .hero { 
+            background: var(--hero-overlay), url('../static/img/bg.jpg') no-repeat center/cover;
+            color: white; 
+            padding: 120px 0; 
+            text-align: center; 
+        }
+        .hero h1 { 
+            font-family: 'Lora', serif; 
+            font-size: 4rem; 
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3); 
+        }
+        .hero p { 
+            font-size: 1.4rem; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            opacity: 0.95; 
+        }
+        .section-title { 
+            font-family: 'Lora', serif; 
+            color: var(--text-secondary); 
+            position: relative; 
+            display: inline-block; 
+        }
+        .section-title::after { 
+            content: ''; 
+            width: 60px; 
+            height: 3px; 
+            background: var(--accent-primary); 
+            position: absolute; 
+            bottom: -10px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+        }
+        .verse-card { 
+            background: var(--card-bg); 
+            border-radius: 20px; 
+            box-shadow: var(--card-shadow); 
+            padding: 40px; 
+            text-align: center; 
+        }
+        .verse-text { 
+            font-size: 1.8rem; 
+            line-height: 2; 
+            font-style: italic; 
+            color: var(--text-primary); 
+        }
+        .reference { 
+            font-size: 1.3rem; 
+            font-weight: 600; 
+            color: var(--accent-primary); 
+            margin-top: 30px; 
+        }
         .search-form { max-width: 700px; margin: 0 auto; }
-        .book-card { background: white; border-radius: 15px; padding: 30px; text-align: center; transition: all 0.3s ease; height: 100%; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-        .book-card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-        .book-card i { font-size: 3rem; color: #8d9b6a; margin-bottom: 20px; }
-        footer { background: #5d4037; color: #d7ccc8; padding: 50px 0 30px; margin-top: 100px; }
-        footer a { color: #d7ccc8; text-decoration: none; }
+        .book-card { 
+            background: var(--card-bg); 
+            border-radius: 15px; 
+            padding: 30px; 
+            text-align: center; 
+            transition: all 0.3s ease; 
+            height: 100%; 
+            box-shadow: var(--card-shadow); 
+            border: 1px solid var(--border-color);
+        }
+        .book-card:hover { 
+            transform: translateY(-10px); 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+        }
+        .book-card i { 
+            font-size: 3rem; 
+            color: var(--accent-primary); 
+            margin-bottom: 20px; 
+        }
+        .book-card h5 { color: var(--text-secondary); }
+        footer { 
+            background: var(--footer-bg); 
+            color: var(--footer-text); 
+            padding: 50px 0 30px; 
+            margin-top: 100px; 
+        }
+        footer a { color: var(--footer-text); text-decoration: none; }
         .audio-controls { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
         .progress-container { cursor: pointer; margin-top: 10px; }
+
+        /* Form controls */
+        .form-control, .form-select, .input-group-text {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-primary);
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: var(--input-bg);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
+        }
+        .input-group-text { color: var(--text-muted); }
+        .btn-light {
+            background-color: var(--btn-light-bg);
+            border-color: var(--btn-light-border);
+            color: var(--text-primary);
+        }
+        .btn-outline-secondary {
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+        .btn-outline-secondary:hover {
+            background-color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+        .dropdown-menu {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+        }
+        .dropdown-item { color: var(--text-primary); }
+        .dropdown-item:hover {
+            background-color: var(--accent-primary);
+            color: white;
+        }
+        .dropdown-divider { border-color: var(--border-color); }
+        .alert {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        .bg-light { background-color: var(--bg-tertiary) !important; }
+        .text-muted { color: var(--text-muted) !important; }
+        .progress { background-color: var(--bg-tertiary); }
+        .card { 
+            background: var(--card-bg); 
+            box-shadow: var(--card-shadow); 
+            border-color: var(--border-color); 
+        }
+
+        /* Quick Lookup Section - Fixed for dark mode */
+        #quick-lookup {
+            background-color: var(--section-bg) !important;
+        }
+        
+        #quick-lookup .card {
+            background: var(--card-bg) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        .bg-white {
+            background-color: var(--section-bg) !important;
+        }
+
+        /* Theme toggle button styling */
+        .theme-toggle-btn, #helpButton {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle-btn:hover, #helpButton:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+            transform: rotate(360deg);
+        }
+        #helpButton:hover { transform: scale(1.1); }
+
+        /* Welcome Modal Styling */
+        .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        .modal-header { border-bottom-color: var(--border-color); }
+        .modal-footer { border-top-color: var(--border-color); }
+        [data-theme="dark"] .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+        .feature-item {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+        }
+        .feature-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--card-shadow);
+        }
+        .feature-item i { transition: transform 0.3s ease; }
+        .feature-item:hover i { transform: scale(1.1); }
+        .navigation-tips i {
+            color: var(--accent-primary);
+            width: 20px;
+        }
+        .announcement {
+            transition: all 0.3s ease;
+        }
+        .announcement:hover {
+            box-shadow: var(--card-shadow);
+        }
+        .form-check-input:checked {
+            background-color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+        .form-check-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
+        }
+
+        /* Mobile-specific enhancements */
+        @media (max-width: 768px) {
+            .modal-dialog { margin: 0.5rem; }
+            .modal-body { padding: 1rem; }
+            .modal-title { font-size: 1.4rem; }
+            .feature-item { padding: 0.75rem !important; }
+            .feature-item i { font-size: 1.5rem !important; }
+            .feature-item h6 { font-size: 0.9rem; margin-bottom: 0.25rem; }
+            .feature-item small { font-size: 0.75rem; }
+            .navigation-tips .row > div { font-size: 0.85rem; }
+            .modal-footer { flex-wrap: wrap; gap: 0.5rem; }
+            .modal-footer .form-check { width: 100%; margin-bottom: 0.5rem; }
+            .modal-footer .btn { width: 100%; }
+            .modal-content { max-height: 90vh; }
+            .btn-close { padding: 1rem; }
+            .hero h1 { font-size: 2.5rem; }
+            .hero p { font-size: 1.1rem; }
+        }
+
+        @media (max-width: 480px) {
+            .modal-title { font-size: 1.2rem; }
+            .modal-header h3 { font-size: 1.1rem; }
+            .feature-item { padding: 0.5rem !important; }
+            .feature-item i { font-size: 1.25rem !important; }
+            .lead { font-size: 1rem; }
+            .navigation-tips .row > div { width: 100%; }
+            .modal-body h5 { font-size: 1rem; margin-bottom: 0.75rem !important; }
+            .announcement { padding: 0.75rem !important; }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            .modal-footer .btn,
+            .btn-close,
+            #helpButton,
+            .theme-toggle-btn {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            .form-check-input {
+                min-height: 20px;
+                min-width: 20px;
+            }
+        }
+
+        /* iOS scrolling fix */
+        .modal-dialog-scrollable .modal-content {
+            max-height: calc(100vh - 1rem);
+            -webkit-overflow-scrolling: touch;
+        }
+        body.modal-open {
+            position: fixed;
+            width: 100%;
+        }
+
+        /* Smooth scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
     </style>
 </head>
 <body>
+
+    <!-- Welcome/Features Modal - Mobile Optimized -->
+    <div class="modal fade" id="welcomeModal" tabindex="-1" aria-labelledby="welcomeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h3 class="modal-title fw-bold" id="welcomeModalLabel">
+                        <i class="fas fa-bible me-2" style="color: var(--accent-primary);"></i>
+                        <span class="d-none d-sm-inline">Welcome to</span> MyPersonal Bible App
+                    </h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Welcome Message -->
+                    <div class="text-center mb-3 mb-md-4">
+                        <p class="lead mb-2">Draw near to God through His living Word.</p>
+                        <p class="text-muted small d-md-block">Your daily companion for reading, listening, and meditating on Scripture.</p>
+                    </div>
+
+                    <!-- Features Grid -->
+                    <h5 class="mb-2 mb-md-3"><i class="fas fa-star me-2" style="color: var(--accent-primary);"></i>Features</h5>
+                    <div class="row g-2 g-md-3 mb-3 mb-md-4">
+                        <div class="col-6 col-md-6">
+                            <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
+                                <i class="fas fa-calendar-day d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <h6 class="mb-1">Daily Verse</h6>
+                                <small class="text-muted d-none d-md-block">A new inspiring verse every day to start your morning right.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
+                                <i class="fas fa-bookmark d-block d-md-inline mb-1 mb-md-2" style="color: #ffd700; font-size: 1.5rem;"></i>
+                                <h6 class="mb-1">Bookmarks</h6>
+                                <small class="text-muted d-none d-md-block">Save your favorite verses and access them anytime from the books page.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
+                                <i class="fas fa-highlighter d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <h6 class="mb-1">Verse Highlighting</h6>
+                                <small class="text-muted d-none d-md-block">Click any verse to highlight important passages for later reference.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
+                                <i class="fas fa-headphones d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <h6 class="mb-1">Audio Bible</h6>
+                                <small class="text-muted d-none d-md-block">Listen to chapters or download MP3s for offline listening.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
+                                <i class="fas fa-chart-line d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <h6 class="mb-1">Reading Progress</h6>
+                                <small class="text-muted d-none d-md-block">Track your reading progress through each chapter automatically.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
+                                <i class="fas fa-moon d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <h6 class="mb-1">Dark Mode</h6>
+                                <small class="text-muted d-none d-md-block">Comfortable reading day or night with theme switching.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- How to Navigate -->
+                    <h5 class="mb-2 mb-md-3"><i class="fas fa-compass me-2" style="color: var(--accent-primary);"></i>How to Navigate</h5>
+                    <div class="navigation-tips p-2 p-md-3 rounded mb-3 mb-md-4" style="background: var(--bg-tertiary);">
+                        <div class="row g-2">
+                            <div class="col-6 col-md-4 mb-1 mb-md-2">
+                                <i class="fas fa-home me-1 me-md-2"></i> <strong>Home</strong>
+                            </div>
+                            <div class="col-6 col-md-4 mb-1 mb-md-2">
+                                <i class="fas fa-arrow-down me-1 me-md-2"></i> <strong>Scroll</strong>
+                            </div>
+                            <div class="col-6 col-md-4 mb-1 mb-md-2">
+                                <i class="fas fa-book me-1 me-md-2"></i> <strong>Books</strong>
+                            </div>
+                            <div class="col-6 col-md-4 mb-1 mb-md-2">
+                                <i class="fas fa-search me-1 me-md-2"></i> <strong>Search</strong>
+                            </div>
+                            <div class="col-6 col-md-4 mb-1 mb-md-2">
+                                <i class="fas fa-play me-1 me-md-2"></i> <strong>Play</strong>
+                            </div>
+                            <div class="col-6 col-md-4 mb-1 mb-md-2">
+                                <i class="fas fa-download me-1 me-md-2"></i> <strong>Download</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Announcements Section - Updated with new features -->
+                    <div id="announcementSection" class="announcement p-2 p-md-3 rounded" style="background: var(--bg-tertiary); border-left: 4px solid var(--accent-primary);">
+                        <h6 class="mb-2"><i class="fas fa-gift me-2" style="color: var(--accent-primary);"></i>What's New</h6>
+                        <ul class="mb-0 ps-3 small text-muted">
+                            <li class="mb-1"><strong>📚 Bookmarks</strong> - Save your favorite verses and access them anytime</li>
+                            <li class="mb-1"><strong>✨ Verse Highlighting</strong> - Click any verse to highlight important passages</li>
+                            <li class="mb-1"><strong>📖 Reading Progress</strong> - Track your reading progress through each chapter</li>
+                            <li class="mb-1"><strong>🔤 Text Size Control</strong> - Adjust font size for comfortable reading</li>
+                            <li><strong>🎧 Audio Bible</strong> - Listen to chapters or download MP3s</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="dontShowAgain">
+                        <label class="form-check-label small" for="dontShowAgain">
+                            Don't show this again
+                        </label>
+                    </div>
+                    <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-bible me-2"></i>Start Reading
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
@@ -47,6 +488,16 @@
                     <li class="nav-item"><a class="nav-link" href="#search">Search</a></li>
                     <li class="nav-item"><a class="nav-link" href="#books">Books</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
+                    <li class="nav-item d-flex align-items-center ms-2">
+                        <button class="theme-toggle-btn" id="helpButton" title="Show app features & help">
+                            <i class="fas fa-question"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item d-flex align-items-center ms-2">
+                        <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
+                            <i class="fas fa-moon" id="themeIcon"></i>
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -112,7 +563,7 @@
         </div>
     </section>
 
-    <section id="quick-lookup" class="py-5 bg-white">
+    <section id="quick-lookup" class="py-5">
         <div class="container col-11">
             <h2 class="text-center section-title mb-4">Quick Verse Lookup</h2>
             <p class="text-center text-muted mb-4">Instantly view a specific verse or verse range (e.g., Psalm 36:2-4).</p>
@@ -182,9 +633,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        /* ── Template data injected by Flask ─────────────────────────── */
         const BIBLE_BOOKS    = {{ books|tojson|safe }};
         const BIBLE_VERSIONS = {{ versions|tojson|safe }};
 
+        /* ── Element refs ────────────────────────────────────────────── */
         const qlBook       = document.getElementById('qlBook');
         const qlChapter    = document.getElementById('qlChapter');
         const qlVerseRange = document.getElementById('qlVerseRange');
@@ -192,11 +645,13 @@
         const qlMessage    = document.getElementById('qlMessage');
         const qlResults    = document.getElementById('quickLookupResults');
 
+        /* ── Audio state ─────────────────────────────────────────────── */
         let audioPlayer = null;
         let isPlaying = false;
         let isDownloading = false;
         let currentAudioText = '';
 
+        /* ── Helpers ─────────────────────────────────────────────────── */
         function showQlMessage(msg, type = 'danger') {
             qlMessage.className = `alert alert-${type}`;
             qlMessage.textContent = msg;
@@ -207,6 +662,7 @@
             qlMessage.textContent = '';
         }
 
+        /* ── Dropdown builders ───────────────────────────────────────── */
         function buildChapterOptions(bookName) {
             const book = BIBLE_BOOKS.find(b => b.name.toLowerCase() === bookName.toLowerCase());
             qlChapter.innerHTML = '<option value="" disabled selected>Select chapter</option>';
@@ -229,6 +685,7 @@
             if (qlVersion.options.length > 1) qlVersion.selectedIndex = 1;
         }
 
+        /* ── Verse range parser ──────────────────────────────────────── */
         function parseVerseRange(raw) {
             if (!raw) return null;
             const parts = raw.trim().split('-').map(p => parseInt(p.trim(), 10));
@@ -244,6 +701,7 @@
             return NaN;
         }
 
+        /* ── Stop any playing audio ──────────────────────────────────── */
         function stopAudio() {
             if (audioPlayer) {
                 audioPlayer.pause();
@@ -252,13 +710,13 @@
             }
         }
 
+        /* ── Play audio function ─────────────────────────────────────── */
         async function playAudio(text) {
             if (!text) {
                 alert('No text to play');
                 return;
             }
 
-            // Stop any currently playing audio
             stopAudio();
 
             try {
@@ -318,6 +776,7 @@
             }
         }
 
+        /* ── Download function using Python backend ──────────────────── */
         async function downloadAudio(text, filename) {
             if (!text) {
                 alert('No text to download');
@@ -377,11 +836,12 @@
             }
         }
 
+        /* ── Render verse cards ──────────────────────────────────────── */
         let currentVerses = [];
 
         function renderVerseCards(verses) {
             currentVerses = verses || [];
-            stopAudio(); // Stop any playing audio when new verses load
+            stopAudio();
             isPlaying = false;
             
             if (!verses || !verses.length) {
@@ -389,7 +849,6 @@
                 return;
             }
 
-            // Build the text for audio
             const audioText = verses.map(v => {
                 const ref = v.reference || `${v.book || ''} ${v.chapter || ''}:${v.verse || ''}`;
                 return `${ref}. ${v.text}`;
@@ -397,7 +856,6 @@
 
             currentAudioText = audioText;
 
-            // Generate filename
             const firstVerse = verses[0];
             const lastVerse = verses[verses.length - 1];
             const filename = `${firstVerse.book || 'bible'}_${firstVerse.chapter}_${firstVerse.verse}-${lastVerse.verse}.mp3`;
@@ -423,7 +881,6 @@
                 </div>
                 <div class="row g-4">${cards}</div>`;
 
-            // Add event listeners
             document.getElementById('qlPlayBtn').addEventListener('click', () => {
                 if (isPlaying) {
                     stopAudio();
@@ -438,6 +895,103 @@
             });
         }
 
+        /* ── Dark mode toggle ────────────────────────────────────────── */
+        (function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const htmlElement = document.documentElement;
+            
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            if (savedTheme) {
+                htmlElement.setAttribute('data-theme', savedTheme);
+                updateIcon(savedTheme);
+            }
+            
+            if (!savedTheme) {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (prefersDark) {
+                    htmlElement.setAttribute('data-theme', 'dark');
+                    updateIcon('dark');
+                }
+            }
+            
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('bibleAppTheme', newTheme);
+                updateIcon(newTheme);
+                
+                themeToggle.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    themeToggle.style.transform = 'scale(1)';
+                }, 200);
+            });
+            
+            function updateIcon(theme) {
+                if (theme === 'dark') {
+                    themeIcon.className = 'fas fa-sun';
+                    themeToggle.title = 'Switch to light mode';
+                } else {
+                    themeIcon.className = 'fas fa-moon';
+                    themeToggle.title = 'Switch to dark mode';
+                }
+            }
+            
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('bibleAppTheme')) {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    htmlElement.setAttribute('data-theme', newTheme);
+                    updateIcon(newTheme);
+                }
+            });
+        })();
+
+        /* ── Welcome Modal ───────────────────────────────────────────── */
+        (function() {
+            const welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'));
+            const dontShowCheckbox = document.getElementById('dontShowAgain');
+            const helpButton = document.getElementById('helpButton');
+            
+            // Version control for announcements - UPDATE when you add new features!
+            const APP_VERSION = '2.1.0'; // Increment this to show modal again
+            const lastSeenVersion = localStorage.getItem('bibleAppVersion');
+            
+            if (lastSeenVersion !== APP_VERSION) {
+                localStorage.removeItem('bibleAppWelcomeSeen');
+                localStorage.removeItem('bibleAppDontShowWelcome');
+                localStorage.setItem('bibleAppVersion', APP_VERSION);
+            }
+            
+            const hasSeenWelcome = localStorage.getItem('bibleAppWelcomeSeen');
+            const dontShowPreference = localStorage.getItem('bibleAppDontShowWelcome');
+            
+            if (!hasSeenWelcome && dontShowPreference !== 'true') {
+                welcomeModal.show();
+                localStorage.setItem('bibleAppWelcomeSeen', 'true');
+            }
+            
+            dontShowCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    localStorage.setItem('bibleAppDontShowWelcome', 'true');
+                } else {
+                    localStorage.removeItem('bibleAppDontShowWelcome');
+                }
+            });
+            
+            document.getElementById('welcomeModal').addEventListener('hidden.bs.modal', function() {
+                if (dontShowCheckbox.checked) {
+                    localStorage.setItem('bibleAppDontShowWelcome', 'true');
+                }
+            });
+            
+            helpButton.addEventListener('click', function() {
+                welcomeModal.show();
+            });
+        })();
+
+        /* ── DOMContentLoaded ────────────────────────────────────────── */
         document.addEventListener('DOMContentLoaded', () => {
 
             BIBLE_BOOKS.forEach(b => {

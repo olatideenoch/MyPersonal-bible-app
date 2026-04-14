@@ -11,59 +11,315 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    <!-- Google Fonts: Crimson Text (serif for verses), Lora for headings -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&display=swap" rel="stylesheet">
 
     <style>
+        /* Light mode (default) variables */
+        :root {
+            --bg-primary: #f5f0e6;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f8f9fa;
+            --text-primary: #3c2f2f;
+            --text-secondary: #5d4037;
+            --text-muted: #6c757d;
+            --accent-primary: #8d9b6a;
+            --accent-secondary: #5d4037;
+            --card-bg: #ffffff;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --border-color: rgba(141, 155, 106, 0.1);
+            --navbar-bg: rgba(255, 255, 255, 0.95);
+            --footer-bg: #5d4037;
+            --footer-text: #d7ccc8;
+            --hero-overlay: linear-gradient(rgba(101, 115, 95, 0.8), rgba(198, 216, 157, 0.8));
+            --input-bg: #ffffff;
+            --input-border: #ced4da;
+            --btn-light-bg: #f8f9fa;
+            --btn-light-border: #dee2e6;
+        }
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --text-primary: #e8e8e8;
+            --text-secondary: #e94560;
+            --text-muted: #a0a0a0;
+            --accent-primary: #e94560;
+            --accent-secondary: #533483;
+            --card-bg: #16213e;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            --border-color: rgba(233, 69, 96, 0.2);
+            --navbar-bg: rgba(26, 26, 46, 0.95);
+            --footer-bg: #0f0f1a;
+            --footer-text: #a0a0a0;
+            --hero-overlay: linear-gradient(rgba(83, 52, 131, 0.8), rgba(233, 69, 96, 0.8));
+            --input-bg: #16213e;
+            --input-border: #533483;
+            --btn-light-bg: #16213e;
+            --btn-light-border: #533483;
+        }
+
+        /* Smooth transitions */
+        * {
+            transition: background-color 0.3s ease, 
+                        border-color 0.3s ease, 
+                        box-shadow 0.3s ease,
+                        color 0.2s ease;
+        }
+
         body {
             font-family: 'Crimson Text', serif;
-            background-color: #f5f0e6;
-            color: #3c2f2f;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
         }
+
         .navbar {
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: var(--navbar-bg);
             backdrop-filter: blur(10px);
-            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            box-shadow: var(--card-shadow);
         }
+
         .navbar-brand {
             font-family: 'Lora', serif;
             font-size: 1.8rem;
-            color: #5d4037 !important;
+            color: var(--text-secondary) !important;
         }
+
+        .nav-link { 
+            color: var(--text-primary) !important; 
+        }
+        
+        .nav-link:hover { 
+            color: var(--accent-primary) !important; 
+        }
+        
+        .nav-link.active {
+            color: var(--accent-primary) !important;
+            font-weight: 600;
+        }
+
         .page-header {
-            background: linear-gradient(rgba(101, 115, 95, 0.8), rgba(198, 216, 157, 0.8)), url('../static/img/bg-1.jpg') no-repeat center/cover;
+            background: var(--hero-overlay), url('../static/img/bg-1.jpg') no-repeat center/cover;
             color: white;
             padding: 100px 0 100px;
             text-align: center;
         }
+
         .page-header h1 {
             font-family: 'Lora', serif;
             font-size: 3.5rem;
             text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
+
         .section-title {
             font-family: 'Lora', serif;
-            color: #5d4037;
+            color: var(--text-secondary);
             position: relative;
             display: inline-block;
             margin-bottom: 30px;
         }
+
         .section-title::after {
             content: '';
             width: 80px;
             height: 3px;
-            background: #8d9b6a;
+            background: var(--accent-primary);
             position: absolute;
             bottom: -15px;
             left: 50%;
             transform: translateX(-50%);
         }
+
         .contact-card {
-            background: white;
+            background: var(--card-bg);
             border-radius: 18px;
             padding: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Form controls */
+        .form-control, .form-select {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-primary);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--input-bg);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        .form-label {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Alert styling */
+        .alert {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .alert-success {
+            background-color: rgba(141, 155, 106, 0.1);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-color: #dc3545;
+            color: var(--text-primary);
+        }
+
+        .alert-warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            border-color: #ffc107;
+            color: var(--text-primary);
+        }
+
+        /* Theme toggle button */
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+            transform: rotate(360deg);
+        }
+
+        /* Button styling */
+        .btn-success {
+            background-color: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: var(--text-secondary);
+            border-color: var(--text-secondary);
+        }
+
+        .btn-outline-secondary {
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
+        }
+
+        /* Link styling */
+        a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: var(--text-secondary);
+            text-decoration: underline;
+        }
+
+        footer {
+            background: var(--footer-bg);
+            color: var(--footer-text);
+            padding: 50px 0 30px;
+            margin-top: 100px;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .page-header h1 { 
+                font-size: 2.5rem; 
+            }
+            
+            .page-header {
+                padding: 80px 0 80px;
+            }
+            
+            .contact-card {
+                padding: 25px;
+            }
+            
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-header h1 { 
+                font-size: 2rem; 
+            }
+            
+            .page-header {
+                padding: 60px 0 60px;
+            }
+            
+            .contact-card {
+                padding: 20px 15px;
+            }
+            
+            .navbar-brand {
+                font-size: 1.3rem;
+            }
+            
+            .btn-lg {
+                padding: 0.5rem 1rem;
+                font-size: 1rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { 
+            width: 10px; 
+        }
+        
+        ::-webkit-scrollbar-track { 
+            background: var(--bg-primary); 
+        }
+        
+        ::-webkit-scrollbar-thumb { 
+            background: var(--accent-primary); 
+            border-radius: 5px; 
+        }
+        
+        ::-webkit-scrollbar-thumb:hover { 
+            background: var(--text-secondary); 
+        }
+
+        /* Dark mode specific fixes */
+        [data-theme="dark"] .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+        [data-theme="dark"] .text-muted {
+            color: var(--text-muted) !important;
         }
     </style>
 </head>
@@ -80,10 +336,23 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#daily">Daily Verse</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#search">Search</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#books">Books</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('contact') }}">Contact</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#daily">Daily Verse</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#search">Search</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#books">Books</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('contact') }}">Contact</a>
+                    </li>
+                    <li class="nav-item d-flex align-items-center ms-2">
+                        <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
+                            <i class="fas fa-moon" id="themeIcon"></i>
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -102,9 +371,18 @@
         <div class="container col-10">
             <div class="contact-card mx-auto">
                 {% if status_message %}
-                    <div class="alert alert-{{ status_type }}">
-                        <h4 class="alert-heading">{% if status_type == 'success' %}Thank you!{% else %}Heads up{% endif %}</h4>
+                    <div class="alert alert-{{ status_type }} alert-dismissible fade show" role="alert">
+                        <h4 class="alert-heading">
+                            {% if status_type == 'success' %}
+                                <i class="fas fa-check-circle me-2"></i>Thank you!
+                            {% elif status_type == 'danger' %}
+                                <i class="fas fa-exclamation-circle me-2"></i>Oops!
+                            {% else %}
+                                <i class="fas fa-info-circle me-2"></i>Heads up
+                            {% endif %}
+                        </h4>
                         <p>{{ status_message }}</p>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endif %}
 
@@ -112,24 +390,34 @@
                 <form method="POST" action="{{ url_for('contact') }}">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="name" class="form-label">Your Name</label>
-                            <input type="text" class="form-control" id="name" name="name" value="{{ form_data.name }}" placeholder="Enter your name" required>
+                            <label for="name" class="form-label">
+                                <i class="fas fa-user me-1"></i>Your Name
+                            </label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ form_data.name }}" placeholder="Enter your name">
                         </div>
                         <div class="col-md-6">
-                            <label for="email" class="form-label">Email Address</label>
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope me-1"></i>Email Address
+                            </label>
                             <input type="email" class="form-control" id="email" name="email" value="{{ form_data.email }}" placeholder="you@example.com" required>
                         </div>
                         <div class="col-12">
-                            <label for="subject" class="form-label">Subject</label>
+                            <label for="subject" class="form-label">
+                                <i class="fas fa-tag me-1"></i>Subject
+                            </label>
                             <select class="form-select" id="subject" name="subject">
                                 <option value="" {% if not form_data.subject %}selected{% endif %}>Choose one...</option>
-                                <option value="Feedback" {% if form_data.subject == 'Feedback' %}selected{% endif %}>Feedback</option>
-                                <option value="Sponsorship" {% if form_data.subject == 'Sponsorship' %}selected{% endif %}>Sponsorship</option>
-                                <option value="Other" {% if form_data.subject == 'Other' %}selected{% endif %}>Other</option>
+                                <option value="Feedback" {% if form_data.subject == 'Feedback' %}selected{% endif %}>💬 Feedback</option>
+                                <option value="Sponsorship" {% if form_data.subject == 'Sponsorship' %}selected{% endif %}>🤝 Sponsorship</option>
+                                <option value="Bug Report" {% if form_data.subject == 'Bug Report' %}selected{% endif %}>🐛 Bug Report</option>
+                                <option value="Feature Request" {% if form_data.subject == 'Feature Request' %}selected{% endif %}>💡 Feature Request</option>
+                                <option value="Other" {% if form_data.subject == 'Other' %}selected{% endif %}>📋 Other</option>
                             </select>
                         </div>
                         <div class="col-12">
-                            <label for="message" class="form-label">Message</label>
+                            <label for="message" class="form-label">
+                                <i class="fas fa-message me-1"></i>Message
+                            </label>
                             <textarea class="form-control" id="message" name="message" rows="6" placeholder="Write your message here..." required>{{ form_data.message }}</textarea>
                         </div>
                         <div class="col-12 text-end">
@@ -141,7 +429,7 @@
                 </form>
 
                 <div class="mt-4 text-center text-muted">
-                    <p>Prefer to email directly? You can reach me at <a href="mailto:mypersonalbibleapp@gmail.com" class="text-decoration-none">mypersonalbibleapp@gmail.com</a>.</p>
+                    <p>Prefer to email directly? You can reach me at <a href="mailto:mypersonalbibleapp@gmail.com" class="text-decoration-none"><i class="fas fa-envelope me-1"></i>mypersonalbibleapp@gmail.com</a>.</p>
                 </div>
             </div>
         </div>
@@ -150,11 +438,80 @@
     <!-- Footer -->
     <footer>
         <div class="container text-center">
+            <p>
+                <a href="{{ url_for('index') }}" class="text-decoration-none" style="color: var(--footer-text);">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Home
+                </a>
+            </p>
             <p class="mt-3">&copy; {{ current_year }} MyPersonal Bible App • Made with reverence for the Holy Scriptures</p>
         </div>
     </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Dark Mode Toggle Script -->
+    <script>
+        (function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const htmlElement = document.documentElement;
+            
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            if (savedTheme) {
+                htmlElement.setAttribute('data-theme', savedTheme);
+                updateIcon(savedTheme);
+            }
+            
+            // Check system preference if no saved theme
+            if (!savedTheme) {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (prefersDark) {
+                    htmlElement.setAttribute('data-theme', 'dark');
+                    updateIcon('dark');
+                }
+            }
+            
+            // Toggle theme
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const currentTheme = htmlElement.getAttribute('data-theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    
+                    htmlElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('bibleAppTheme', newTheme);
+                    updateIcon(newTheme);
+                    
+                    // Add animation effect
+                    themeToggle.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        themeToggle.style.transform = 'scale(1)';
+                    }, 200);
+                });
+            }
+            
+            function updateIcon(theme) {
+                if (themeIcon) {
+                    if (theme === 'dark') {
+                        themeIcon.className = 'fas fa-sun';
+                        if (themeToggle) themeToggle.title = 'Switch to light mode';
+                    } else {
+                        themeIcon.className = 'fas fa-moon';
+                        if (themeToggle) themeToggle.title = 'Switch to dark mode';
+                    }
+                }
+            }
+            
+            // Listen for system theme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('bibleAppTheme')) {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    htmlElement.setAttribute('data-theme', newTheme);
+                    updateIcon(newTheme);
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
