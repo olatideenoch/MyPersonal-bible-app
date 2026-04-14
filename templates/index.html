@@ -1166,51 +1166,44 @@
             const themeIcon = document.getElementById('themeIcon');
             const htmlElement = document.documentElement;
             
+            // ALWAYS default to light mode unless user explicitly chose dark mode
             const savedTheme = localStorage.getItem('bibleAppTheme');
+            
             if (savedTheme) {
+                // Only apply saved theme if user explicitly set it
                 htmlElement.setAttribute('data-theme', savedTheme);
                 updateIcon(savedTheme);
+            } else {
+                // Default to light mode - do NOT check system preference
+                htmlElement.setAttribute('data-theme', 'light');
+                updateIcon('light');
             }
             
-            if (!savedTheme) {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (prefersDark) {
-                    htmlElement.setAttribute('data-theme', 'dark');
-                    updateIcon('dark');
-                }
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const currentTheme = htmlElement.getAttribute('data-theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    
+                    htmlElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('bibleAppTheme', newTheme);
+                    updateIcon(newTheme);
+                    
+                    themeToggle.style.transform = 'scale(0.9)';
+                    setTimeout(() => themeToggle.style.transform = 'scale(1)', 200);
+                });
             }
-            
-            themeToggle.addEventListener('click', () => {
-                const currentTheme = htmlElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                
-                htmlElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('bibleAppTheme', newTheme);
-                updateIcon(newTheme);
-                
-                themeToggle.style.transform = 'scale(0.9)';
-                setTimeout(() => {
-                    themeToggle.style.transform = 'scale(1)';
-                }, 200);
-            });
             
             function updateIcon(theme) {
-                if (theme === 'dark') {
-                    themeIcon.className = 'fas fa-sun';
-                    themeToggle.title = 'Switch to light mode';
-                } else {
-                    themeIcon.className = 'fas fa-moon';
-                    themeToggle.title = 'Switch to dark mode';
+                if (themeIcon) {
+                    if (theme === 'dark') {
+                        themeIcon.className = 'fas fa-sun';
+                        if (themeToggle) themeToggle.title = 'Switch to light mode';
+                    } else {
+                        themeIcon.className = 'fas fa-moon';
+                        if (themeToggle) themeToggle.title = 'Switch to dark mode';
+                    }
                 }
             }
-            
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                if (!localStorage.getItem('bibleAppTheme')) {
-                    const newTheme = e.matches ? 'dark' : 'light';
-                    htmlElement.setAttribute('data-theme', newTheme);
-                    updateIcon(newTheme);
-                }
-            });
         })();
 
         /* ── Welcome Modal ───────────────────────────────────────────── */

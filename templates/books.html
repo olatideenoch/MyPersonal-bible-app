@@ -944,24 +944,23 @@
     {% endif %}
 
     <script>
+                    /* ── Dark mode toggle ────────────────────────────────────────── */
         (function() {
-            // ========== DARK MODE ==========
             const themeToggle = document.getElementById('themeToggle');
             const themeIcon = document.getElementById('themeIcon');
             const htmlElement = document.documentElement;
             
+            // ALWAYS default to light mode unless user explicitly chose dark mode
             const savedTheme = localStorage.getItem('bibleAppTheme');
-            if (savedTheme) {
-                htmlElement.setAttribute('data-theme', savedTheme);
-                updateThemeIcon(savedTheme);
-            }
             
-            if (!savedTheme) {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (prefersDark) {
-                    htmlElement.setAttribute('data-theme', 'dark');
-                    updateThemeIcon('dark');
-                }
+            if (savedTheme) {
+                // Only apply saved theme if user explicitly set it
+                htmlElement.setAttribute('data-theme', savedTheme);
+                updateIcon(savedTheme);
+            } else {
+                // Default to light mode - do NOT check system preference
+                htmlElement.setAttribute('data-theme', 'light');
+                updateIcon('light');
             }
             
             if (themeToggle) {
@@ -971,14 +970,14 @@
                     
                     htmlElement.setAttribute('data-theme', newTheme);
                     localStorage.setItem('bibleAppTheme', newTheme);
-                    updateThemeIcon(newTheme);
+                    updateIcon(newTheme);
                     
                     themeToggle.style.transform = 'scale(0.9)';
                     setTimeout(() => themeToggle.style.transform = 'scale(1)', 200);
                 });
             }
             
-            function updateThemeIcon(theme) {
+            function updateIcon(theme) {
                 if (themeIcon) {
                     if (theme === 'dark') {
                         themeIcon.className = 'fas fa-sun';
@@ -989,6 +988,7 @@
                     }
                 }
             }
+        })();
 
             // ========== READING PROGRESS TRACKER ==========
             const progressBar = document.getElementById('readingProgressBar');

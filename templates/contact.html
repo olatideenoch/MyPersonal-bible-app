@@ -473,28 +473,25 @@
 
     <!-- Dark Mode Toggle Script -->
     <script>
+                /* ── Dark mode toggle ────────────────────────────────────────── */
         (function() {
             const themeToggle = document.getElementById('themeToggle');
             const themeIcon = document.getElementById('themeIcon');
             const htmlElement = document.documentElement;
             
-            // Check for saved theme preference
+            // ALWAYS default to light mode unless user explicitly chose dark mode
             const savedTheme = localStorage.getItem('bibleAppTheme');
+            
             if (savedTheme) {
+                // Only apply saved theme if user explicitly set it
                 htmlElement.setAttribute('data-theme', savedTheme);
                 updateIcon(savedTheme);
+            } else {
+                // Default to light mode - do NOT check system preference
+                htmlElement.setAttribute('data-theme', 'light');
+                updateIcon('light');
             }
             
-            // Check system preference if no saved theme
-            if (!savedTheme) {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (prefersDark) {
-                    htmlElement.setAttribute('data-theme', 'dark');
-                    updateIcon('dark');
-                }
-            }
-            
-            // Toggle theme
             if (themeToggle) {
                 themeToggle.addEventListener('click', () => {
                     const currentTheme = htmlElement.getAttribute('data-theme');
@@ -504,11 +501,8 @@
                     localStorage.setItem('bibleAppTheme', newTheme);
                     updateIcon(newTheme);
                     
-                    // Add animation effect
                     themeToggle.style.transform = 'scale(0.9)';
-                    setTimeout(() => {
-                        themeToggle.style.transform = 'scale(1)';
-                    }, 200);
+                    setTimeout(() => themeToggle.style.transform = 'scale(1)', 200);
                 });
             }
             
@@ -523,15 +517,6 @@
                     }
                 }
             }
-            
-            // Listen for system theme changes
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                if (!localStorage.getItem('bibleAppTheme')) {
-                    const newTheme = e.matches ? 'dark' : 'light';
-                    htmlElement.setAttribute('data-theme', newTheme);
-                    updateIcon(newTheme);
-                }
-            });
         })();
     </script>
 </body>
