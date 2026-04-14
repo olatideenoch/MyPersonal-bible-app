@@ -91,6 +91,27 @@
         .nav-link { color: var(--text-primary) !important; }
         .nav-link:hover { color: var(--accent-primary) !important; }
 
+        /* Navbar toggler (hamburger icon) styling */
+        .navbar-toggler {
+            border-color: var(--border-color) !important;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.25rem rgba(141, 155, 106, 0.25) !important;
+        }
+
+        [data-theme="dark"] .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25) !important;
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2860, 47, 47, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+        }
+
+        [data-theme="dark"] .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+        }
+
         .page-header {
             background: var(--hero-overlay), url('../static/img/bg-1.jpg') no-repeat center/cover;
             color: white;
@@ -157,7 +178,7 @@
             box-shadow: 0 0 10px var(--accent-primary);
         }
 
-        /* Font Size Controls - New Position */
+        /* Font Size Controls */
         .font-size-controls-container {
             background: var(--card-bg);
             border-radius: 15px;
@@ -259,7 +280,7 @@
             display: inline;
         }
 
-        /* Bookmark Button - Improved mobile positioning */
+        /* Bookmark Button */
         .bookmark-btn {
             background: transparent;
             border: none;
@@ -427,7 +448,7 @@
             font-size: 0.7rem;
         }
 
-        /* Chapter Navigation - Improved */
+        /* Chapter Navigation */
         .chapter-navigation {
             display: flex;
             justify-content: center;
@@ -523,7 +544,7 @@
             transform: rotate(360deg);
         }
 
-        /* Audio controls - Improved mobile */
+        /* Audio controls */
         .audio-controls-container {
             background: var(--card-bg);
             border-radius: 15px;
@@ -681,9 +702,7 @@
             <h5 class="mb-0"><i class="fas fa-bookmark me-2" style="color: #ffd700;"></i>My Bookmarks</h5>
             <button class="btn-close" id="closeBookmarksPanel"></button>
         </div>
-        <div class="bookmarks-list" id="bookmarksList">
-            <!-- Bookmarks will be dynamically added here -->
-        </div>
+        <div class="bookmarks-list" id="bookmarksList"></div>
     </div>
 
     <!-- Bookmarks Toggle Button -->
@@ -844,7 +863,7 @@
             </div>
             {% endif %}
 
-            <!-- Font Size Controls - New Position -->
+            <!-- Font Size Controls -->
             {% if verses %}
             <div class="font-size-controls-container">
                 <div class="font-size-header">
@@ -963,10 +982,10 @@
                 if (themeIcon) {
                     if (theme === 'dark') {
                         themeIcon.className = 'fas fa-sun';
-                        themeToggle.title = 'Switch to light mode';
+                        if (themeToggle) themeToggle.title = 'Switch to light mode';
                     } else {
                         themeIcon.className = 'fas fa-moon';
-                        themeToggle.title = 'Switch to dark mode';
+                        if (themeToggle) themeToggle.title = 'Switch to dark mode';
                     }
                 }
             }
@@ -1010,34 +1029,24 @@
                 if (fontSizeIndicator) fontSizeIndicator.textContent = percentage + '%';
             }
             
-            const fontSizeUp = document.getElementById('fontSizeUp');
-            const fontSizeDown = document.getElementById('fontSizeDown');
-            const fontSizeReset = document.getElementById('fontSizeReset');
-            
-            if (fontSizeUp) {
-                fontSizeUp.addEventListener('click', () => {
-                    if (currentFontSize < 2.0) {
-                        currentFontSize += 0.1;
-                        updateFontSize();
-                    }
-                });
-            }
-            
-            if (fontSizeDown) {
-                fontSizeDown.addEventListener('click', () => {
-                    if (currentFontSize > 0.9) {
-                        currentFontSize -= 0.1;
-                        updateFontSize();
-                    }
-                });
-            }
-            
-            if (fontSizeReset) {
-                fontSizeReset.addEventListener('click', () => {
-                    currentFontSize = baseFontSize;
+            document.getElementById('fontSizeUp')?.addEventListener('click', () => {
+                if (currentFontSize < 2.0) {
+                    currentFontSize += 0.1;
                     updateFontSize();
-                });
-            }
+                }
+            });
+            
+            document.getElementById('fontSizeDown')?.addEventListener('click', () => {
+                if (currentFontSize > 0.9) {
+                    currentFontSize -= 0.1;
+                    updateFontSize();
+                }
+            });
+            
+            document.getElementById('fontSizeReset')?.addEventListener('click', () => {
+                currentFontSize = baseFontSize;
+                updateFontSize();
+            });
             
             updateFontSize();
 
@@ -1147,12 +1156,9 @@
                 });
             }
             
-            const closeBtn = document.getElementById('closeBookmarksPanel');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => {
-                    if (bookmarksPanel) bookmarksPanel.classList.remove('open');
-                });
-            }
+            document.getElementById('closeBookmarksPanel')?.addEventListener('click', () => {
+                if (bookmarksPanel) bookmarksPanel.classList.remove('open');
+            });
             
             document.addEventListener('click', (e) => {
                 if (bookmarksPanel && !bookmarksPanel.contains(e.target) && bookmarksToggle && !bookmarksToggle.contains(e.target)) {
@@ -1220,30 +1226,29 @@
             }
 
             // ========== CHAPTER NAVIGATION ==========
-            const prevBtn = document.getElementById('prevChapterBtn');
-            const nextBtn = document.getElementById('nextChapterBtn');
+            document.getElementById('prevChapterBtn')?.addEventListener('click', () => {
+                if (typeof CHAPTER_NUM !== 'undefined' && CHAPTER_NUM > 1) {
+                    document.getElementById('chapterNavInput').value = CHAPTER_NUM - 1;
+                    document.getElementById('chapterNavForm').submit();
+                }
+            });
             
-            if (prevBtn) {
-                prevBtn.addEventListener('click', () => {
-                    if (typeof CHAPTER_NUM !== 'undefined' && CHAPTER_NUM > 1) {
-                        document.getElementById('chapterNavInput').value = CHAPTER_NUM - 1;
-                        document.getElementById('chapterNavForm').submit();
-                    }
-                });
-            }
-            
-            if (nextBtn) {
-                nextBtn.addEventListener('click', () => {
-                    if (typeof CHAPTER_NUM !== 'undefined' && typeof MAX_CHAPTERS !== 'undefined' && CHAPTER_NUM < MAX_CHAPTERS) {
-                        document.getElementById('chapterNavInput').value = CHAPTER_NUM + 1;
-                        document.getElementById('chapterNavForm').submit();
-                    }
-                });
-            }
+            document.getElementById('nextChapterBtn')?.addEventListener('click', () => {
+                if (typeof CHAPTER_NUM !== 'undefined' && typeof MAX_CHAPTERS !== 'undefined' && CHAPTER_NUM < MAX_CHAPTERS) {
+                    document.getElementById('chapterNavInput').value = CHAPTER_NUM + 1;
+                    document.getElementById('chapterNavForm').submit();
+                }
+            });
             
             if (typeof CHAPTER_NUM !== 'undefined') {
-                if (CHAPTER_NUM <= 1 && prevBtn) prevBtn.disabled = true;
-                if (typeof MAX_CHAPTERS !== 'undefined' && CHAPTER_NUM >= MAX_CHAPTERS && nextBtn) nextBtn.disabled = true;
+                if (CHAPTER_NUM <= 1) {
+                    const prevBtn = document.getElementById('prevChapterBtn');
+                    if (prevBtn) prevBtn.disabled = true;
+                }
+                if (typeof MAX_CHAPTERS !== 'undefined' && CHAPTER_NUM >= MAX_CHAPTERS) {
+                    const nextBtn = document.getElementById('nextChapterBtn');
+                    if (nextBtn) nextBtn.disabled = true;
+                }
             }
 
             // ========== VERSE JUMP ==========
@@ -1260,9 +1265,16 @@
                 });
             }
 
-            // ========== AUDIO PLAYER ==========
-            let audioPlayer = null;
-            let isPlaying = false;
+            // ========== AUDIO PLAYER (Web Speech API for Playback) ==========
+            let speechSynth = window.speechSynthesis;
+            let speechUtterance = null;
+            let isPaused = false;
+            let isSpeechPlaying = false;
+            let speechQueue = [];
+            let currentChunkIndex = 0;
+            let estimatedDuration = 0;
+            let speechStartTime = 0;
+            let pausedAt = 0;
             let isDownloading = false;
             let progressTimer = null;
             let currentSpeed = 1.0;
@@ -1284,20 +1296,80 @@
                 return `${mins}:${secs.toString().padStart(2, '0')}`;
             }
 
-            function updateAudioProgress() {
-                if (audioPlayer && !isNaN(audioPlayer.duration)) {
-                    const duration = audioPlayer.duration;
-                    const currentTime = audioPlayer.currentTime;
-                    const percent = (currentTime / duration) * 100;
-                    if (audioProgress) audioProgress.style.width = percent + '%';
+            function estimateSpeakingTime(text) {
+                const words = text.trim().split(/\s+/).length;
+                const minutes = words / 150;
+                return minutes * 60;
+            }
+
+            function chunkTextForSpeech(text) {
+                const maxChunkSize = 200;
+                const chunks = [];
+                const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+                
+                let currentChunk = '';
+                for (const sentence of sentences) {
+                    if ((currentChunk + ' ' + sentence).length > maxChunkSize && currentChunk) {
+                        chunks.push(currentChunk.trim());
+                        currentChunk = sentence;
+                    } else {
+                        currentChunk += (currentChunk ? ' ' : '') + sentence;
+                    }
+                }
+                if (currentChunk) chunks.push(currentChunk.trim());
+                
+                return chunks.length ? chunks : [text];
+            }
+
+            function stopSpeech() {
+                if (speechSynth) {
+                    speechSynth.cancel();
+                }
+                speechUtterance = null;
+                isSpeechPlaying = false;
+                isPaused = false;
+                speechQueue = [];
+                currentChunkIndex = 0;
+                stopProgressTimer();
+            }
+
+            function updatePlayButtonState() {
+                if (playBtn) {
+                    if (isSpeechPlaying && !isPaused) {
+                        playBtn.innerHTML = '<i class="fas fa-pause me-2"></i>Pause Chapter ' + (typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : '');
+                        playBtn.classList.remove('btn-success', 'btn-secondary');
+                        playBtn.classList.add('btn-warning');
+                    } else if (isPaused) {
+                        playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Resume Chapter ' + (typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : '');
+                        playBtn.classList.remove('btn-warning', 'btn-secondary');
+                        playBtn.classList.add('btn-success');
+                    } else {
+                        playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Play Chapter ' + (typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : '');
+                        playBtn.classList.remove('btn-warning', 'btn-secondary');
+                        playBtn.classList.add('btn-success');
+                    }
+                    playBtn.disabled = false;
+                }
+            }
+
+            function updateSpeechProgress() {
+                if (isSpeechPlaying && !isPaused && estimatedDuration > 0) {
+                    const elapsed = (Date.now() - speechStartTime) / 1000;
+                    let currentTime = pausedAt + elapsed;
+                    
+                    if (currentTime > estimatedDuration) {
+                        currentTime = estimatedDuration;
+                    }
+                    
+                    const percent = (currentTime / estimatedDuration) * 100;
+                    if (audioProgress) audioProgress.style.width = Math.min(percent, 100) + '%';
                     if (currentTimeSpan) currentTimeSpan.textContent = formatTime(currentTime);
-                    if (durationSpan) durationSpan.textContent = formatTime(duration);
                 }
             }
 
             function startProgressTimer() {
                 if (progressTimer) clearInterval(progressTimer);
-                progressTimer = setInterval(updateAudioProgress, 100);
+                progressTimer = setInterval(updateSpeechProgress, 100);
             }
 
             function stopProgressTimer() {
@@ -1307,28 +1379,66 @@
                 }
             }
 
-            function stopAudio() {
-                if (audioPlayer) {
-                    audioPlayer.pause();
-                    audioPlayer = null;
-                    isPlaying = false;
+            function speakNextChunk() {
+                if (!isSpeechPlaying || isPaused) return;
+                
+                if (currentChunkIndex < speechQueue.length) {
+                    const chunk = speechQueue[currentChunkIndex];
+                    speechUtterance = new SpeechSynthesisUtterance(chunk);
+                    
+                    speechUtterance.rate = currentSpeed;
+                    speechUtterance.pitch = 1.0;
+                    speechUtterance.volume = 1.0;
+                    speechUtterance.lang = 'en-US';
+                    
+                    const voices = speechSynth.getVoices();
+                    const englishVoice = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
+                                        voices.find(v => v.lang === 'en-US') ||
+                                        voices.find(v => v.lang.startsWith('en'));
+                    if (englishVoice) {
+                        speechUtterance.voice = englishVoice;
+                    }
+                    
+                    speechUtterance.onstart = () => {
+                        speechStartTime = Date.now();
+                    };
+                    
+                    speechUtterance.onend = () => {
+                        currentChunkIndex++;
+                        if (currentChunkIndex < speechQueue.length && isSpeechPlaying && !isPaused) {
+                            speakNextChunk();
+                        } else if (currentChunkIndex >= speechQueue.length) {
+                            isSpeechPlaying = false;
+                            isPaused = false;
+                            stopProgressTimer();
+                            updatePlayButtonState();
+                            if (audioProgress) audioProgress.style.width = '0%';
+                            if (currentTimeSpan) currentTimeSpan.textContent = '0:00';
+                        }
+                    };
+                    
+                    speechUtterance.onerror = (e) => {
+                        console.error('Speech error:', e);
+                        if (e.error !== 'interrupted' && e.error !== 'canceled') {
+                            currentChunkIndex++;
+                            if (isSpeechPlaying && !isPaused) {
+                                speakNextChunk();
+                            }
+                        }
+                    };
+                    
+                    speechSynth.speak(speechUtterance);
                 }
-                stopProgressTimer();
-                updatePlayButtonState();
             }
 
-            function updatePlayButtonState() {
-                if (playBtn) {
-                    if (isPlaying) {
-                        playBtn.innerHTML = '<i class="fas fa-pause me-2"></i>Pause Chapter ' + (typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : '');
-                        playBtn.classList.remove('btn-success');
-                        playBtn.classList.add('btn-warning');
+            function initSpeech() {
+                return new Promise((resolve) => {
+                    if (speechSynth.getVoices().length) {
+                        resolve();
                     } else {
-                        playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Play Chapter ' + (typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : '');
-                        playBtn.classList.remove('btn-warning');
-                        playBtn.classList.add('btn-success');
+                        speechSynth.onvoiceschanged = () => resolve();
                     }
-                }
+                });
             }
 
             async function playChapterAudio() {
@@ -1337,76 +1447,49 @@
                     return;
                 }
 
-                if (isPlaying && audioPlayer) {
-                    audioPlayer.pause();
-                    isPlaying = false;
+                if (isSpeechPlaying && !isPaused) {
+                    speechSynth.pause();
+                    isPaused = true;
+                    pausedAt += (Date.now() - speechStartTime) / 1000;
                     stopProgressTimer();
                     updatePlayButtonState();
                     return;
                 }
-
-                if (audioPlayer && !isPlaying) {
-                    await audioPlayer.play();
-                    isPlaying = true;
+                
+                if (isSpeechPlaying && isPaused) {
+                    speechSynth.resume();
+                    isPaused = false;
+                    speechStartTime = Date.now();
                     startProgressTimer();
                     updatePlayButtonState();
                     return;
                 }
-
+                
+                stopSpeech();
+                
                 try {
-                    if (playBtn) playBtn.disabled = true;
-                    if (playBtn) playBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Loading...';
-
-                    const response = await fetch('/api/play-audio', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text: CHAPTER_TEXT })
-                    });
-
-                    if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.error || 'Failed to generate audio');
-                    }
-
-                    const audioBlob = await response.blob();
-                    const audioUrl = URL.createObjectURL(audioBlob);
+                    await initSpeech();
                     
-                    audioPlayer = new Audio(audioUrl);
-                    audioPlayer.playbackRate = currentSpeed;
+                    speechQueue = chunkTextForSpeech(CHAPTER_TEXT);
+                    currentChunkIndex = 0;
                     
-                    audioPlayer.onloadedmetadata = () => {
-                        if (durationSpan) durationSpan.textContent = formatTime(audioPlayer.duration);
-                    };
+                    estimatedDuration = estimateSpeakingTime(CHAPTER_TEXT) / currentSpeed;
+                    if (durationSpan) durationSpan.textContent = formatTime(estimatedDuration);
                     
-                    audioPlayer.onended = () => {
-                        isPlaying = false;
-                        audioPlayer = null;
-                        stopProgressTimer();
-                        updatePlayButtonState();
-                        if (audioProgress) audioProgress.style.width = '0%';
-                        if (currentTimeSpan) currentTimeSpan.textContent = '0:00';
-                    };
+                    isSpeechPlaying = true;
+                    isPaused = false;
+                    pausedAt = 0;
+                    speechStartTime = Date.now();
                     
-                    audioPlayer.onerror = (e) => {
-                        console.error('Audio error:', e);
-                        isPlaying = false;
-                        audioPlayer = null;
-                        stopProgressTimer();
-                        updatePlayButtonState();
-                        alert('Error playing audio');
-                    };
-                    
-                    await audioPlayer.play();
-                    isPlaying = true;
+                    speakNextChunk();
                     startProgressTimer();
                     updatePlayButtonState();
-
+                    
                 } catch (error) {
-                    console.error('Play error:', error);
-                    alert('Failed to play audio: ' + error.message);
+                    console.error('Speech initialization error:', error);
+                    alert('Speech synthesis failed. Please try again.');
+                    isSpeechPlaying = false;
                     updatePlayButtonState();
-                } finally {
-                    if (playBtn) playBtn.disabled = false;
                 }
             }
 
@@ -1450,10 +1533,12 @@
                     document.body.removeChild(a);
                     window.URL.revokeObjectURL(url);
 
-                    if (downloadBtn) downloadBtn.innerHTML = '<i class="fas fa-check me-2"></i> Downloaded!';
-                    setTimeout(() => {
-                        if (downloadBtn) downloadBtn.innerHTML = originalHtml;
-                    }, 3000);
+                    if (downloadBtn) {
+                        downloadBtn.innerHTML = '<i class="fas fa-check me-2"></i> Downloaded!';
+                        setTimeout(() => {
+                            downloadBtn.innerHTML = originalHtml;
+                        }, 3000);
+                    }
 
                 } catch (error) {
                     console.error('Download error:', error);
@@ -1466,32 +1551,42 @@
             }
 
             function seekTo(seconds) {
-                if (audioPlayer) {
-                    audioPlayer.currentTime = Math.max(0, Math.min(seconds, audioPlayer.duration));
-                    updateAudioProgress();
+                if (isSpeechPlaying) {
+                    const targetTime = Math.max(0, Math.min(seconds, estimatedDuration));
+                    const progress = targetTime / estimatedDuration;
+                    const targetChunk = Math.floor(progress * speechQueue.length);
+                    
+                    speechSynth.cancel();
+                    
+                    currentChunkIndex = Math.min(targetChunk, speechQueue.length - 1);
+                    pausedAt = targetTime;
+                    
+                    if (!isPaused) {
+                        speechStartTime = Date.now();
+                        speakNextChunk();
+                    }
+                    
+                    updateSpeechProgress();
+                }
+            }
+
+            function skipSeconds(seconds) {
+                if (isSpeechPlaying && estimatedDuration > 0) {
+                    const currentTime = isPaused ? pausedAt : (pausedAt + (Date.now() - speechStartTime) / 1000);
+                    seekTo(currentTime + seconds);
                 }
             }
 
             if (playBtn) playBtn.addEventListener('click', playChapterAudio);
-            
-            if (skipBackBtn) {
-                skipBackBtn.addEventListener('click', () => {
-                    if (audioPlayer) seekTo(audioPlayer.currentTime - 10);
-                });
-            }
-            
-            if (skipForwardBtn) {
-                skipForwardBtn.addEventListener('click', () => {
-                    if (audioPlayer) seekTo(audioPlayer.currentTime + 10);
-                });
-            }
+            if (skipBackBtn) skipBackBtn.addEventListener('click', () => skipSeconds(-10));
+            if (skipForwardBtn) skipForwardBtn.addEventListener('click', () => skipSeconds(10));
             
             if (progressContainer) {
                 progressContainer.addEventListener('click', (e) => {
-                    if (audioPlayer) {
+                    if (isSpeechPlaying && estimatedDuration > 0) {
                         const rect = progressContainer.getBoundingClientRect();
                         const percent = (e.clientX - rect.left) / rect.width;
-                        seekTo(percent * audioPlayer.duration);
+                        seekTo(percent * estimatedDuration);
                     }
                 });
             }
@@ -1501,9 +1596,21 @@
             speedOptions.forEach(option => {
                 option.addEventListener('change', () => {
                     currentSpeed = parseFloat(option.value);
-                    if (audioPlayer) audioPlayer.playbackRate = currentSpeed;
+                    if (speechUtterance) {
+                        speechUtterance.rate = currentSpeed;
+                    }
                 });
             });
+
+            window.addEventListener('beforeunload', () => {
+                if (speechSynth) {
+                    speechSynth.cancel();
+                }
+            });
+
+            if (speechSynth) {
+                speechSynth.getVoices();
+            }
 
             updateReadingProgress();
         })();

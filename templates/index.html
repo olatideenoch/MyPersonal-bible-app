@@ -41,7 +41,7 @@
             --bg-tertiary: #0f3460;
             --text-primary: #e8e8e8;
             --text-secondary: #e94560;
-            --text-muted: #a0a0a0;
+            --text-muted: #b0b0b0;
             --accent-primary: #e94560;
             --accent-secondary: #533483;
             --card-bg: #16213e;
@@ -51,7 +51,7 @@
             --footer-bg: #0f0f1a;
             --footer-text: #a0a0a0;
             --hero-overlay: linear-gradient(rgba(83, 52, 131, 0.8), rgba(233, 69, 96, 0.8));
-            --input-bg: #16213e;
+            --input-bg: #1a1a2e;
             --input-border: #533483;
             --btn-light-bg: #16213e;
             --btn-light-border: #533483;
@@ -180,7 +180,14 @@
             color: var(--text-primary);
             box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
         }
-        .input-group-text { color: var(--text-muted); }
+        .form-control::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+        .input-group-text { 
+            color: var(--text-muted);
+            background-color: var(--bg-tertiary);
+        }
         .btn-light {
             background-color: var(--btn-light-bg);
             border-color: var(--btn-light-border);
@@ -228,8 +235,46 @@
             border-color: var(--border-color) !important;
         }
         
+        #quick-lookup .form-label {
+            color: var(--text-primary) !important;
+            font-weight: 500;
+        }
+        
+        #quick-lookup .form-select,
+        #quick-lookup .form-control {
+            background-color: var(--input-bg) !important;
+            border-color: var(--input-border) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        #quick-lookup .form-select option {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+        }
+        
         .bg-white {
             background-color: var(--section-bg) !important;
+        }
+
+        /* Navbar toggler (hamburger icon) styling */
+        .navbar-toggler {
+            border-color: var(--border-color) !important;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.25rem rgba(141, 155, 106, 0.25) !important;
+        }
+
+        [data-theme="dark"] .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25) !important;
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2860, 47, 47, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+        }
+
+        [data-theme="dark"] .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
         }
 
         /* Theme toggle button styling */
@@ -254,11 +299,26 @@
         }
         #helpButton:hover { transform: scale(1.1); }
 
-        /* Welcome Modal Styling */
+        /* Welcome Modal Styling - Fixed centering */
+        .modal.fade .modal-dialog {
+            transition: transform 0.3s ease-out;
+        }
+        
+        .modal.show .modal-dialog {
+            transform: none;
+        }
+        
+        .modal-dialog-centered {
+            display: flex;
+            align-items: center;
+            min-height: calc(100% - 1rem);
+        }
+        
         .modal-content {
             background-color: var(--card-bg);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
+            margin: 0 auto;
         }
         .modal-header { border-bottom-color: var(--border-color); }
         .modal-footer { border-top-color: var(--border-color); }
@@ -296,7 +356,15 @@
 
         /* Mobile-specific enhancements */
         @media (max-width: 768px) {
-            .modal-dialog { margin: 0.5rem; }
+            .modal-dialog { 
+                margin: 0.5rem; 
+                width: auto;
+            }
+            
+            .modal-dialog-centered {
+                min-height: calc(100% - 1rem);
+            }
+            
             .modal-body { padding: 1rem; }
             .modal-title { font-size: 1.4rem; }
             .feature-item { padding: 0.75rem !important; }
@@ -353,6 +421,31 @@
         ::-webkit-scrollbar-track { background: var(--bg-primary); }
         ::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 5px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+        
+        /* Audio progress bar in quick lookup */
+        .audio-progress-container {
+            margin: 15px 0 10px 0;
+        }
+        
+        .audio-progress {
+            height: 4px;
+            background-color: var(--bg-tertiary);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        
+        .audio-progress-bar {
+            height: 4px;
+            background-color: var(--accent-primary);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        
+        .audio-time-display {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
     </style>
 </head>
 <body>
@@ -369,13 +462,11 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Welcome Message -->
                     <div class="text-center mb-3 mb-md-4">
                         <p class="lead mb-2">Draw near to God through His living Word.</p>
                         <p class="text-muted small d-md-block">Your daily companion for reading, listening, and meditating on Scripture.</p>
                     </div>
 
-                    <!-- Features Grid -->
                     <h5 class="mb-2 mb-md-3"><i class="fas fa-star me-2" style="color: var(--accent-primary);"></i>Features</h5>
                     <div class="row g-2 g-md-3 mb-3 mb-md-4">
                         <div class="col-6 col-md-6">
@@ -422,7 +513,6 @@
                         </div>
                     </div>
 
-                    <!-- How to Navigate -->
                     <h5 class="mb-2 mb-md-3"><i class="fas fa-compass me-2" style="color: var(--accent-primary);"></i>How to Navigate</h5>
                     <div class="navigation-tips p-2 p-md-3 rounded mb-3 mb-md-4" style="background: var(--bg-tertiary);">
                         <div class="row g-2">
@@ -447,7 +537,6 @@
                         </div>
                     </div>
 
-                    <!-- Announcements Section - Updated with new features -->
                     <div id="announcementSection" class="announcement p-2 p-md-3 rounded" style="background: var(--bg-tertiary); border-left: 4px solid var(--accent-primary);">
                         <h6 class="mb-2"><i class="fas fa-gift me-2" style="color: var(--accent-primary);"></i>What's New</h6>
                         <ul class="mb-0 ps-3 small text-muted">
@@ -645,11 +734,23 @@
         const qlMessage    = document.getElementById('qlMessage');
         const qlResults    = document.getElementById('quickLookupResults');
 
-        /* ── Audio state ─────────────────────────────────────────────── */
-        let audioPlayer = null;
-        let isPlaying = false;
+        /* ── Audio state (Web Speech API) ────────────────────────────── */
+        let speechSynth = window.speechSynthesis;
+        let speechUtterance = null;
+        let isPaused = false;
+        let isSpeechPlaying = false;
+        let speechQueue = [];
+        let currentChunkIndex = 0;
+        let estimatedDuration = 0;
+        let speechStartTime = 0;
+        let pausedAt = 0;
         let isDownloading = false;
+        let progressTimer = null;
+        let currentSpeed = 1.0;
         let currentAudioText = '';
+        let audioProgressBar = null;
+        let audioCurrentTimeSpan = null;
+        let audioDurationSpan = null;
 
         /* ── Helpers ─────────────────────────────────────────────────── */
         function showQlMessage(msg, type = 'danger') {
@@ -701,73 +802,62 @@
             return NaN;
         }
 
-        /* ── Stop any playing audio ──────────────────────────────────── */
-        function stopAudio() {
-            if (audioPlayer) {
-                audioPlayer.pause();
-                audioPlayer = null;
-                isPlaying = false;
-            }
+        /* ── Audio Helper Functions ──────────────────────────────────── */
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds < 0) seconds = 0;
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
 
-        /* ── Play audio function ─────────────────────────────────────── */
-        async function playAudio(text) {
-            if (!text) {
-                alert('No text to play');
-                return;
-            }
+        function estimateSpeakingTime(text) {
+            const words = text.trim().split(/\s+/).length;
+            const minutes = words / 150;
+            return minutes * 60;
+        }
 
-            stopAudio();
-
-            try {
-                const response = await fetch('/api/play-audio', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ text: text })
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to generate audio');
+        function chunkTextForSpeech(text) {
+            const maxChunkSize = 200;
+            const chunks = [];
+            const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+            
+            let currentChunk = '';
+            for (const sentence of sentences) {
+                if ((currentChunk + ' ' + sentence).length > maxChunkSize && currentChunk) {
+                    chunks.push(currentChunk.trim());
+                    currentChunk = sentence;
+                } else {
+                    currentChunk += (currentChunk ? ' ' : '') + sentence;
                 }
-
-                const audioBlob = await response.blob();
-                const audioUrl = URL.createObjectURL(audioBlob);
-                
-                audioPlayer = new Audio(audioUrl);
-                audioPlayer.onended = () => {
-                    isPlaying = false;
-                    audioPlayer = null;
-                    updatePlayButtonState();
-                };
-                audioPlayer.onerror = () => {
-                    isPlaying = false;
-                    audioPlayer = null;
-                    updatePlayButtonState();
-                    alert('Error playing audio');
-                };
-                
-                await audioPlayer.play();
-                isPlaying = true;
-                updatePlayButtonState();
-
-            } catch (error) {
-                console.error('Play audio error:', error);
-                alert('Failed to play audio: ' + error.message);
-                isPlaying = false;
-                updatePlayButtonState();
             }
+            if (currentChunk) chunks.push(currentChunk.trim());
+            
+            return chunks.length ? chunks : [text];
+        }
+
+        function stopSpeech() {
+            if (speechSynth) {
+                speechSynth.cancel();
+            }
+            speechUtterance = null;
+            isSpeechPlaying = false;
+            isPaused = false;
+            speechQueue = [];
+            currentChunkIndex = 0;
+            stopProgressTimer();
         }
 
         function updatePlayButtonState() {
             const playBtn = document.getElementById('qlPlayBtn');
             if (playBtn) {
-                if (isPlaying) {
+                if (isSpeechPlaying && !isPaused) {
                     playBtn.innerHTML = '<i class="fas fa-pause me-2"></i>Pause';
                     playBtn.classList.remove('btn-success');
                     playBtn.classList.add('btn-warning');
+                } else if (isPaused) {
+                    playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Resume';
+                    playBtn.classList.remove('btn-warning');
+                    playBtn.classList.add('btn-success');
                 } else {
                     playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Play';
                     playBtn.classList.remove('btn-warning');
@@ -776,7 +866,147 @@
             }
         }
 
-        /* ── Download function using Python backend ──────────────────── */
+        function updateSpeechProgress() {
+            if (isSpeechPlaying && !isPaused && estimatedDuration > 0) {
+                const elapsed = (Date.now() - speechStartTime) / 1000;
+                let currentTime = pausedAt + elapsed;
+                
+                if (currentTime > estimatedDuration) {
+                    currentTime = estimatedDuration;
+                }
+                
+                const percent = (currentTime / estimatedDuration) * 100;
+                if (audioProgressBar) audioProgressBar.style.width = Math.min(percent, 100) + '%';
+                if (audioCurrentTimeSpan) audioCurrentTimeSpan.textContent = formatTime(currentTime);
+            }
+        }
+
+        function startProgressTimer() {
+            if (progressTimer) clearInterval(progressTimer);
+            progressTimer = setInterval(updateSpeechProgress, 100);
+        }
+
+        function stopProgressTimer() {
+            if (progressTimer) {
+                clearInterval(progressTimer);
+                progressTimer = null;
+            }
+        }
+
+        function speakNextChunk() {
+            if (!isSpeechPlaying || isPaused) return;
+            
+            if (currentChunkIndex < speechQueue.length) {
+                const chunk = speechQueue[currentChunkIndex];
+                speechUtterance = new SpeechSynthesisUtterance(chunk);
+                
+                speechUtterance.rate = currentSpeed;
+                speechUtterance.pitch = 1.0;
+                speechUtterance.volume = 1.0;
+                speechUtterance.lang = 'en-US';
+                
+                const voices = speechSynth.getVoices();
+                const englishVoice = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
+                                    voices.find(v => v.lang === 'en-US') ||
+                                    voices.find(v => v.lang.startsWith('en'));
+                if (englishVoice) {
+                    speechUtterance.voice = englishVoice;
+                }
+                
+                speechUtterance.onstart = () => {
+                    speechStartTime = Date.now();
+                };
+                
+                speechUtterance.onend = () => {
+                    currentChunkIndex++;
+                    if (currentChunkIndex < speechQueue.length && isSpeechPlaying && !isPaused) {
+                        speakNextChunk();
+                    } else if (currentChunkIndex >= speechQueue.length) {
+                        isSpeechPlaying = false;
+                        isPaused = false;
+                        stopProgressTimer();
+                        updatePlayButtonState();
+                        if (audioProgressBar) audioProgressBar.style.width = '0%';
+                        if (audioCurrentTimeSpan) audioCurrentTimeSpan.textContent = '0:00';
+                    }
+                };
+                
+                speechUtterance.onerror = (e) => {
+                    console.error('Speech error:', e);
+                    if (e.error !== 'interrupted' && e.error !== 'canceled') {
+                        currentChunkIndex++;
+                        if (isSpeechPlaying && !isPaused) {
+                            speakNextChunk();
+                        }
+                    }
+                };
+                
+                speechSynth.speak(speechUtterance);
+            }
+        }
+
+        function initSpeech() {
+            return new Promise((resolve) => {
+                if (speechSynth.getVoices().length) {
+                    resolve();
+                } else {
+                    speechSynth.onvoiceschanged = () => resolve();
+                }
+            });
+        }
+
+        async function playAudio(text) {
+            if (!text) {
+                alert('No text to play');
+                return;
+            }
+
+            if (isSpeechPlaying && !isPaused) {
+                speechSynth.pause();
+                isPaused = true;
+                pausedAt += (Date.now() - speechStartTime) / 1000;
+                stopProgressTimer();
+                updatePlayButtonState();
+                return;
+            }
+            
+            if (isSpeechPlaying && isPaused) {
+                speechSynth.resume();
+                isPaused = false;
+                speechStartTime = Date.now();
+                startProgressTimer();
+                updatePlayButtonState();
+                return;
+            }
+            
+            stopSpeech();
+            
+            try {
+                await initSpeech();
+                
+                speechQueue = chunkTextForSpeech(text);
+                currentChunkIndex = 0;
+                
+                estimatedDuration = estimateSpeakingTime(text) / currentSpeed;
+                if (audioDurationSpan) audioDurationSpan.textContent = formatTime(estimatedDuration);
+                
+                isSpeechPlaying = true;
+                isPaused = false;
+                pausedAt = 0;
+                speechStartTime = Date.now();
+                
+                speakNextChunk();
+                startProgressTimer();
+                updatePlayButtonState();
+                
+            } catch (error) {
+                console.error('Speech initialization error:', error);
+                alert('Speech synthesis failed. Please try again.');
+                isSpeechPlaying = false;
+                updatePlayButtonState();
+            }
+        }
+
         async function downloadAudio(text, filename) {
             if (!text) {
                 alert('No text to download');
@@ -797,13 +1027,8 @@
             try {
                 const response = await fetch('/api/download-audio', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        text: text,
-                        filename: filename
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text, filename: filename })
                 });
 
                 if (!response.ok) {
@@ -836,13 +1061,34 @@
             }
         }
 
+        function seekTo(seconds) {
+            if (isSpeechPlaying) {
+                const targetTime = Math.max(0, Math.min(seconds, estimatedDuration));
+                const progress = targetTime / estimatedDuration;
+                const targetChunk = Math.floor(progress * speechQueue.length);
+                
+                speechSynth.cancel();
+                
+                currentChunkIndex = Math.min(targetChunk, speechQueue.length - 1);
+                pausedAt = targetTime;
+                
+                if (!isPaused) {
+                    speechStartTime = Date.now();
+                    speakNextChunk();
+                }
+                
+                updateSpeechProgress();
+            }
+        }
+
         /* ── Render verse cards ──────────────────────────────────────── */
         let currentVerses = [];
 
         function renderVerseCards(verses) {
             currentVerses = verses || [];
-            stopAudio();
-            isPlaying = false;
+            stopSpeech();
+            isSpeechPlaying = false;
+            isPaused = false;
             
             if (!verses || !verses.length) {
                 qlResults.innerHTML = '<div class="alert alert-info">No matching verses found for that range.</div>';
@@ -879,15 +1125,34 @@
                         <i class="fas fa-download me-2"></i>Download MP3
                     </button>
                 </div>
+                <div class="audio-progress-container">
+                    <div class="audio-progress" id="qlAudioProgressContainer">
+                        <div class="audio-progress-bar" id="qlAudioProgressBar"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-1">
+                        <span class="audio-time-display"><span id="qlAudioCurrentTime">0:00</span></span>
+                        <span class="audio-time-display"><span id="qlAudioDuration">0:00</span></span>
+                    </div>
+                </div>
                 <div class="row g-4">${cards}</div>`;
 
+            audioProgressBar = document.getElementById('qlAudioProgressBar');
+            audioCurrentTimeSpan = document.getElementById('qlAudioCurrentTime');
+            audioDurationSpan = document.getElementById('qlAudioDuration');
+
+            const progressContainer = document.getElementById('qlAudioProgressContainer');
+            if (progressContainer) {
+                progressContainer.addEventListener('click', (e) => {
+                    if (isSpeechPlaying && estimatedDuration > 0) {
+                        const rect = progressContainer.getBoundingClientRect();
+                        const percent = (e.clientX - rect.left) / rect.width;
+                        seekTo(percent * estimatedDuration);
+                    }
+                });
+            }
+
             document.getElementById('qlPlayBtn').addEventListener('click', () => {
-                if (isPlaying) {
-                    stopAudio();
-                    updatePlayButtonState();
-                } else {
-                    playAudio(currentAudioText);
-                }
+                playAudio(currentAudioText);
             });
 
             document.getElementById('qlDownloadBtn').addEventListener('click', () => {
@@ -954,22 +1219,14 @@
             const dontShowCheckbox = document.getElementById('dontShowAgain');
             const helpButton = document.getElementById('helpButton');
             
-            // Version control for announcements - UPDATE when you add new features!
-            const APP_VERSION = '2.1.0'; // Increment this to show modal again
-            const lastSeenVersion = localStorage.getItem('bibleAppVersion');
+            const APP_VERSION = '2.1.0';
             
-            if (lastSeenVersion !== APP_VERSION) {
-                localStorage.removeItem('bibleAppWelcomeSeen');
-                localStorage.removeItem('bibleAppDontShowWelcome');
-                localStorage.setItem('bibleAppVersion', APP_VERSION);
-            }
-            
-            const hasSeenWelcome = localStorage.getItem('bibleAppWelcomeSeen');
             const dontShowPreference = localStorage.getItem('bibleAppDontShowWelcome');
             
-            if (!hasSeenWelcome && dontShowPreference !== 'true') {
-                welcomeModal.show();
-                localStorage.setItem('bibleAppWelcomeSeen', 'true');
+            if (dontShowPreference !== 'true') {
+                setTimeout(() => {
+                    welcomeModal.show();
+                }, 100);
             }
             
             dontShowCheckbox.addEventListener('change', function() {
@@ -1006,14 +1263,14 @@
                 buildChapterOptions(e.target.value);
                 clearQlMessage();
                 qlResults.innerHTML = '';
-                stopAudio();
+                stopSpeech();
             });
 
             document.getElementById('quickLookupForm').addEventListener('submit', async e => {
                 e.preventDefault();
                 clearQlMessage();
                 qlResults.innerHTML = '';
-                stopAudio();
+                stopSpeech();
 
                 const book    = qlBook.value;
                 const chapter = qlChapter.value;
@@ -1043,6 +1300,13 @@
                     showQlMessage('Failed to fetch verse data. Please try again.', 'danger');
                 }
             });
+        });
+
+        // Clean up speech on page unload
+        window.addEventListener('beforeunload', () => {
+            if (speechSynth) {
+                speechSynth.cancel();
+            }
         });
     </script>
 </body>
