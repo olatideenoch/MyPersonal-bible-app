@@ -230,7 +230,7 @@
             font-weight: 500;
         }
 
-        /* Warning/Disclaimer Box */
+        /* Warning/Disclaimer Box - Improved Mobile Responsive */
         .disclaimer-box {
             background-color: var(--warning-bg);
             border: 1px solid var(--warning-border);
@@ -239,25 +239,111 @@
             margin-bottom: 30px;
         }
 
-        .disclaimer-box i {
+        .disclaimer-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .disclaimer-icon {
+            flex-shrink: 0;
+        }
+
+        .disclaimer-icon i {
             color: var(--warning-border);
             font-size: 1.5rem;
         }
 
-        .disclaimer-box h5 {
+        .disclaimer-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .disclaimer-text h5 {
             color: var(--text-primary);
             margin-bottom: 10px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
         }
 
-        .disclaimer-box p {
+        .disclaimer-text p {
             margin-bottom: 8px;
             color: var(--text-primary);
+            word-break: break-word;
         }
 
-        .disclaimer-box .email-highlight {
+        .disclaimer-text .email-highlight {
             font-size: 1.2rem;
             font-weight: 600;
             color: var(--accent-primary);
+            word-break: break-all;
+        }
+
+        .disclaimer-text .email-highlight a {
+            color: var(--accent-primary);
+            text-decoration: none;
+        }
+
+        .disclaimer-text .email-highlight a:hover {
+            text-decoration: underline;
+        }
+
+        /* Mobile optimizations for disclaimer */
+        @media (max-width: 768px) {
+            .disclaimer-box {
+                padding: 15px;
+            }
+            
+            .disclaimer-content {
+                gap: 12px;
+            }
+            
+            .disclaimer-icon i {
+                font-size: 1.3rem;
+            }
+            
+            .disclaimer-text h5 {
+                font-size: 1.1rem;
+            }
+            
+            .disclaimer-text .email-highlight {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .disclaimer-box {
+                padding: 12px;
+            }
+            
+            .disclaimer-content {
+                gap: 10px;
+            }
+            
+            .disclaimer-icon i {
+                font-size: 1.2rem;
+            }
+            
+            .disclaimer-text h5 {
+                font-size: 1rem;
+                margin-bottom: 8px;
+            }
+            
+            .disclaimer-text p {
+                font-size: 0.9rem;
+                margin-bottom: 6px;
+            }
+            
+            .disclaimer-text .email-highlight {
+                font-size: 0.9rem;
+            }
+            
+            .disclaimer-text .small {
+                font-size: 0.8rem !important;
+            }
         }
 
         /* Alert styling */
@@ -306,17 +392,6 @@
             cursor: not-allowed;
         }
 
-        .btn-outline-secondary {
-            color: var(--text-primary);
-            border-color: var(--border-color);
-        }
-
-        .btn-outline-secondary:hover {
-            background-color: var(--accent-primary);
-            border-color: var(--accent-primary);
-            color: white;
-        }
-
         /* Link styling */
         a {
             color: var(--accent-primary);
@@ -341,6 +416,7 @@
             .page-header { padding: 80px 0 80px; }
             .contact-card { padding: 25px; }
             .navbar-brand { font-size: 1.5rem; }
+            .page-header p { font-size: 1.1rem; }
         }
 
         @media (max-width: 480px) {
@@ -349,7 +425,9 @@
             .contact-card { padding: 20px 15px; }
             .navbar-brand { font-size: 1.3rem; }
             .btn-lg { padding: 0.5rem 1rem; font-size: 1rem; }
-            .disclaimer-box .email-highlight { font-size: 1rem; }
+            .page-header p { font-size: 1rem; }
+            .section-title { font-size: 1.5rem; }
+            .form-label { font-size: 0.9rem; }
         }
 
         /* Scrollbar */
@@ -423,7 +501,7 @@
 
     <!-- Contact Form -->
     <section class="py-5">
-        <div class="container col-10">
+        <div class="container col-11 col-md-10 col-lg-8">
             <div class="contact-card mx-auto">
                 
                 <!-- Status Message (if any from backend) -->
@@ -443,12 +521,17 @@
                     </div>
                 {% endif %}
 
-                <!-- Disclaimer Box -->
+                <!-- Disclaimer Box - Mobile Responsive -->
                 <div class="disclaimer-box">
-                    <div class="d-flex align-items-start gap-3">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <div>
-                            <h5><i class="fas fa-tools me-2"></i>Contact Form Temporarily Unavailable</h5>
+                    <div class="disclaimer-content">
+                        <div class="disclaimer-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="disclaimer-text">
+                            <h5>
+                                <i class="fas fa-tools me-1"></i>
+                                <span>Contact Form Temporarily Unavailable</span>
+                            </h5>
                             <p>We're currently upgrading our email service. The contact form is temporarily disabled.</p>
                             <p><strong>Please reach out to us directly at:</strong></p>
                             <p class="email-highlight">
