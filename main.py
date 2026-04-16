@@ -169,7 +169,7 @@ BIBLE_BOOKS = [
 
 VERSION_LIST = [
     # Popular Modern English
-    {"id": "en-kjv",        "version": "King James Version (KJV) - Traditional"},
+    {"id": "en-kjv",        "version": "King James Version (KJV)"},
     {"id": "en-web",        "version": "World English Bible (WEB) - Modern"},
     {"id": "en-asv",        "version": "American Standard Version (ASV) - Classic"},
     {"id": "en-bbe",        "version": "Bible in Basic English (BBE) - Simple"},
