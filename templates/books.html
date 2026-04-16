@@ -112,6 +112,44 @@
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
         }
 
+        /* Mobile menu specific styling */
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                background: var(--navbar-bg);
+                padding: 1rem;
+                border-radius: 0 0 15px 15px;
+                margin-top: 10px;
+                box-shadow: var(--card-shadow);
+                border: 1px solid var(--border-color);
+                border-top: none;
+            }
+            
+            .navbar-nav .nav-item {
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .navbar-nav .nav-item:last-child {
+                border-bottom: none;
+            }
+            
+            .navbar-nav .nav-link {
+                padding: 12px 15px !important;
+                font-size: 1.1rem;
+                display: flex;
+                align-items: center;
+            }
+            
+            .navbar-nav .nav-link i {
+                width: 28px;
+                color: var(--accent-primary);
+            }
+            
+            .navbar-nav .nav-link:hover {
+                background: var(--bg-tertiary);
+                border-radius: 8px;
+            }
+        }
+
         .page-header {
             background: var(--hero-overlay), url('../static/img/bg-1.jpg') no-repeat center/cover;
             color: white;
@@ -470,7 +508,7 @@
 
         .input-group-text { color: var(--text-muted); }
 
-        /* Theme toggle button */
+        /* Theme toggle button (desktop) */
         .theme-toggle-btn {
             background: transparent;
             border: 1px solid var(--border-color);
@@ -625,10 +663,20 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#search">Search</a></li>
                     <li class="nav-item"><a class="nav-link active" href="{{ url_for('books', book_name=book.name.title()) }}">Books</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
-                    <li class="nav-item d-flex align-items-center ms-2">
+                    
+                    <!-- Desktop Theme Toggle -->
+                    <li class="nav-item d-none d-lg-flex align-items-center ms-2">
                         <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
                             <i class="fas fa-moon" id="themeIcon"></i>
                         </button>
+                    </li>
+                    
+                    <!-- Mobile Theme Toggle Menu Item -->
+                    <li class="nav-item d-lg-none">
+                        <a class="nav-link" href="#" id="themeToggleMobile">
+                            <i class="fas fa-moon" id="themeIconMobile"></i>
+                            <span id="themeTextMobile">Switch to Dark Mode</span>
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -845,44 +893,49 @@
         (function() {
             // ========== DARK MODE (Light mode default) ==========
             const themeToggle = document.getElementById('themeToggle');
+            const themeToggleMobile = document.getElementById('themeToggleMobile');
             const themeIcon = document.getElementById('themeIcon');
+            const themeIconMobile = document.getElementById('themeIconMobile');
+            const themeTextMobile = document.getElementById('themeTextMobile');
             const htmlElement = document.documentElement;
             
             const savedTheme = localStorage.getItem('bibleAppTheme');
             
             if (savedTheme) {
                 htmlElement.setAttribute('data-theme', savedTheme);
-                updateThemeIcon(savedTheme);
+                updateThemeUI(savedTheme);
             } else {
                 htmlElement.setAttribute('data-theme', 'light');
-                updateThemeIcon('light');
+                updateThemeUI('light');
             }
             
-            if (themeToggle) {
-                themeToggle.addEventListener('click', () => {
-                    const currentTheme = htmlElement.getAttribute('data-theme');
-                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                    
-                    htmlElement.setAttribute('data-theme', newTheme);
-                    localStorage.setItem('bibleAppTheme', newTheme);
-                    updateThemeIcon(newTheme);
-                    
-                    themeToggle.style.transform = 'scale(0.9)';
-                    setTimeout(() => themeToggle.style.transform = 'scale(1)', 200);
-                });
+            function toggleTheme() {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('bibleAppTheme', newTheme);
+                updateThemeUI(newTheme);
             }
             
-            function updateThemeIcon(theme) {
+            function updateThemeUI(theme) {
                 if (themeIcon) {
-                    if (theme === 'dark') {
-                        themeIcon.className = 'fas fa-sun';
-                        if (themeToggle) themeToggle.title = 'Switch to light mode';
-                    } else {
-                        themeIcon.className = 'fas fa-moon';
-                        if (themeToggle) themeToggle.title = 'Switch to dark mode';
-                    }
+                    themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                    if (themeToggle) themeToggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+                }
+                if (themeIconMobile) {
+                    themeIconMobile.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                }
+                if (themeTextMobile) {
+                    themeTextMobile.textContent = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
                 }
             }
+            
+            if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+            if (themeToggleMobile) themeToggleMobile.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleTheme();
+            });
 
             // ========== READING PROGRESS TRACKER ==========
             const progressBar = document.getElementById('readingProgressBar');

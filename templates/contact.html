@@ -34,8 +34,8 @@
             --hero-overlay: linear-gradient(rgba(101, 115, 95, 0.8), rgba(198, 216, 157, 0.8));
             --input-bg: #ffffff;
             --input-border: #ced4da;
-            --btn-light-bg: #f8f9fa;
-            --btn-light-border: #dee2e6;
+            --warning-bg: rgba(255, 193, 7, 0.15);
+            --warning-border: #ffc107;
         }
 
         /* Dark mode variables */
@@ -57,8 +57,8 @@
             --hero-overlay: linear-gradient(rgba(83, 52, 131, 0.8), rgba(233, 69, 96, 0.8));
             --input-bg: #16213e;
             --input-border: #533483;
-            --btn-light-bg: #16213e;
-            --btn-light-border: #533483;
+            --warning-bg: rgba(255, 193, 7, 0.1);
+            --warning-border: #ffc107;
         }
 
         /* Smooth transitions */
@@ -122,6 +122,44 @@
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
         }
 
+        /* Mobile menu specific styling */
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                background: var(--navbar-bg);
+                padding: 1rem;
+                border-radius: 0 0 15px 15px;
+                margin-top: 10px;
+                box-shadow: var(--card-shadow);
+                border: 1px solid var(--border-color);
+                border-top: none;
+            }
+            
+            .navbar-nav .nav-item {
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .navbar-nav .nav-item:last-child {
+                border-bottom: none;
+            }
+            
+            .navbar-nav .nav-link {
+                padding: 12px 15px !important;
+                font-size: 1.1rem;
+                display: flex;
+                align-items: center;
+            }
+            
+            .navbar-nav .nav-link i {
+                width: 28px;
+                color: var(--accent-primary);
+            }
+            
+            .navbar-nav .nav-link:hover {
+                background: var(--bg-tertiary);
+                border-radius: 8px;
+            }
+        }
+
         .page-header {
             background: var(--hero-overlay), url('../static/img/bg-1.jpg') no-repeat center/cover;
             color: white;
@@ -181,9 +219,45 @@
             opacity: 0.7;
         }
 
+        .form-control:disabled, .form-select:disabled {
+            background-color: var(--bg-tertiary);
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
         .form-label {
             color: var(--text-primary);
             font-weight: 500;
+        }
+
+        /* Warning/Disclaimer Box */
+        .disclaimer-box {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .disclaimer-box i {
+            color: var(--warning-border);
+            font-size: 1.5rem;
+        }
+
+        .disclaimer-box h5 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .disclaimer-box p {
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .disclaimer-box .email-highlight {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent-primary);
         }
 
         /* Alert styling */
@@ -193,25 +267,7 @@
             color: var(--text-primary);
         }
 
-        .alert-success {
-            background-color: rgba(141, 155, 106, 0.1);
-            border-color: var(--accent-primary);
-            color: var(--text-primary);
-        }
-
-        .alert-danger {
-            background-color: rgba(220, 53, 69, 0.1);
-            border-color: #dc3545;
-            color: var(--text-primary);
-        }
-
-        .alert-warning {
-            background-color: rgba(255, 193, 7, 0.1);
-            border-color: #ffc107;
-            color: var(--text-primary);
-        }
-
-        /* Theme toggle button */
+        /* Theme toggle button (desktop) */
         .theme-toggle-btn {
             background: transparent;
             border: 1px solid var(--border-color);
@@ -240,9 +296,14 @@
             color: white;
         }
 
-        .btn-success:hover {
+        .btn-success:hover:not(:disabled) {
             background-color: var(--text-secondary);
             border-color: var(--text-secondary);
+        }
+
+        .btn-success:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .btn-outline-secondary {
@@ -276,63 +337,26 @@
 
         /* Mobile optimizations */
         @media (max-width: 768px) {
-            .page-header h1 { 
-                font-size: 2.5rem; 
-            }
-            
-            .page-header {
-                padding: 80px 0 80px;
-            }
-            
-            .contact-card {
-                padding: 25px;
-            }
-            
-            .navbar-brand {
-                font-size: 1.5rem;
-            }
+            .page-header h1 { font-size: 2.5rem; }
+            .page-header { padding: 80px 0 80px; }
+            .contact-card { padding: 25px; }
+            .navbar-brand { font-size: 1.5rem; }
         }
 
         @media (max-width: 480px) {
-            .page-header h1 { 
-                font-size: 2rem; 
-            }
-            
-            .page-header {
-                padding: 60px 0 60px;
-            }
-            
-            .contact-card {
-                padding: 20px 15px;
-            }
-            
-            .navbar-brand {
-                font-size: 1.3rem;
-            }
-            
-            .btn-lg {
-                padding: 0.5rem 1rem;
-                font-size: 1rem;
-            }
+            .page-header h1 { font-size: 2rem; }
+            .page-header { padding: 60px 0 60px; }
+            .contact-card { padding: 20px 15px; }
+            .navbar-brand { font-size: 1.3rem; }
+            .btn-lg { padding: 0.5rem 1rem; font-size: 1rem; }
+            .disclaimer-box .email-highlight { font-size: 1rem; }
         }
 
         /* Scrollbar */
-        ::-webkit-scrollbar { 
-            width: 10px; 
-        }
-        
-        ::-webkit-scrollbar-track { 
-            background: var(--bg-primary); 
-        }
-        
-        ::-webkit-scrollbar-thumb { 
-            background: var(--accent-primary); 
-            border-radius: 5px; 
-        }
-        
-        ::-webkit-scrollbar-thumb:hover { 
-            background: var(--text-secondary); 
-        }
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
         /* Dark mode specific fixes */
         [data-theme="dark"] .btn-close {
@@ -369,10 +393,20 @@
                     <li class="nav-item">
                         <a class="nav-link active" href="{{ url_for('contact') }}">Contact</a>
                     </li>
-                    <li class="nav-item d-flex align-items-center ms-2">
+                    
+                    <!-- Desktop Theme Toggle -->
+                    <li class="nav-item d-none d-lg-flex align-items-center ms-2">
                         <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
                             <i class="fas fa-moon" id="themeIcon"></i>
                         </button>
+                    </li>
+                    
+                    <!-- Mobile Theme Toggle Menu Item -->
+                    <li class="nav-item d-lg-none">
+                        <a class="nav-link" href="#" id="themeToggleMobile">
+                            <i class="fas fa-moon" id="themeIconMobile"></i>
+                            <span id="themeTextMobile">Switch to Dark Mode</span>
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -383,7 +417,7 @@
     <section class="page-header">
         <div class="container">
             <h1 class="head-center">Get in Touch</h1>
-            <p class="mt-3 lead">Have feedback or want to discuss sponsorship? Send your message below.</p>
+            <p class="mt-3 lead">Have feedback or want to discuss sponsorship? Reach out directly via email.</p>
         </div>
     </section>
 
@@ -391,6 +425,8 @@
     <section class="py-5">
         <div class="container col-10">
             <div class="contact-card mx-auto">
+                
+                <!-- Status Message (if any from backend) -->
                 {% if status_message %}
                     <div class="alert alert-{{ status_type }} alert-dismissible fade show" role="alert">
                         <h4 class="alert-heading">
@@ -407,26 +443,43 @@
                     </div>
                 {% endif %}
 
-                <h2 class="text-center section-title mb-4">Contact</h2>
+                <!-- Disclaimer Box -->
+                <div class="disclaimer-box">
+                    <div class="d-flex align-items-start gap-3">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <h5><i class="fas fa-tools me-2"></i>Contact Form Temporarily Unavailable</h5>
+                            <p>We're currently upgrading our email service. The contact form is temporarily disabled.</p>
+                            <p><strong>Please reach out to us directly at:</strong></p>
+                            <p class="email-highlight">
+                                <i class="fas fa-envelope me-2"></i>
+                                <a href="mailto:mypersonalbibleapp@gmail.com">mypersonalbibleapp@gmail.com</a>
+                            </p>
+                            <p class="mb-0 small text-muted">We respond to all emails within 24-48 hours. Thank you for your patience!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="text-center section-title mb-4">Send a Message</h2>
                 <form method="POST" action="{{ url_for('contact') }}">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="name" class="form-label">
                                 <i class="fas fa-user me-1"></i>Your Name
                             </label>
-                            <input type="text" class="form-control" id="name" name="name" value="{{ form_data.name }}" placeholder="Enter your name">
+                            <input type="text" class="form-control" id="name" name="name" value="{{ form_data.name }}" placeholder="Enter your name" disabled>
                         </div>
                         <div class="col-md-6">
                             <label for="email" class="form-label">
                                 <i class="fas fa-envelope me-1"></i>Email Address
                             </label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ form_data.email }}" placeholder="you@example.com" required>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ form_data.email }}" placeholder="you@example.com" disabled>
                         </div>
                         <div class="col-12">
                             <label for="subject" class="form-label">
                                 <i class="fas fa-tag me-1"></i>Subject
                             </label>
-                            <select class="form-select" id="subject" name="subject">
+                            <select class="form-select" id="subject" name="subject" disabled>
                                 <option value="" {% if not form_data.subject %}selected{% endif %}>Choose one...</option>
                                 <option value="Feedback" {% if form_data.subject == 'Feedback' %}selected{% endif %}>💬 Feedback</option>
                                 <option value="Sponsorship" {% if form_data.subject == 'Sponsorship' %}selected{% endif %}>🤝 Sponsorship</option>
@@ -439,18 +492,21 @@
                             <label for="message" class="form-label">
                                 <i class="fas fa-message me-1"></i>Message
                             </label>
-                            <textarea class="form-control" id="message" name="message" rows="6" placeholder="Write your message here..." required>{{ form_data.message }}</textarea>
+                            <textarea class="form-control" id="message" name="message" rows="6" placeholder="Write your message here..." disabled>{{ form_data.message }}</textarea>
                         </div>
                         <div class="col-12 text-end">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-paper-plane me-2"></i>Send Message
+                            <button type="submit" class="btn btn-success btn-lg" disabled>
+                                <i class="fas fa-paper-plane me-2"></i>Send Message (Unavailable)
                             </button>
                         </div>
                     </div>
                 </form>
 
                 <div class="mt-4 text-center text-muted">
-                    <p>Prefer to email directly? You can reach me at <a href="mailto:mypersonalbibleapp@gmail.com" class="text-decoration-none"><i class="fas fa-envelope me-1"></i>mypersonalbibleapp@gmail.com</a>.</p>
+                    <p class="mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        We apologize for the inconvenience. The contact form will be back soon!
+                    </p>
                 </div>
             </div>
         </div>
@@ -473,50 +529,51 @@
 
     <!-- Dark Mode Toggle Script -->
     <script>
-                /* ── Dark mode toggle ────────────────────────────────────────── */
         (function() {
             const themeToggle = document.getElementById('themeToggle');
+            const themeToggleMobile = document.getElementById('themeToggleMobile');
             const themeIcon = document.getElementById('themeIcon');
+            const themeIconMobile = document.getElementById('themeIconMobile');
+            const themeTextMobile = document.getElementById('themeTextMobile');
             const htmlElement = document.documentElement;
             
-            // ALWAYS default to light mode unless user explicitly chose dark mode
             const savedTheme = localStorage.getItem('bibleAppTheme');
             
             if (savedTheme) {
-                // Only apply saved theme if user explicitly set it
                 htmlElement.setAttribute('data-theme', savedTheme);
-                updateIcon(savedTheme);
+                updateThemeUI(savedTheme);
             } else {
-                // Default to light mode - do NOT check system preference
                 htmlElement.setAttribute('data-theme', 'light');
-                updateIcon('light');
+                updateThemeUI('light');
             }
             
-            if (themeToggle) {
-                themeToggle.addEventListener('click', () => {
-                    const currentTheme = htmlElement.getAttribute('data-theme');
-                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                    
-                    htmlElement.setAttribute('data-theme', newTheme);
-                    localStorage.setItem('bibleAppTheme', newTheme);
-                    updateIcon(newTheme);
-                    
-                    themeToggle.style.transform = 'scale(0.9)';
-                    setTimeout(() => themeToggle.style.transform = 'scale(1)', 200);
-                });
+            function toggleTheme() {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('bibleAppTheme', newTheme);
+                updateThemeUI(newTheme);
             }
             
-            function updateIcon(theme) {
+            function updateThemeUI(theme) {
                 if (themeIcon) {
-                    if (theme === 'dark') {
-                        themeIcon.className = 'fas fa-sun';
-                        if (themeToggle) themeToggle.title = 'Switch to light mode';
-                    } else {
-                        themeIcon.className = 'fas fa-moon';
-                        if (themeToggle) themeToggle.title = 'Switch to dark mode';
-                    }
+                    themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                    if (themeToggle) themeToggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+                }
+                if (themeIconMobile) {
+                    themeIconMobile.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                }
+                if (themeTextMobile) {
+                    themeTextMobile.textContent = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
                 }
             }
+            
+            if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+            if (themeToggleMobile) themeToggleMobile.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleTheme();
+            });
         })();
     </script>
 </body>
