@@ -66,48 +66,55 @@
                         color 0.2s ease;
         }
 
-        /* Apply variables to elements */
         body { 
             font-family: 'Crimson Text', serif; 
             background-color: var(--bg-primary); 
             color: var(--text-primary); 
             min-height: 100vh; 
         }
+        
         .navbar { 
             background-color: var(--navbar-bg); 
             backdrop-filter: blur(10px); 
             box-shadow: var(--card-shadow); 
         }
+        
         .navbar-brand { 
             font-family: 'Lora', serif; 
             font-size: 1.8rem; 
             color: var(--text-secondary) !important; 
         }
+        
         .nav-link { color: var(--text-primary) !important; }
         .nav-link:hover { color: var(--accent-primary) !important; }
+        
         .hero { 
             background: var(--hero-overlay), url('../static/img/bg.jpg') no-repeat center/cover;
             color: white; 
             padding: 120px 0; 
             text-align: center; 
         }
+        
         .hero h1 { 
             font-family: 'Lora', serif; 
             font-size: 4rem; 
             text-shadow: 0 2px 10px rgba(0,0,0,0.3); 
         }
+        
         .hero p { 
             font-size: 1.4rem; 
             max-width: 800px; 
             margin: 0 auto; 
             opacity: 0.95; 
         }
+        
         .section-title { 
             font-family: 'Lora', serif; 
             color: var(--text-secondary); 
             position: relative; 
             display: inline-block; 
         }
+        
         .section-title::after { 
             content: ''; 
             width: 60px; 
@@ -118,6 +125,7 @@
             left: 50%; 
             transform: translateX(-50%); 
         }
+        
         .verse-card { 
             background: var(--card-bg); 
             border-radius: 20px; 
@@ -125,19 +133,23 @@
             padding: 40px; 
             text-align: center; 
         }
+        
         .verse-text { 
             font-size: 1.8rem; 
             line-height: 2; 
             font-style: italic; 
             color: var(--text-primary); 
         }
+        
         .reference { 
             font-size: 1.3rem; 
             font-weight: 600; 
             color: var(--accent-primary); 
             margin-top: 30px; 
         }
+        
         .search-form { max-width: 700px; margin: 0 auto; }
+        
         .book-card { 
             background: var(--card-bg); 
             border-radius: 15px; 
@@ -148,22 +160,27 @@
             box-shadow: var(--card-shadow); 
             border: 1px solid var(--border-color);
         }
+        
         .book-card:hover { 
             transform: translateY(-10px); 
             box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
         }
+        
         .book-card i { 
             font-size: 3rem; 
             color: var(--accent-primary); 
             margin-bottom: 20px; 
         }
+        
         .book-card h5 { color: var(--text-secondary); }
+        
         footer { 
             background: var(--footer-bg); 
             color: var(--footer-text); 
             padding: 50px 0 30px; 
             margin-top: 100px; 
         }
+        
         footer a { color: var(--footer-text); text-decoration: none; }
 
         /* Form controls */
@@ -172,58 +189,70 @@
             border-color: var(--input-border);
             color: var(--text-primary);
         }
+        
         .form-control:focus, .form-select:focus {
             background-color: var(--input-bg);
             border-color: var(--accent-primary);
             color: var(--text-primary);
             box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
         }
+        
         .form-control::placeholder {
             color: var(--text-muted);
             opacity: 0.7;
         }
+        
         .input-group-text { 
             color: var(--text-muted);
             background-color: var(--bg-tertiary);
         }
+        
         .btn-light {
             background-color: var(--btn-light-bg);
             border-color: var(--btn-light-border);
             color: var(--text-primary);
         }
+        
         .btn-outline-secondary {
             color: var(--text-primary);
             border-color: var(--border-color);
         }
+        
         .btn-outline-secondary:hover {
             background-color: var(--accent-primary);
             border-color: var(--accent-primary);
         }
+        
         .dropdown-menu {
             background-color: var(--card-bg);
             border-color: var(--border-color);
         }
+        
         .dropdown-item { color: var(--text-primary); }
         .dropdown-item:hover {
             background-color: var(--accent-primary);
             color: white;
         }
+        
         .dropdown-divider { border-color: var(--border-color); }
+        
         .alert {
             background-color: var(--card-bg);
             border-color: var(--border-color);
             color: var(--text-primary);
         }
+        
         .bg-light { background-color: var(--bg-tertiary) !important; }
         .text-muted { color: var(--text-muted) !important; }
         .progress { background-color: var(--bg-tertiary); }
+        
         .card { 
             background: var(--card-bg); 
             box-shadow: var(--card-shadow); 
             border-color: var(--border-color); 
         }
 
-        /* Quick Lookup Section - Fixed for dark mode */
+        /* Quick Lookup Section */
         #quick-lookup {
             background-color: var(--section-bg) !important;
         }
@@ -275,7 +304,52 @@
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
         }
 
-        /* Theme toggle button styling */
+        /* Mobile menu specific styling */
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                background: var(--navbar-bg);
+                padding: 1rem;
+                border-radius: 0 0 15px 15px;
+                margin-top: 10px;
+                box-shadow: var(--card-shadow);
+                border: 1px solid var(--border-color);
+                border-top: none;
+            }
+            
+            .navbar-nav .nav-item {
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .navbar-nav .nav-item:last-child {
+                border-bottom: none;
+            }
+            
+            .navbar-nav .nav-link {
+                padding: 12px 15px !important;
+                font-size: 1.1rem;
+                display: flex;
+                align-items: center;
+            }
+            
+            .navbar-nav .nav-link i {
+                width: 28px;
+                color: var(--accent-primary);
+            }
+            
+            .navbar-nav .nav-link:hover {
+                background: var(--bg-tertiary);
+                border-radius: 8px;
+            }
+            
+            /* Special styling for action buttons in mobile menu */
+            #helpButtonMobile .nav-link,
+            #themeToggleMobile .nav-link {
+                color: var(--accent-primary);
+                font-weight: 500;
+            }
+        }
+
+        /* Desktop action buttons */
         .theme-toggle-btn, #helpButton {
             background: transparent;
             border: 1px solid var(--border-color);
@@ -289,15 +363,17 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
+        
         .theme-toggle-btn:hover, #helpButton:hover {
             background: var(--accent-primary);
             color: white;
             border-color: var(--accent-primary);
             transform: rotate(360deg);
         }
+        
         #helpButton:hover { transform: scale(1.1); }
 
-        /* Welcome Modal Styling - Fixed centering */
+        /* Welcome Modal Styling */
         .modal {
             padding: 0 !important;
         }
@@ -343,33 +419,42 @@
 
         .modal-header { border-bottom-color: var(--border-color); }
         .modal-footer { border-top-color: var(--border-color); }
+        
         [data-theme="dark"] .btn-close {
             filter: invert(1) grayscale(100%) brightness(200%);
         }
+        
         .feature-item {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             height: 100%;
         }
+        
         .feature-item:hover {
             transform: translateY(-3px);
             box-shadow: var(--card-shadow);
         }
+        
         .feature-item i { transition: transform 0.3s ease; }
         .feature-item:hover i { transform: scale(1.1); }
+        
         .navigation-tips i {
             color: var(--accent-primary);
             width: 20px;
         }
+        
         .announcement {
             transition: all 0.3s ease;
         }
+        
         .announcement:hover {
             box-shadow: var(--card-shadow);
         }
+        
         .form-check-input:checked {
             background-color: var(--accent-primary);
             border-color: var(--accent-primary);
         }
+        
         .form-check-input:focus {
             border-color: var(--accent-primary);
             box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
@@ -377,11 +462,7 @@
 
         /* Mobile-specific enhancements */
         @media (max-width: 768px) {
-            .modal-dialog { 
-                margin: 0.5rem; 
-                width: auto;
-            }
-            
+            .modal-dialog { margin: 0.5rem; width: auto; }
             .modal-body { padding: 1rem; }
             .modal-title { font-size: 1.4rem; }
             .feature-item { padding: 0.75rem !important; }
@@ -428,6 +509,7 @@
             max-height: calc(100vh - 1rem);
             -webkit-overflow-scrolling: touch;
         }
+        
         body.modal-open {
             position: fixed;
             width: 100%;
@@ -439,7 +521,7 @@
         ::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 5px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
         
-        /* Audio progress bar in quick lookup */
+        /* Audio progress bar */
         .audio-progress-container {
             margin: 15px 0 10px 0;
         }
@@ -467,7 +549,7 @@
 </head>
 <body>
 
-    <!-- Welcome/Features Modal - Fixed Centering -->
+    <!-- Welcome/Features Modal -->
     <div class="modal fade" id="welcomeModal" tabindex="-1" aria-labelledby="welcomeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
@@ -497,14 +579,14 @@
                             <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
                                 <i class="fas fa-bookmark d-block d-md-inline mb-1 mb-md-2" style="color: #ffd700; font-size: 1.5rem;"></i>
                                 <h6 class="mb-1">Bookmarks</h6>
-                                <small class="text-muted d-none d-md-block">Save your favorite verses and access them anytime from the books page.</small>
+                                <small class="text-muted d-none d-md-block">Save your favorite verses and access them anytime.</small>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
                                 <i class="fas fa-highlighter d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
                                 <h6 class="mb-1">Verse Highlighting</h6>
-                                <small class="text-muted d-none d-md-block">Click any verse to highlight important passages for later reference.</small>
+                                <small class="text-muted d-none d-md-block">Click any verse to highlight important passages.</small>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
@@ -518,7 +600,7 @@
                             <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
                                 <i class="fas fa-chart-line d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
                                 <h6 class="mb-1">Reading Progress</h6>
-                                <small class="text-muted d-none d-md-block">Track your reading progress through each chapter automatically.</small>
+                                <small class="text-muted d-none d-md-block">Track your reading progress through each chapter.</small>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
@@ -557,11 +639,11 @@
                     <div id="announcementSection" class="announcement p-2 p-md-3 rounded" style="background: var(--bg-tertiary); border-left: 4px solid var(--accent-primary);">
                         <h6 class="mb-2"><i class="fas fa-gift me-2" style="color: var(--accent-primary);"></i>What's New</h6>
                         <ul class="mb-0 ps-3 small text-muted">
-                            <li class="mb-1"><strong>📚 Bookmarks</strong> - Save your favorite verses and access them anytime</li>
-                            <li class="mb-1"><strong>✨ Verse Highlighting</strong> - Click any verse to highlight important passages</li>
-                            <li class="mb-1"><strong>📖 Reading Progress</strong> - Track your reading progress through each chapter</li>
-                            <li class="mb-1"><strong>🔤 Text Size Control</strong> - Adjust font size for comfortable reading</li>
-                            <li><strong>🎧 Audio Bible</strong> - Listen to chapters or download MP3s</li>
+                            <li class="mb-1"><strong>📚 Bookmarks</strong> - Save your favorite verses</li>
+                            <li class="mb-1"><strong>✨ Verse Highlighting</strong> - Highlight important passages</li>
+                            <li class="mb-1"><strong>📖 Reading Progress</strong> - Track your reading</li>
+                            <li class="mb-1"><strong>🔤 Text Size Control</strong> - Adjust font size</li>
+                            <li><strong>🎧 Audio Bible</strong> - Listen or download MP3s</li>
                         </ul>
                     </div>
                 </div>
@@ -580,6 +662,7 @@
         </div>
     </div>
 
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
@@ -594,15 +677,35 @@
                     <li class="nav-item"><a class="nav-link" href="#search">Search</a></li>
                     <li class="nav-item"><a class="nav-link" href="#books">Books</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
-                    <li class="nav-item d-flex align-items-center ms-2">
+                    
+                    <!-- Desktop Help Button -->
+                    <li class="nav-item d-none d-lg-flex align-items-center ms-2">
                         <button class="theme-toggle-btn" id="helpButton" title="Show app features & help">
                             <i class="fas fa-question"></i>
                         </button>
                     </li>
-                    <li class="nav-item d-flex align-items-center ms-2">
+                    
+                    <!-- Desktop Theme Toggle -->
+                    <li class="nav-item d-none d-lg-flex align-items-center ms-2">
                         <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
                             <i class="fas fa-moon" id="themeIcon"></i>
                         </button>
+                    </li>
+                    
+                    <!-- Mobile Help Menu Item -->
+                    <li class="nav-item d-lg-none">
+                        <a class="nav-link" href="#" id="helpButtonMobile">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Help & Features</span>
+                        </a>
+                    </li>
+                    
+                    <!-- Mobile Theme Toggle Menu Item -->
+                    <li class="nav-item d-lg-none">
+                        <a class="nav-link" href="#" id="themeToggleMobile">
+                            <i class="fas fa-moon" id="themeIconMobile"></i>
+                            <span id="themeTextMobile">Switch to Dark Mode</span>
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -1180,47 +1283,52 @@
         /* ── Dark mode toggle (Light mode default) ──────────────────── */
         (function() {
             const themeToggle = document.getElementById('themeToggle');
+            const themeToggleMobile = document.getElementById('themeToggleMobile');
             const themeIcon = document.getElementById('themeIcon');
+            const themeIconMobile = document.getElementById('themeIconMobile');
+            const themeTextMobile = document.getElementById('themeTextMobile');
             const htmlElement = document.documentElement;
             
-            // ALWAYS default to light mode unless user explicitly chose dark mode
             const savedTheme = localStorage.getItem('bibleAppTheme');
             
             if (savedTheme) {
-                // Only apply saved theme if user explicitly set it
                 htmlElement.setAttribute('data-theme', savedTheme);
-                updateIcon(savedTheme);
+                updateThemeUI(savedTheme);
             } else {
-                // Default to light mode
                 htmlElement.setAttribute('data-theme', 'light');
-                updateIcon('light');
+                updateThemeUI('light');
             }
             
-            if (themeToggle) {
-                themeToggle.addEventListener('click', () => {
-                    const currentTheme = htmlElement.getAttribute('data-theme');
-                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                    
-                    htmlElement.setAttribute('data-theme', newTheme);
-                    localStorage.setItem('bibleAppTheme', newTheme);
-                    updateIcon(newTheme);
-                    
-                    themeToggle.style.transform = 'scale(0.9)';
-                    setTimeout(() => themeToggle.style.transform = 'scale(1)', 200);
-                });
+            function toggleTheme() {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('bibleAppTheme', newTheme);
+                updateThemeUI(newTheme);
             }
             
-            function updateIcon(theme) {
+            function updateThemeUI(theme) {
+                // Update desktop icon
                 if (themeIcon) {
-                    if (theme === 'dark') {
-                        themeIcon.className = 'fas fa-sun';
-                        if (themeToggle) themeToggle.title = 'Switch to light mode';
-                    } else {
-                        themeIcon.className = 'fas fa-moon';
-                        if (themeToggle) themeToggle.title = 'Switch to dark mode';
-                    }
+                    themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                    if (themeToggle) themeToggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+                }
+                
+                // Update mobile icon and text
+                if (themeIconMobile) {
+                    themeIconMobile.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                }
+                if (themeTextMobile) {
+                    themeTextMobile.textContent = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
                 }
             }
+            
+            if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+            if (themeToggleMobile) themeToggleMobile.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleTheme();
+            });
         })();
 
         /* ── Welcome Modal ───────────────────────────────────────────── */
@@ -1232,22 +1340,26 @@
             });
             const dontShowCheckbox = document.getElementById('dontShowAgain');
             const helpButton = document.getElementById('helpButton');
+            const helpButtonMobile = document.getElementById('helpButtonMobile');
             
             const APP_VERSION = '2.1.0';
             const dontShowPreference = localStorage.getItem('bibleAppDontShowWelcome');
             
             if (dontShowPreference !== 'true') {
-                // Use requestAnimationFrame to ensure DOM is fully rendered
                 requestAnimationFrame(() => {
                     setTimeout(() => {
                         welcomeModal.show();
-                        // Force recalculation of modal position
                         document.body.style.overflow = 'hidden';
                         setTimeout(() => {
                             document.body.style.overflow = '';
                         }, 10);
                     }, 150);
                 });
+            }
+            
+            function showModal(e) {
+                if (e) e.preventDefault();
+                welcomeModal.show();
             }
             
             dontShowCheckbox.addEventListener('change', function() {
@@ -1264,11 +1376,9 @@
                 }
             });
             
-            helpButton.addEventListener('click', function() {
-                welcomeModal.show();
-            });
+            if (helpButton) helpButton.addEventListener('click', showModal);
+            if (helpButtonMobile) helpButtonMobile.addEventListener('click', showModal);
             
-            // Fix modal position on window resize
             window.addEventListener('resize', () => {
                 if (document.querySelector('.modal.show')) {
                     bootstrap.Modal.getInstance(document.getElementById('welcomeModal')).handleUpdate();
@@ -1330,7 +1440,6 @@
             });
         });
 
-        // Clean up speech on page unload
         window.addEventListener('beforeunload', () => {
             if (speechSynth) {
                 speechSynth.cancel();
