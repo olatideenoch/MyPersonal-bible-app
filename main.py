@@ -27,12 +27,26 @@ VOICE_RSS_URL = "https://api.voicerss.org/"
 BIBLE_API_BASE = "https://bible-api.com"
 
 BIBLEAPI_VERSION_MAP = {
-    "en-kjv":  "kjv",
-    "en-web":  "web",
-    "en-oeb":  "oeb-us",
+    # English
+    "en-kjv":     "kjv",
+    "en-web":     "web",
+    "en-asv":     "asv",
+    "en-bbe":     "bbe",
+    "en-darby":   "darby",
+    "en-dra":     "dra",
+    "en-ylt":     "ylt",
+    "en-oeb-us":  "oeb-us",
+    "en-oeb-cw":  "oeb-cw",
+    "en-webbe":   "webbe",
+    
+    # Other Languages
     "en-clementine": "clementine",
     "pt-almeida":    "almeida",
     "ro-rccv":       "rccv",
+    "zh-cuv":        "cuv",
+    "cs-bkr":        "bkr",
+    "ta-ov":         "ta-ov",
+    "ml-svp":        "ml-svp",
 }
 
 def _bibleapi_translation(version_id: str) -> str:
@@ -154,12 +168,26 @@ BIBLE_BOOKS = [
 ]
 
 VERSION_LIST = [
-    {"id": "en-kjv",        "version": "King James Version (KJV)"},
-    {"id": "en-web",        "version": "World English Bible (WEB)"},
-    {"id": "en-oeb",        "version": "Open English Bible (OEB-US)"},
+    # Popular Modern English
+    {"id": "en-kjv",        "version": "King James Version (KJV) - Traditional"},
+    {"id": "en-web",        "version": "World English Bible (WEB) - Modern"},
+    {"id": "en-asv",        "version": "American Standard Version (ASV) - Classic"},
+    {"id": "en-bbe",        "version": "Bible in Basic English (BBE) - Simple"},
+    {"id": "en-darby",      "version": "Darby Bible - Study"},
+    {"id": "en-dra",        "version": "Douay-Rheims (DRA) - Catholic"},
+    {"id": "en-ylt",        "version": "Young's Literal (YLT) - Word-for-Word"},
+    {"id": "en-oeb-us",     "version": "Open English Bible (OEB-US)"},
+    {"id": "en-oeb-cw",     "version": "Open English Bible (OEB-UK)"},
+    {"id": "en-webbe",      "version": "World English Bible (WEB-UK)"},
+    
+    # Other Languages
     {"id": "en-clementine", "version": "Clementine Latin Vulgate"},
-    {"id": "pt-almeida",    "version": "João Ferreira de Almeida (Portuguese)"},
-    {"id": "ro-rccv",       "version": "Romanian Cornilescu Version (RCCV)"},
+    {"id": "pt-almeida",    "version": "João Ferreira de Almeida (Português)"},
+    {"id": "ro-rccv",       "version": "Cornilescu (Română)"},
+    {"id": "zh-cuv",        "version": "Chinese Union Version (中文)"},
+    {"id": "cs-bkr",        "version": "Bible Kralická (Čeština)"},
+    {"id": "ta-ov",         "version": "Tamil Old Version (தமிழ்)"},
+    {"id": "ml-svp",        "version": "Malayalam SVP (മലയാളം)"},
 ]
 
 def clean_text(text: str) -> str:
