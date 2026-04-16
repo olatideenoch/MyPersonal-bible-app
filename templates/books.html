@@ -891,7 +891,7 @@
 
     <script>
         (function() {
-            // ========== DARK MODE (Light mode default) ==========
+            // ========== DARK MODE (System preference aware) ==========
             const themeToggle = document.getElementById('themeToggle');
             const themeToggleMobile = document.getElementById('themeToggleMobile');
             const themeIcon = document.getElementById('themeIcon');
@@ -905,8 +905,10 @@
                 htmlElement.setAttribute('data-theme', savedTheme);
                 updateThemeUI(savedTheme);
             } else {
-                htmlElement.setAttribute('data-theme', 'light');
-                updateThemeUI('light');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const themeToApply = prefersDark ? 'dark' : 'light';
+                htmlElement.setAttribute('data-theme', themeToApply);
+                updateThemeUI(themeToApply);
             }
             
             function toggleTheme() {
@@ -936,15 +938,25 @@
                 e.preventDefault();
                 toggleTheme();
             });
+            
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('bibleAppTheme')) {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    htmlElement.setAttribute('data-theme', newTheme);
+                    updateThemeUI(newTheme);
+                }
+            });
 
             // ========== READING PROGRESS TRACKER ==========
             const progressBar = document.getElementById('readingProgressBar');
             
             function updateReadingProgress() {
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-                const progress = (scrollTop / scrollHeight) * 100;
-                if (progressBar) progressBar.style.width = progress + '%';
+                if (progressBar) {
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+                    const progress = (scrollTop / scrollHeight) * 100;
+                    progressBar.style.width = progress + '%';
+                }
             }
             
             window.addEventListener('scroll', updateReadingProgress);
@@ -1000,7 +1012,8 @@
                     bookmarks.push({
                         id: Date.now(), verse, reference,
                         text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
-                        book: BOOK_NAME, chapter: CHAPTER_NUM,
+                        book: typeof BOOK_NAME !== 'undefined' ? BOOK_NAME : '',
+                        chapter: typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : 0,
                         timestamp: new Date().toISOString()
                     });
                     saveBookmarks();
@@ -1022,7 +1035,7 @@
                 }
                 bookmarksList.innerHTML = bookmarks.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
                     .map(bookmark => `
-                        <div class="bookmark-item" onclick="window.location.href='{{ url_for('books', book_name='') }}/${bookmark.book.toLowerCase().replace(/ /g, '-')}'; document.getElementById('chapterSelect').value='${bookmark.chapter}'; document.querySelector('form').submit();">
+                        <div class="bookmark-item" onclick="window.location.href='/books/${bookmark.book.toLowerCase().replace(/ /g, '-')}'; document.getElementById('chapterSelect').value='${bookmark.chapter}'; document.querySelector('form').submit();">
                             <span class="delete-bookmark" onclick="event.stopPropagation(); removeBookmark(${bookmark.id})"><i class="fas fa-times"></i></span>
                             <div class="bookmark-reference">${bookmark.reference}</div>
                             <div class="bookmark-text">"${bookmark.text}"</div>
@@ -1086,50 +1099,54 @@
                 }
             });
             
-            updateBookmarksList();
-            updateBookmarkCount();
-            updateBookmarkButtons();
+            if (typeof BOOK_NAME !== 'undefined') {
+                updateBookmarksList();
+                updateBookmarkCount();
+                updateBookmarkButtons();
+            }
 
             // ========== VERSE HIGHLIGHTING ==========
-            let highlights = JSON.parse(localStorage.getItem('bibleHighlights')) || {};
-            const chapterKey = `${BOOK_NAME}_${CHAPTER_NUM}`;
-            
-            function saveHighlights() {
-                localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
-            }
-            
-            function toggleHighlight(verseElement, verseNum) {
-                const chapterHighlights = highlights[chapterKey] || [];
-                const index = chapterHighlights.indexOf(verseNum);
-                if (index > -1) {
-                    chapterHighlights.splice(index, 1);
-                    verseElement.classList.remove('highlighted');
-                } else {
-                    chapterHighlights.push(verseNum);
-                    verseElement.classList.add('highlighted');
+            if (typeof BOOK_NAME !== 'undefined' && typeof CHAPTER_NUM !== 'undefined') {
+                let highlights = JSON.parse(localStorage.getItem('bibleHighlights')) || {};
+                const chapterKey = `${BOOK_NAME}_${CHAPTER_NUM}`;
+                
+                function saveHighlights() {
+                    localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
                 }
-                if (chapterHighlights.length > 0) {
-                    highlights[chapterKey] = chapterHighlights;
-                } else {
-                    delete highlights[chapterKey];
-                }
-                saveHighlights();
-            }
-            
-            if (highlights[chapterKey]) {
-                highlights[chapterKey].forEach(verseNum => {
-                    const verseElement = document.getElementById(`verse-${verseNum}`);
-                    if (verseElement) verseElement.classList.add('highlighted');
-                });
-            }
-            
-            document.querySelectorAll('.verse-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    if (!e.target.closest('.bookmark-btn')) {
-                        toggleHighlight(item, parseInt(item.dataset.verse));
+                
+                function toggleHighlight(verseElement, verseNum) {
+                    const chapterHighlights = highlights[chapterKey] || [];
+                    const index = chapterHighlights.indexOf(verseNum);
+                    if (index > -1) {
+                        chapterHighlights.splice(index, 1);
+                        verseElement.classList.remove('highlighted');
+                    } else {
+                        chapterHighlights.push(verseNum);
+                        verseElement.classList.add('highlighted');
                     }
+                    if (chapterHighlights.length > 0) {
+                        highlights[chapterKey] = chapterHighlights;
+                    } else {
+                        delete highlights[chapterKey];
+                    }
+                    saveHighlights();
+                }
+                
+                if (highlights[chapterKey]) {
+                    highlights[chapterKey].forEach(verseNum => {
+                        const verseElement = document.getElementById(`verse-${verseNum}`);
+                        if (verseElement) verseElement.classList.add('highlighted');
+                    });
+                }
+                
+                document.querySelectorAll('.verse-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.closest('.bookmark-btn')) {
+                            toggleHighlight(item, parseInt(item.dataset.verse));
+                        }
+                    });
                 });
-            });
+            }
 
             // ========== TOAST NOTIFICATION ==========
             function showToast(message) {
@@ -1141,21 +1158,21 @@
             }
 
             // ========== CHAPTER NAVIGATION ==========
-            document.getElementById('prevChapterBtn')?.addEventListener('click', () => {
-                if (typeof CHAPTER_NUM !== 'undefined' && CHAPTER_NUM > 1) {
-                    document.getElementById('chapterNavInput').value = CHAPTER_NUM - 1;
-                    document.getElementById('chapterNavForm').submit();
-                }
-            });
-            
-            document.getElementById('nextChapterBtn')?.addEventListener('click', () => {
-                if (typeof CHAPTER_NUM !== 'undefined' && CHAPTER_NUM < MAX_CHAPTERS) {
-                    document.getElementById('chapterNavInput').value = CHAPTER_NUM + 1;
-                    document.getElementById('chapterNavForm').submit();
-                }
-            });
-            
-            if (typeof CHAPTER_NUM !== 'undefined') {
+            if (typeof CHAPTER_NUM !== 'undefined' && typeof MAX_CHAPTERS !== 'undefined') {
+                document.getElementById('prevChapterBtn')?.addEventListener('click', () => {
+                    if (CHAPTER_NUM > 1) {
+                        document.getElementById('chapterNavInput').value = CHAPTER_NUM - 1;
+                        document.getElementById('chapterNavForm').submit();
+                    }
+                });
+                
+                document.getElementById('nextChapterBtn')?.addEventListener('click', () => {
+                    if (CHAPTER_NUM < MAX_CHAPTERS) {
+                        document.getElementById('chapterNavInput').value = CHAPTER_NUM + 1;
+                        document.getElementById('chapterNavForm').submit();
+                    }
+                });
+                
                 if (CHAPTER_NUM <= 1) {
                     const prevBtn = document.getElementById('prevChapterBtn');
                     if (prevBtn) prevBtn.disabled = true;
@@ -1243,16 +1260,17 @@
 
             function updatePlayButtonState() {
                 if (playBtn) {
+                    const chapterNum = typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : '';
                     if (isSpeechPlaying && !isPaused) {
-                        playBtn.innerHTML = '<i class="fas fa-pause me-2"></i>Pause Chapter ' + (typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : '');
+                        playBtn.innerHTML = '<i class="fas fa-pause me-2"></i>Pause Chapter ' + chapterNum;
                         playBtn.classList.remove('btn-success', 'btn-secondary');
                         playBtn.classList.add('btn-warning');
                     } else if (isPaused) {
-                        playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Resume Chapter ' + (typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : '');
+                        playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Resume Chapter ' + chapterNum;
                         playBtn.classList.remove('btn-warning', 'btn-secondary');
                         playBtn.classList.add('btn-success');
                     } else {
-                        playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Play Chapter ' + (typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : '');
+                        playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Play Chapter ' + chapterNum;
                         playBtn.classList.remove('btn-warning', 'btn-secondary');
                         playBtn.classList.add('btn-success');
                     }
@@ -1389,7 +1407,7 @@
                 if (downloadBtn) downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Generating MP3...';
 
                 try {
-                    const filename = `${BOOK_SLUG}_Chapter${CHAPTER_NUM}.mp3`;
+                    const filename = `${typeof BOOK_SLUG !== 'undefined' ? BOOK_SLUG : 'bible'}_Chapter${typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : ''}.mp3`;
                     const response = await fetch('/api/download-audio', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },

@@ -612,6 +612,7 @@
 
     <!-- Dark Mode Toggle Script -->
     <script>
+        /* ── Dark mode toggle (System preference aware) ──────────────────── */
         (function() {
             const themeToggle = document.getElementById('themeToggle');
             const themeToggleMobile = document.getElementById('themeToggleMobile');
@@ -622,12 +623,17 @@
             
             const savedTheme = localStorage.getItem('bibleAppTheme');
             
+            // Priority: 1. User's saved preference, 2. System preference, 3. Light mode default
             if (savedTheme) {
+                // User has explicitly chosen a theme
                 htmlElement.setAttribute('data-theme', savedTheme);
                 updateThemeUI(savedTheme);
             } else {
-                htmlElement.setAttribute('data-theme', 'light');
-                updateThemeUI('light');
+                // Check system preference
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const themeToApply = prefersDark ? 'dark' : 'light';
+                htmlElement.setAttribute('data-theme', themeToApply);
+                updateThemeUI(themeToApply);
             }
             
             function toggleTheme() {
@@ -640,10 +646,12 @@
             }
             
             function updateThemeUI(theme) {
+                // Desktop icon
                 if (themeIcon) {
                     themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
                     if (themeToggle) themeToggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
                 }
+                // Mobile icon and text
                 if (themeIconMobile) {
                     themeIconMobile.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
                 }
@@ -652,10 +660,20 @@
                 }
             }
             
+            // Event listeners for toggle buttons
             if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
             if (themeToggleMobile) themeToggleMobile.addEventListener('click', (e) => {
                 e.preventDefault();
                 toggleTheme();
+            });
+            
+            // Listen for system theme changes (only if user hasn't set a preference)
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('bibleAppTheme')) {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    htmlElement.setAttribute('data-theme', newTheme);
+                    updateThemeUI(newTheme);
+                }
             });
         })();
     </script>
