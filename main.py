@@ -4,13 +4,8 @@ import datetime as dt
 import random
 import os
 import re
-import smtplib
-import ssl
-import socket
 import json
 import io
-from email.message import EmailMessage
-from email.utils import formataddr
 from typing import List
 
 from dotenv import load_dotenv
@@ -19,34 +14,24 @@ load_dotenv()
 
 app = Flask(__name__)
 
+# Resend API configuration
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "re_Fg7PVpfa_7LhZBGxyR6AJzTZmxyox4aXW")
+RESEND_API_URL = "https://api.resend.com/emails"
+
 # Voice RSS API configuration
-VOICE_RSS_API_KEY = os.environ.get("VOICE_RSS_API_KEY")
+VOICE_RSS_API_KEY = os.environ.get("VOICE_RSS_API_KEY", "a653b618b6c248e18ce97e74db6bfc0e")
 VOICE_RSS_URL = "https://api.voicerss.org/"
 
 # bible-api.com (Tim Morgan) helpers
 BIBLE_API_BASE = "https://bible-api.com"
 
 BIBLEAPI_VERSION_MAP = {
-    # English
-    "en-kjv":     "kjv",
-    "en-web":     "web",
-    "en-asv":     "asv",
-    "en-bbe":     "bbe",
-    "en-darby":   "darby",
-    "en-dra":     "dra",
-    "en-ylt":     "ylt",
-    "en-oeb-us":  "oeb-us",
-    "en-oeb-cw":  "oeb-cw",
-    "en-webbe":   "webbe",
-    
-    # Other Languages
+    "en-kjv":  "kjv",
+    "en-web":  "web",
+    "en-oeb":  "oeb-us",
     "en-clementine": "clementine",
     "pt-almeida":    "almeida",
     "ro-rccv":       "rccv",
-    "zh-cuv":        "cuv",
-    "cs-bkr":        "bkr",
-    "ta-ov":         "ta-ov",
-    "ml-svp":        "ml-svp",
 }
 
 def _bibleapi_translation(version_id: str) -> str:
@@ -56,9 +41,7 @@ def _bibleapi_translation(version_id: str) -> str:
 _daily_verse_cache = {"date": None, "verse": None}
 
 def get_daily_verse() -> dict:
-    """
-    Return a daily verse that stays constant for the whole day.
-    """
+    """Return a daily verse that stays constant for the whole day."""
     today_str = dt.date.today().isoformat()        
 
     if _daily_verse_cache["date"] == today_str and _daily_verse_cache["verse"]:
@@ -98,96 +81,99 @@ def get_daily_verse() -> dict:
     _daily_verse_cache["verse"] = verse
     return verse
 
+# Updated BIBLE_BOOKS with proper display names and slugs
 BIBLE_BOOKS = [
-    {"name": "Genesis", "chapters": 50},
-    {"name": "Exodus", "chapters": 40},
-    {"name": "Leviticus", "chapters": 27},
-    {"name": "Numbers", "chapters": 36},
-    {"name": "Deuteronomy", "chapters": 34},
-    {"name": "Joshua", "chapters": 24},
-    {"name": "Judges", "chapters": 21},
-    {"name": "Ruth", "chapters": 4},
-    {"name": "1Samuel", "chapters": 31},
-    {"name": "2Samuel", "chapters": 24},
-    {"name": "1Kings", "chapters": 22},
-    {"name": "2Kings", "chapters": 25},
-    {"name": "1Chronicles", "chapters": 29},
-    {"name": "2Chronicles", "chapters": 36},
-    {"name": "Ezra", "chapters": 10},
-    {"name": "Nehemiah", "chapters": 13},
-    {"name": "Esther", "chapters": 10},
-    {"name": "Job", "chapters": 42},
-    {"name": "Psalms", "chapters": 150},
-    {"name": "Proverbs", "chapters": 31},
-    {"name": "Ecclesiastes", "chapters": 12},
-    {"name": "SongofSolomon", "chapters": 8},
-    {"name": "Isaiah", "chapters": 66},
-    {"name": "Jeremiah", "chapters": 52},
-    {"name": "Lamentations", "chapters": 5},
-    {"name": "Ezekiel", "chapters": 48},
-    {"name": "Daniel", "chapters": 12},
-    {"name": "Hosea", "chapters": 14},
-    {"name": "Joel", "chapters": 3},
-    {"name": "Amos", "chapters": 9},
-    {"name": "Obadiah", "chapters": 1},
-    {"name": "Jonah", "chapters": 4},
-    {"name": "Micah", "chapters": 7},
-    {"name": "Nahum", "chapters": 3},
-    {"name": "Habakkuk", "chapters": 3},
-    {"name": "Zephaniah", "chapters": 3},
-    {"name": "Haggai", "chapters": 2},
-    {"name": "Zechariah", "chapters": 14},
-    {"name": "Malachi", "chapters": 4},
-    {"name": "Matthew", "chapters": 28},
-    {"name": "Mark", "chapters": 16},
-    {"name": "Luke", "chapters": 24},
-    {"name": "John", "chapters": 21},
-    {"name": "Acts", "chapters": 28},
-    {"name": "Romans", "chapters": 16},
-    {"name": "1Corinthians", "chapters": 16},
-    {"name": "2Corinthians", "chapters": 13},
-    {"name": "Galatians", "chapters": 6},
-    {"name": "Ephesians", "chapters": 6},
-    {"name": "Philippians", "chapters": 4},
-    {"name": "Colossians", "chapters": 4},
-    {"name": "1Thessalonians", "chapters": 5},
-    {"name": "2Thessalonians", "chapters": 3},
-    {"name": "1Timothy", "chapters": 6},
-    {"name": "2Timothy", "chapters": 4},
-    {"name": "Titus", "chapters": 3},
-    {"name": "Philemon", "chapters": 1},
-    {"name": "Hebrews", "chapters": 13},
-    {"name": "James", "chapters": 5},
-    {"name": "1Peter", "chapters": 5},
-    {"name": "2Peter", "chapters": 3},
-    {"name": "1John", "chapters": 5},
-    {"name": "2John", "chapters": 1},
-    {"name": "3John", "chapters": 1},
-    {"name": "Jude", "chapters": 1},
-    {"name": "Revelation", "chapters": 22},
+    {"name": "Genesis", "chapters": 50, "slug": "genesis"},
+    {"name": "Exodus", "chapters": 40, "slug": "exodus"},
+    {"name": "Leviticus", "chapters": 27, "slug": "leviticus"},
+    {"name": "Numbers", "chapters": 36, "slug": "numbers"},
+    {"name": "Deuteronomy", "chapters": 34, "slug": "deuteronomy"},
+    {"name": "Joshua", "chapters": 24, "slug": "joshua"},
+    {"name": "Judges", "chapters": 21, "slug": "judges"},
+    {"name": "Ruth", "chapters": 4, "slug": "ruth"},
+    {"name": "1 Samuel", "chapters": 31, "slug": "1-samuel"},
+    {"name": "2 Samuel", "chapters": 24, "slug": "2-samuel"},
+    {"name": "1 Kings", "chapters": 22, "slug": "1-kings"},
+    {"name": "2 Kings", "chapters": 25, "slug": "2-kings"},
+    {"name": "1 Chronicles", "chapters": 29, "slug": "1-chronicles"},
+    {"name": "2 Chronicles", "chapters": 36, "slug": "2-chronicles"},
+    {"name": "Ezra", "chapters": 10, "slug": "ezra"},
+    {"name": "Nehemiah", "chapters": 13, "slug": "nehemiah"},
+    {"name": "Esther", "chapters": 10, "slug": "esther"},
+    {"name": "Job", "chapters": 42, "slug": "job"},
+    {"name": "Psalms", "chapters": 150, "slug": "psalms"},
+    {"name": "Proverbs", "chapters": 31, "slug": "proverbs"},
+    {"name": "Ecclesiastes", "chapters": 12, "slug": "ecclesiastes"},
+    {"name": "Song of Solomon", "chapters": 8, "slug": "song-of-solomon"},
+    {"name": "Isaiah", "chapters": 66, "slug": "isaiah"},
+    {"name": "Jeremiah", "chapters": 52, "slug": "jeremiah"},
+    {"name": "Lamentations", "chapters": 5, "slug": "lamentations"},
+    {"name": "Ezekiel", "chapters": 48, "slug": "ezekiel"},
+    {"name": "Daniel", "chapters": 12, "slug": "daniel"},
+    {"name": "Hosea", "chapters": 14, "slug": "hosea"},
+    {"name": "Joel", "chapters": 3, "slug": "joel"},
+    {"name": "Amos", "chapters": 9, "slug": "amos"},
+    {"name": "Obadiah", "chapters": 1, "slug": "obadiah"},
+    {"name": "Jonah", "chapters": 4, "slug": "jonah"},
+    {"name": "Micah", "chapters": 7, "slug": "micah"},
+    {"name": "Nahum", "chapters": 3, "slug": "nahum"},
+    {"name": "Habakkuk", "chapters": 3, "slug": "habakkuk"},
+    {"name": "Zephaniah", "chapters": 3, "slug": "zephaniah"},
+    {"name": "Haggai", "chapters": 2, "slug": "haggai"},
+    {"name": "Zechariah", "chapters": 14, "slug": "zechariah"},
+    {"name": "Malachi", "chapters": 4, "slug": "malachi"},
+    {"name": "Matthew", "chapters": 28, "slug": "matthew"},
+    {"name": "Mark", "chapters": 16, "slug": "mark"},
+    {"name": "Luke", "chapters": 24, "slug": "luke"},
+    {"name": "John", "chapters": 21, "slug": "john"},
+    {"name": "Acts", "chapters": 28, "slug": "acts"},
+    {"name": "Romans", "chapters": 16, "slug": "romans"},
+    {"name": "1 Corinthians", "chapters": 16, "slug": "1-corinthians"},
+    {"name": "2 Corinthians", "chapters": 13, "slug": "2-corinthians"},
+    {"name": "Galatians", "chapters": 6, "slug": "galatians"},
+    {"name": "Ephesians", "chapters": 6, "slug": "ephesians"},
+    {"name": "Philippians", "chapters": 4, "slug": "philippians"},
+    {"name": "Colossians", "chapters": 4, "slug": "colossians"},
+    {"name": "1 Thessalonians", "chapters": 5, "slug": "1-thessalonians"},
+    {"name": "2 Thessalonians", "chapters": 3, "slug": "2-thessalonians"},
+    {"name": "1 Timothy", "chapters": 6, "slug": "1-timothy"},
+    {"name": "2 Timothy", "chapters": 4, "slug": "2-timothy"},
+    {"name": "Titus", "chapters": 3, "slug": "titus"},
+    {"name": "Philemon", "chapters": 1, "slug": "philemon"},
+    {"name": "Hebrews", "chapters": 13, "slug": "hebrews"},
+    {"name": "James", "chapters": 5, "slug": "james"},
+    {"name": "1 Peter", "chapters": 5, "slug": "1-peter"},
+    {"name": "2 Peter", "chapters": 3, "slug": "2-peter"},
+    {"name": "1 John", "chapters": 5, "slug": "1-john"},
+    {"name": "2 John", "chapters": 1, "slug": "2-john"},
+    {"name": "3 John", "chapters": 1, "slug": "3-john"},
+    {"name": "Jude", "chapters": 1, "slug": "jude"},
+    {"name": "Revelation", "chapters": 22, "slug": "revelation"},
 ]
 
+def get_book_by_slug(slug: str):
+    """Find a book by its URL slug."""
+    slug_lower = slug.lower()
+    for book in BIBLE_BOOKS:
+        if book['slug'] == slug_lower:
+            return book
+    return None
+
+def get_book_by_name(name: str):
+    """Find a book by its display name (case-insensitive)."""
+    name_lower = name.lower()
+    for book in BIBLE_BOOKS:
+        if book['name'].lower() == name_lower:
+            return book
+    return None
+
 VERSION_LIST = [
-    # Popular Modern English
     {"id": "en-kjv",        "version": "King James Version (KJV)"},
-    {"id": "en-web",        "version": "World English Bible (WEB) - Modern"},
-    {"id": "en-asv",        "version": "American Standard Version (ASV) - Classic"},
-    {"id": "en-bbe",        "version": "Bible in Basic English (BBE) - Simple"},
-    {"id": "en-darby",      "version": "Darby Bible - Study"},
-    {"id": "en-dra",        "version": "Douay-Rheims (DRA) - Catholic"},
-    {"id": "en-ylt",        "version": "Young's Literal (YLT) - Word-for-Word"},
-    {"id": "en-oeb-us",     "version": "Open English Bible (OEB-US)"},
-    {"id": "en-oeb-cw",     "version": "Open English Bible (OEB-UK)"},
-    {"id": "en-webbe",      "version": "World English Bible (WEB-UK)"},
-    
-    # Other Languages
+    {"id": "en-web",        "version": "World English Bible (WEB)"},
+    {"id": "en-oeb",        "version": "Open English Bible (OEB-US)"},
     {"id": "en-clementine", "version": "Clementine Latin Vulgate"},
-    {"id": "pt-almeida",    "version": "João Ferreira de Almeida (Português)"},
-    {"id": "ro-rccv",       "version": "Cornilescu (Română)"},
-    {"id": "zh-cuv",        "version": "Chinese Union Version (中文)"},
-    {"id": "cs-bkr",        "version": "Bible Kralická (Čeština)"},
-    {"id": "ta-ov",         "version": "Tamil Old Version (தமிழ்)"},
-    {"id": "ml-svp",        "version": "Malayalam SVP (മലയാളം)"},
+    {"id": "pt-almeida",    "version": "João Ferreira de Almeida (Portuguese)"},
+    {"id": "ro-rccv",       "version": "Romanian Cornilescu Version (RCCV)"},
 ]
 
 def clean_text(text: str) -> str:
@@ -240,21 +226,14 @@ def fetch_chapter_bibleapi(book_name: str, chapter: int, version_id: str = "en-k
         print(f"fetch_chapter_bibleapi failed: {e}")
         return [], ""
 
-def text_to_speech_voicerss(text: str, voice: str = "en-us") -> bytes:
-    """
-    Convert text to speech using Voice RSS API.
-    Returns MP3 audio data as bytes.
-    """
-    # Voice RSS has a 5000 character limit per request
-    max_chars = 5000
-    if len(text) > max_chars:
-        text = text[:max_chars] + "..."
-    
+
+def _fetch_voice_rss_chunk(text: str, voice: str = "en-us") -> bytes:
+    """Fetch a single chunk from Voice RSS API."""
     params = {
         "key": VOICE_RSS_API_KEY,
         "src": text,
         "hl": voice,
-        "r": "0",  # Reading speed: -10 to 10, 0 is normal
+        "r": "0",
         "c": "mp3",
         "f": "44khz_16bit_stereo",
         "ssml": "false",
@@ -264,12 +243,10 @@ def text_to_speech_voicerss(text: str, voice: str = "en-us") -> bytes:
     try:
         response = requests.get(VOICE_RSS_URL, params=params, timeout=30)
         if response.status_code == 200:
-            # Check if response is audio data (starts with ID3 or FF FB for MP3)
             content_type = response.headers.get('Content-Type', '')
             if 'audio' in content_type or response.content[:3] in [b'ID3', b'\xff\xfb']:
                 return response.content
             else:
-                # Voice RSS returns error messages as plain text
                 error_msg = response.text[:200]
                 print(f"Voice RSS API error: {error_msg}")
                 return None
@@ -280,12 +257,60 @@ def text_to_speech_voicerss(text: str, voice: str = "en-us") -> bytes:
         print(f"Voice RSS request failed: {e}")
         return None
 
+
+def text_to_speech_voicerss(text: str, voice: str = "en-us") -> bytes:
+    """
+    Convert text to speech using Voice RSS API with chunking for long texts.
+    Returns MP3 audio data as bytes.
+    """
+    MAX_CHARS = 4500  # Leave room for API overhead
+    
+    def chunk_text(text: str, max_length: int = 4500) -> list:
+        """Split text into chunks at sentence boundaries."""
+        chunks = []
+        sentences = re.split(r'(?<=[.!?])\s+', text)
+        
+        current_chunk = ""
+        for sentence in sentences:
+            if len(current_chunk) + len(sentence) + 1 > max_length and current_chunk:
+                chunks.append(current_chunk.strip())
+                current_chunk = sentence
+            else:
+                current_chunk += (" " if current_chunk else "") + sentence
+        
+        if current_chunk:
+            chunks.append(current_chunk.strip())
+        
+        return chunks if chunks else [text[:max_length]]
+
+    # Split text into chunks
+    chunks = chunk_text(text, MAX_CHARS)
+    
+    if len(chunks) == 1:
+        # Single chunk - process normally
+        return _fetch_voice_rss_chunk(chunks[0], voice)
+    
+    # Multiple chunks - fetch and combine
+    print(f"Processing {len(chunks)} chunks for audio generation...")
+    
+    audio_chunks = []
+    for i, chunk in enumerate(chunks):
+        print(f"  Fetching chunk {i+1}/{len(chunks)} ({len(chunk)} chars)...")
+        chunk_audio = _fetch_voice_rss_chunk(chunk, voice)
+        if chunk_audio is None:
+            print(f"  Failed to fetch chunk {i+1}")
+            return None
+        audio_chunks.append(chunk_audio)
+    
+    # Combine all audio chunks
+    combined = b''.join(audio_chunks)
+    print(f"Successfully combined {len(chunks)} chunks ({len(combined)} bytes)")
+    return combined
+
+
 @app.route("/api/download-audio", methods=["POST"])
 def download_audio():
-    """
-    Generate and download MP3 audio for given text.
-    Expects JSON with 'text' and optional 'filename' fields.
-    """
+    """Generate and download MP3 audio for given text."""
     data = request.get_json()
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
@@ -293,14 +318,14 @@ def download_audio():
     text = data['text'].strip()
     filename = data.get('filename', 'bible-audio.mp3')
     
-    # Ensure .mp3 extension
     if not filename.endswith('.mp3'):
         filename += '.mp3'
     
+    print(f"Generating audio for text length: {len(text)} characters")
     audio_data = text_to_speech_voicerss(text)
     
     if audio_data is None:
-        return jsonify({"error": "Failed to generate audio. Voice RSS API may be unavailable or text too long."}), 500
+        return jsonify({"error": "Failed to generate audio. Voice RSS API may be unavailable."}), 500
     
     return send_file(
         io.BytesIO(audio_data),
@@ -309,12 +334,10 @@ def download_audio():
         download_name=filename
     )
 
+
 @app.route("/api/play-audio", methods=["POST"])
 def play_audio():
-    """
-    Stream MP3 audio for playback.
-    Expects JSON with 'text' field.
-    """
+    """Stream MP3 audio for playback."""
     data = request.get_json()
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
@@ -331,6 +354,7 @@ def play_audio():
         mimetype="audio/mpeg"
     )
 
+
 @app.route("/")
 def index():
     daily_verse = get_daily_verse()
@@ -341,6 +365,7 @@ def index():
         books=BIBLE_BOOKS,
         versions=VERSION_LIST,
     )
+
 
 @app.route("/search", methods=["GET", "POST"])
 def search():
@@ -392,67 +417,73 @@ def search():
         query=query,
     )
 
-def _sanitize_header_value(value: str) -> str:
-    if not value:
-        return ''
-    return value.replace('\r', '').replace('\n', '').strip()
 
-def _send_contact_email(sender_name: str, sender_email: str, subject: str, message: str):
-    mail_host = os.environ.get('MAIL_HOST')
-    mail_port = int(os.environ.get('MAIL_PORT', 587))
-    mail_user = os.environ.get('MAIL_USERNAME')
-    mail_pass = os.environ.get('MAIL_PASSWORD')
-    mail_to   = os.environ.get('MAIL_TO')
-    use_tls   = os.environ.get('MAIL_USE_TLS', 'true').lower() in ('1', 'true', 'yes')
-    use_ssl   = os.environ.get('MAIL_USE_SSL', 'false').lower() in ('1', 'true', 'yes')
+def _send_contact_email_resend(sender_name: str, sender_email: str, subject: str, message: str):
+    """Send contact form email using Resend API."""
+    if not RESEND_API_KEY:
+        return False, 'Resend API key is not configured.'
+    
+    from_email = "MyPersonal Bible App <noreply@resend.dev>"
+    to_email = os.environ.get("MAIL_TO", "mypersonalbibleapp@gmail.com")
+    
+    email_body = f"""
+    <h2>New Contact Form Submission</h2>
+    <p><strong>Name:</strong> {sender_name or '(not provided)'}</p>
+    <p><strong>Email:</strong> {sender_email or '(not provided)'}</p>
+    <p><strong>Category:</strong> {subject or '(not specified)'}</p>
+    <p><strong>Message:</strong></p>
+    <p style="white-space: pre-wrap;">{message}</p>
+    <hr>
+    <p><small>Sent from MyPersonal Bible App Contact Form</small></p>
+    """
+    
+    plain_text = f"""
+New Contact Form Submission
 
-    if not mail_user or not mail_pass:
-        return False, 'Email sending is not configured. Set MAIL_USERNAME and MAIL_PASSWORD in the environment.'
+Name: {sender_name or '(not provided)'}
+Email: {sender_email or '(not provided)'}
+Category: {subject or '(not specified)'}
 
-    safe_name    = _sanitize_header_value(sender_name)
-    safe_email   = _sanitize_header_value(sender_email)
-    safe_subject = _sanitize_header_value(subject) or 'New contact message'
+Message:
+{message}
 
-    msg = EmailMessage()
-    msg['Subject'] = f"[MyPersonalBibleApp] {safe_subject}"
-    msg['From']    = formataddr((safe_name or 'Contact Form', mail_user))
-    msg['To']      = mail_to
-    if safe_email:
-        msg['Reply-To'] = safe_email
-
-    body = (
-        f"Name: {safe_name or '(not provided)'}\n"
-        f"Email: {safe_email or '(not provided)'}\n"
-        f"Subject: {safe_subject}\n\nMessage:\n{message}\n"
-    )
-    msg.set_content(body)
-
+---
+Sent from MyPersonal Bible App Contact Form
+    """
+    
+    payload = {
+        "from": from_email,
+        "to": [to_email],
+        "subject": f"[MyPersonalBibleApp] {subject or 'New contact message'}",
+        "html": email_body,
+        "text": plain_text,
+    }
+    
+    if sender_email:
+        payload["reply_to"] = sender_email
+    
+    headers = {
+        "Authorization": f"Bearer {RESEND_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
     try:
-        if use_ssl:
-            with smtplib.SMTP_SSL(mail_host, mail_port, timeout=10) as smtp:
-                smtp.login(mail_user, mail_pass)
-                smtp.send_message(msg)
+        response = requests.post(RESEND_API_URL, json=payload, headers=headers, timeout=15)
+        
+        if response.status_code in (200, 201, 202):
+            return True, 'Your message was sent successfully. Thank you!'
         else:
-            with smtplib.SMTP(mail_host, mail_port, timeout=10) as smtp:
-                if use_tls:
-                    smtp.starttls()
-                smtp.login(mail_user, mail_pass)
-                smtp.send_message(msg)
-        return True, 'Your message was sent successfully. Thank you!'
+            error_data = response.json() if response.text else {}
+            error_msg = error_data.get('message', f'API error: {response.status_code}')
+            print(f"Resend API error: {error_msg}")
+            return False, f'Failed to send email: {error_msg}'
+            
+    except requests.exceptions.Timeout:
+        return False, 'Email service timeout. Please try again later.'
     except Exception as e:
-        hint = ''
-        msg_err = str(e).lower()
+        print(f"Resend request failed: {e}")
+        return False, f'Failed to send email: {str(e)}'
 
-        if hasattr(e, 'errno') and e.errno in (101, 110, 113):
-            hint = ' (network unreachable or connection refused; check firewall/Internet access)'
-        elif isinstance(e, socket.timeout) or 'timed out' in msg_err:
-            hint = ' (timeout; check that your server can reach the SMTP host and port)'
-        elif isinstance(e, ssl.SSLError) or 'handshake' in msg_err:
-            hint = ' (SSL/TLS handshake failed; verify port/SSL settings)'
-        elif isinstance(e, smtplib.SMTPAuthenticationError):
-            hint = ' (authentication failed; check username/password)'
-
-        return False, f'Failed to send email{hint}'
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
@@ -470,7 +501,7 @@ def contact():
             status_type    = 'warning'
             status_message = 'Please provide both your email address and a message.'
         else:
-            success, msg = _send_contact_email(
+            success, msg = _send_contact_email_resend(
                 sender_name=form_data['name'],
                 sender_email=form_data['email'],
                 subject=form_data['subject'],
@@ -489,14 +520,15 @@ def contact():
         form_data=form_data,
     )
 
-@app.route("/books/<book_name>", methods=["GET", "POST"])
-def books(book_name):
-    book = next(
-        (b for b in BIBLE_BOOKS if b['name'].lower().replace(' ', '-') == book_name.lower()),
-        None,
-    )
+
+@app.route("/books/<book_slug>", methods=["GET", "POST"])
+def books(book_slug):
+    """Display a book's chapters using clean URL slug."""
+    book = get_book_by_slug(book_slug)
+    
     if not book:
-        return "Book not found", 404
+        # Try legacy format or return 404
+        return f"Book '{book_slug}' not found", 404
 
     selected_chapter = request.form.get("chapter")
     selected_version = request.form.get("version", "en-kjv")
@@ -505,6 +537,7 @@ def books(book_name):
 
     if selected_chapter:
         selected_chapter = int(selected_chapter)
+        # Use the display name for API calls
         verses, chapter_text = fetch_chapter_bibleapi(
             book['name'], selected_chapter, selected_version
         )
@@ -513,6 +546,7 @@ def books(book_name):
         "books.html",
         current_year=dt.datetime.now().year,
         book=book,
+        books=BIBLE_BOOKS,  # Pass all books for breadcrumb dropdown
         selected_chapter=selected_chapter,
         selected_version=selected_version,
         chapter_text=chapter_text,
@@ -520,36 +554,50 @@ def books(book_name):
         versions=VERSION_LIST,
     )
 
+
+# Legacy route for backward compatibility
+@app.route("/books/<book_name>", methods=["GET", "POST"])
+def books_legacy(book_name):
+    """Legacy route - redirects to the new slug-based route."""
+    # Try to find by slug first
+    book = get_book_by_slug(book_name)
+    if book:
+        return redirect(url_for('books', book_slug=book['slug']), code=301)
+    
+    # Try to find by display name
+    book = get_book_by_name(book_name)
+    if book:
+        return redirect(url_for('books', book_slug=book['slug']), code=301)
+    
+    # Try old format (removing hyphens and spaces)
+    clean_name = book_name.lower().replace('-', '').replace(' ', '')
+    for b in BIBLE_BOOKS:
+        if b['name'].lower().replace(' ', '') == clean_name:
+            return redirect(url_for('books', book_slug=b['slug']), code=301)
+    
+    return f"Book '{book_name}' not found", 404
+
+
 @app.route('/api/chapter/<book_name>/<int:chapter>')
 def api_chapter(book_name, chapter):
-    """
-    Get chapter data with optional verse range filtering.
-    Query params:
-    - version: Bible version ID (default: en-kjv)
-    - verse_start: Starting verse number (optional)
-    - verse_end: Ending verse number (optional)
-    - format: 'full' or 'simple' (default: full)
-    """
     selected_version = request.args.get('version', 'en-kjv')
     verse_start = request.args.get('verse_start', type=int)
     verse_end = request.args.get('verse_end', type=int)
     format_type = request.args.get('format', 'full')
     
-    # Validate book exists
-    book = next((b for b in BIBLE_BOOKS if b['name'].lower() == book_name.lower()), None)
+    # Try to find book by slug or name
+    book = get_book_by_slug(book_name) or get_book_by_name(book_name)
     if not book:
         return jsonify({'error': f'Book "{book_name}" not found'}), 404
     
-    # Validate chapter number
     if chapter < 1 or chapter > book['chapters']:
-        return jsonify({'error': f'Chapter {chapter} not found in {book_name}. Valid chapters: 1-{book["chapters"]}'}), 404
+        return jsonify({'error': f'Chapter {chapter} not found in {book["name"]}. Valid chapters: 1-{book["chapters"]}'}), 404
     
-    verses, chapter_text = fetch_chapter_bibleapi(book_name, chapter, selected_version)
+    verses, chapter_text = fetch_chapter_bibleapi(book['name'], chapter, selected_version)
 
     if not verses:
         return jsonify({'error': 'Chapter not found or request failed'}), 404
 
-    # Filter by verse range if specified
     filtered_verses = verses
     if verse_start is not None or verse_end is not None:
         filtered_verses = []
@@ -562,15 +610,14 @@ def api_chapter(book_name, chapter):
                     continue
                 filtered_verses.append(verse)
         
-        # Update chapter_text for filtered verses
         if filtered_verses:
             chapter_text = " ".join(v["text"] for v in filtered_verses)
         else:
             chapter_text = ""
 
-    # Build response based on format
     response_data = {
-        'book': book_name,
+        'book': book['name'],
+        'book_slug': book['slug'],
         'book_full': book['name'],
         'chapter': chapter,
         'total_chapters': book['chapters'],
@@ -598,26 +645,20 @@ def api_chapter(book_name, chapter):
 
 @app.route('/api/books', methods=['GET'])
 def api_books():
-    """
-    Get list of all Bible books with metadata.
-    Query params:
-    - testament: 'old', 'new', or 'all' (default: all)
-    """
     testament = request.args.get('testament', 'all').lower()
     
     books = BIBLE_BOOKS.copy()
     
     if testament == 'old':
-        books = books[:39]  # First 39 books are Old Testament
+        books = books[:39]
     elif testament == 'new':
-        books = books[39:]  # Books 40-66 are New Testament
+        books = books[39:]
     
-    # Add full book names and slugs
     enriched_books = []
-    for book in books:
+    for i, book in enumerate(books):
         enriched_books.append({
             'name': book['name'],
-            'slug': book['name'].lower().replace(' ', '-'),
+            'slug': book['slug'],
             'chapters': book['chapters'],
             'testament': 'Old' if BIBLE_BOOKS.index(book) < 39 else 'New'
         })
@@ -631,7 +672,6 @@ def api_books():
 
 @app.route('/api/versions', methods=['GET'])
 def api_versions():
-    """Get list of available Bible versions."""
     return jsonify({
         'total': len(VERSION_LIST),
         'versions': VERSION_LIST
@@ -640,7 +680,6 @@ def api_versions():
 
 @app.route('/api/daily-verse', methods=['GET'])
 def api_daily_verse():
-    """Get the verse of the day."""
     daily_verse = get_daily_verse()
     return jsonify({
         'date': dt.date.today().isoformat(),
@@ -650,13 +689,6 @@ def api_daily_verse():
 
 @app.route('/api/search', methods=['GET'])
 def api_search():
-    """
-    Search Bible verses by keyword.
-    Query params:
-    - q: Search query (required)
-    - version: Bible version ID (default: en-kjv)
-    - limit: Max results (default: 20)
-    """
     query = request.args.get('q', '').strip()
     version = request.args.get('version', 'en-kjv')
     limit = request.args.get('limit', 20, type=int)
@@ -698,19 +730,18 @@ def api_search():
 
 @app.route('/api/verse/<book_name>/<int:chapter>/<int:verse>')
 def api_verse(book_name, chapter, verse):
-    """
-    Get a single verse.
-    Query params:
-    - version: Bible version ID (default: en-kjv)
-    """
     selected_version = request.args.get('version', 'en-kjv')
     
-    verses, _ = fetch_chapter_bibleapi(book_name, chapter, selected_version)
+    # Find the actual book name
+    book = get_book_by_slug(book_name) or get_book_by_name(book_name)
+    if not book:
+        return jsonify({'error': f'Book "{book_name}" not found'}), 404
+    
+    verses, _ = fetch_chapter_bibleapi(book['name'], chapter, selected_version)
     
     if not verses:
         return jsonify({'error': 'Chapter not found or request failed'}), 404
     
-    # Find the specific verse
     target_verse = None
     for v in verses:
         if v.get('verse') == str(verse):
@@ -718,20 +749,23 @@ def api_verse(book_name, chapter, verse):
             break
     
     if not target_verse:
-        return jsonify({'error': f'Verse {verse} not found in {book_name} {chapter}'}), 404
+        return jsonify({'error': f'Verse {verse} not found in {book["name"]} {chapter}'}), 404
     
     return jsonify({
-        'book': book_name,
+        'book': book['name'],
+        'book_slug': book['slug'],
         'chapter': chapter,
         'verse': verse,
         'reference': target_verse['reference'],
         'text': target_verse['text'],
         'version': selected_version
     })
-    
+
+
 @app.route("/health")
 def health():
     return jsonify(status="ok"), 200
+
 
 if __name__ == "__main__":
     app.run(debug=True)

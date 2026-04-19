@@ -36,6 +36,7 @@
             --input-border: #ced4da;
             --highlight-bg: rgba(141, 155, 106, 0.2);
             --highlight-border: #8d9b6a;
+            --breadcrumb-bg: rgba(255, 255, 255, 0.7);
         }
 
         /* Dark mode variables */
@@ -59,6 +60,7 @@
             --input-border: #533483;
             --highlight-bg: rgba(233, 69, 96, 0.2);
             --highlight-border: #e94560;
+            --breadcrumb-bg: rgba(22, 33, 62, 0.8);
         }
 
         /* Smooth transitions */
@@ -153,7 +155,7 @@
         .page-header {
             background: var(--hero-overlay), url('../static/img/bg-1.jpg') no-repeat center/cover;
             color: white;
-            padding: 100px 0 100px;
+            padding: 100px 0 60px;
             text-align: center;
         }
 
@@ -162,6 +164,205 @@
             font-family: 'Lora', serif;
             font-size: 3.5rem;
             text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Breadcrumb Navigation */
+        .breadcrumb-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding: 0 10px;
+        }
+
+        .breadcrumb-nav {
+            background: var(--breadcrumb-bg);
+            backdrop-filter: blur(5px);
+            padding: 8px 16px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            max-width: 100%;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+
+        .breadcrumb-item a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 6px;
+            border-radius: 20px;
+        }
+
+        .breadcrumb-item a:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item i {
+            font-size: 0.85rem;
+            margin-right: 2px;
+        }
+
+        .breadcrumb-separator {
+            color: rgba(255, 255, 255, 0.5);
+            margin: 0 4px;
+            font-size: 0.7rem;
+        }
+
+        .breadcrumb-item.active {
+            color: white;
+            font-weight: 600;
+            padding: 4px 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .breadcrumb-book-selector {
+            margin-left: 8px;
+            padding-left: 8px;
+            border-left: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .breadcrumb-book-selector select {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 6px 28px 6px 12px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            min-width: 160px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='white' d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 10px;
+        }
+
+        .breadcrumb-book-selector select option {
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        .breadcrumb-book-selector select:focus {
+            outline: none;
+            border-color: white;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Mobile optimizations for breadcrumb */
+        @media (max-width: 768px) {
+            .breadcrumb-wrapper {
+                margin-top: 15px;
+                padding: 0 5px;
+            }
+            
+            .breadcrumb-nav {
+                padding: 8px 12px;
+                border-radius: 30px;
+                gap: 0;
+            }
+            
+            .breadcrumb-item {
+                font-size: 0.85rem;
+            }
+            
+            .breadcrumb-item a {
+                padding: 3px 4px;
+            }
+            
+            .breadcrumb-item i {
+                font-size: 0.75rem;
+            }
+            
+            .breadcrumb-separator {
+                margin: 0 2px;
+                font-size: 0.6rem;
+            }
+            
+            .breadcrumb-book-selector {
+                margin-left: 0;
+                padding-left: 0;
+                border-left: none;
+                margin-top: 5px;
+                width: 100%;
+            }
+            
+            .breadcrumb-book-selector select {
+                width: 100%;
+                min-width: unset;
+                padding: 6px 28px 6px 12px;
+                font-size: 0.85rem;
+                text-align: center;
+                background-position: right 10px center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .breadcrumb-nav {
+                padding: 6px 10px;
+                border-radius: 25px;
+            }
+            
+            .breadcrumb-item {
+                font-size: 0.8rem;
+            }
+            
+            .breadcrumb-item i {
+                font-size: 0.7rem;
+            }
+            
+            .breadcrumb-separator {
+                margin: 0 1px;
+            }
+            
+            /* Stack breadcrumb items nicely on very small screens */
+            .breadcrumb-item .full-text {
+                display: none;
+            }
+            
+            .breadcrumb-item .short-text {
+                display: inline;
+            }
+            
+            .breadcrumb-book-selector select {
+                padding: 5px 24px 5px 10px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Hide short text by default, show full text */
+        .breadcrumb-item .short-text {
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .breadcrumb-item .full-text {
+                display: none;
+            }
+            
+            .breadcrumb-item .short-text {
+                display: inline;
+            }
         }
 
         .section-title {
@@ -663,7 +864,7 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#daily">Daily Verse</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#search">Search</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('books', book_name=book.name.title()) }}">Books</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('books', book_slug=book.slug) }}">Books</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
                     
                     <!-- Desktop Theme Toggle -->
@@ -690,6 +891,59 @@
         <div class="container">
             <h1 class="head-center">Browse the Holy Scriptures</h1>
             <p class="mt-3 lead">Select a book to begin reading</p>
+            
+            <!-- Breadcrumb Navigation -->
+            <div class="breadcrumb-wrapper">
+                <nav class="breadcrumb-nav">
+                    <span class="breadcrumb-item">
+                        <a href="{{ url_for('index') }}">
+                            <i class="fas fa-home"></i>
+                            <span class="full-text">Home</span>
+                            <span class="short-text">Home</span>
+                        </a>
+                    </span>
+                    <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+                    <span class="breadcrumb-item">
+                        <a href="{{ url_for('index') }}#books">
+                            <i class="fas fa-book"></i>
+                            <span class="full-text">Books</span>
+                            <span class="short-text">Books</span>
+                        </a>
+                    </span>
+                    <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+                    <span class="breadcrumb-item active">
+                        <i class="fas fa-book-open"></i>
+                        <span class="full-text">{{ book.name }}</span>
+                        <span class="short-text">
+                            {% if book.name|length > 12 %}
+                                {{ book.name[:10] }}...
+                            {% else %}
+                                {{ book.name }}
+                            {% endif %}
+                        </span>
+                    </span>
+                    {% if selected_chapter %}
+                    <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+                    <span class="breadcrumb-item active">
+                        <i class="fas fa-list"></i>
+                        <span class="full-text">Chapter {{ selected_chapter }}</span>
+                        <span class="short-text">Ch {{ selected_chapter }}</span>
+                    </span>
+                    {% endif %}
+                    
+                    <!-- Quick Book Switcher -->
+                    <span class="breadcrumb-book-selector">
+                        <select id="breadcrumbBookSelect" onchange="navigateToBook(this.value)">
+                            <option value="">📖 Switch Book...</option>
+                            {% for b in books %}
+                                <option value="{{ b.slug }}" {% if b.name == book.name %}selected{% endif %}>
+                                    {{ b.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </span>
+                </nav>
+            </div>
         </div>
     </section>
 
@@ -700,7 +954,7 @@
             <div class="row justify-content-center">
                 <div class="col-lg-8">
                     <!-- Chapter Selection Form -->
-                    <form method="POST" action="{{ url_for('books', book_name=book.name|lower|replace(' ', '-')) }}" class="mb-4">
+                    <form method="POST" action="{{ url_for('books', book_slug=book.slug) }}" class="mb-4">
                         <div class="input-group">
                             <label class="input-group-text" for="chapterSelect">Chapter</label>
                             <select class="form-select" id="chapterSelect" name="chapter" required>
@@ -715,7 +969,7 @@
                     
                     <!-- Verse Selection Form -->
                     {% if verses %}
-                        <form method="POST" action="{{ url_for('books', book_name=book.name|lower|replace(' ', '-')) }}" class="mb-3">
+                        <form method="POST" action="{{ url_for('books', book_slug=book.slug) }}" class="mb-3">
                             <div class="input-group">
                                 <label class="input-group-text" for="verseSelect">Jump to Verse</label>
                                 <select class="form-select" id="verseSelect" name="verse">
@@ -859,7 +1113,7 @@
                         </button>
                     </div>
 
-                    <form id="chapterNavForm" method="POST" action="{{ url_for('books', book_name=book.name|lower|replace(' ', '-')) }}" style="display:none;">
+                    <form id="chapterNavForm" method="POST" action="{{ url_for('books', book_slug=book.slug) }}" style="display:none;">
                         <input type="hidden" name="chapter" id="chapterNavInput" value="{{ selected_chapter }}">
                         <input type="hidden" name="version" value="{{ selected_version }}">
                     </form>
@@ -884,14 +1138,21 @@
     <script>
         const CHAPTER_TEXT = {{ chapter_text|tojson|safe }};
         const BOOK_NAME = "{{ book.name }}";
+        const BOOK_SLUG = "{{ book.slug }}";
         const CHAPTER_NUM = {{ selected_chapter }};
-        const BOOK_SLUG = "{{ book.name|lower|replace(' ', '-') }}";
         const SELECTED_VERSION = "{{ selected_version|default('en-kjv') }}";
         const MAX_CHAPTERS = {{ book.chapters }};
     </script>
     {% endif %}
 
     <script>
+        // Breadcrumb book switcher function
+        function navigateToBook(bookSlug) {
+            if (bookSlug) {
+                window.location.href = "/books/" + bookSlug;
+            }
+        }
+
         (function() {
             // ========== DARK MODE (System preference aware) ==========
             const themeToggle = document.getElementById('themeToggle');
@@ -1360,7 +1621,6 @@
                     return;
                 }
 
-                // If currently playing and not paused, pause it
                 if (isSpeechPlaying && !isPaused) {
                     speechSynth.pause();
                     isPaused = true;
@@ -1370,12 +1630,9 @@
                     return;
                 }
                 
-                // If paused, create a NEW utterance from current position
                 if (isSpeechPlaying && isPaused) {
-                    // Cancel current speech
                     speechSynth.cancel();
                     
-                    // Get remaining text from current chunk and beyond
                     const currentChunk = speechQueue[currentChunkIndex];
                     const wordsPerSecond = 150 * currentSpeed;
                     const wordsElapsed = Math.floor((pausedAt * wordsPerSecond) / 60);
@@ -1383,12 +1640,10 @@
                     const startWord = Math.min(wordsElapsed, words.length - 1);
                     const remainingCurrentChunk = words.slice(startWord).join(' ');
                     
-                    // Create new queue with remaining text
                     const newQueue = [remainingCurrentChunk, ...speechQueue.slice(currentChunkIndex + 1)].filter(c => c.trim());
                     speechQueue = newQueue;
                     currentChunkIndex = 0;
                     
-                    // Start speaking from new queue
                     isPaused = false;
                     speechStartTime = Date.now();
                     estimatedDuration = estimateSpeakingTime(speechQueue.join(' ')) / currentSpeed;
@@ -1399,7 +1654,6 @@
                     return;
                 }
                 
-                // Fresh start
                 stopSpeech();
                 currentText = CHAPTER_TEXT;
                 
@@ -1519,8 +1773,37 @@
             
             speedOptions.forEach(option => {
                 option.addEventListener('change', () => {
-                    currentSpeed = parseFloat(option.value);
-                    if (speechUtterance) speechUtterance.rate = currentSpeed;
+                    const newSpeed = parseFloat(option.value);
+                    currentSpeed = newSpeed;
+                    
+                    if (speechUtterance && isSpeechPlaying) {
+                        speechSynth.cancel();
+                        
+                        const currentChunk = speechQueue[currentChunkIndex];
+                        const elapsedTime = isPaused ? pausedAt : (pausedAt + (Date.now() - speechStartTime) / 1000);
+                        const chunkDuration = estimateSpeakingTime(currentChunk) / (speechUtterance?.rate || 1.0);
+                        const progressInChunk = Math.min(elapsedTime / chunkDuration, 0.99);
+                        
+                        const words = currentChunk.split(' ');
+                        const wordsSpoken = Math.floor(words.length * progressInChunk);
+                        const remainingCurrentChunk = words.slice(wordsSpoken).join(' ');
+                        
+                        const newQueue = [remainingCurrentChunk, ...speechQueue.slice(currentChunkIndex + 1)].filter(c => c.trim());
+                        speechQueue = newQueue;
+                        currentChunkIndex = 0;
+                        
+                        estimatedDuration = estimateSpeakingTime(speechQueue.join(' ')) / currentSpeed;
+                        if (durationSpan) durationSpan.textContent = formatTime(estimatedDuration);
+                        
+                        if (!isPaused) {
+                            speechStartTime = Date.now();
+                            speakNextChunk();
+                        }
+                    } else if (speechUtterance) {
+                        speechUtterance.rate = currentSpeed;
+                    }
+                    
+                    showToast(`Playback speed set to ${newSpeed}x`);
                 });
             });
 
