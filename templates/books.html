@@ -1197,7 +1197,7 @@
                 });
             }
 
-            // ========== AUDIO PLAYER (Web Speech API) ==========
+            // ========== AUDIO PLAYER (Web Speech API) - FIXED ==========
             const speechSynth = window.speechSynthesis;
             let speechUtterance = null;
             let isPaused = false;
@@ -1210,6 +1210,7 @@
             let isDownloading = false;
             let progressTimer = null;
             let currentSpeed = 1.0;
+            let currentText = '';
 
             const playBtn = document.getElementById('audioPlayBtn');
             const skipBackBtn = document.getElementById('skipBackBtn');
@@ -1251,7 +1252,9 @@
             }
 
             function stopSpeech() {
-                if (speechSynth) speechSynth.cancel();
+                if (speechSynth) {
+                    speechSynth.cancel();
+                }
                 speechUtterance = null;
                 isSpeechPlaying = false;
                 isPaused = false;
@@ -1265,15 +1268,15 @@
                     const chapterNum = typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : '';
                     if (isSpeechPlaying && !isPaused) {
                         playBtn.innerHTML = '<i class="fas fa-pause me-2"></i>Pause Chapter ' + chapterNum;
-                        playBtn.classList.remove('btn-success', 'btn-secondary');
+                        playBtn.classList.remove('btn-success');
                         playBtn.classList.add('btn-warning');
                     } else if (isPaused) {
                         playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Resume Chapter ' + chapterNum;
-                        playBtn.classList.remove('btn-warning', 'btn-secondary');
+                        playBtn.classList.remove('btn-warning');
                         playBtn.classList.add('btn-success');
                     } else {
                         playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Play Chapter ' + chapterNum;
-                        playBtn.classList.remove('btn-warning', 'btn-secondary');
+                        playBtn.classList.remove('btn-warning');
                         playBtn.classList.add('btn-success');
                     }
                     playBtn.disabled = false;
@@ -1297,7 +1300,10 @@
             }
 
             function stopProgressTimer() {
-                if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
+                if (progressTimer) { 
+                    clearInterval(progressTimer); 
+                    progressTimer = null; 
+                }
             }
 
             function speakNextChunk() {
@@ -1331,6 +1337,7 @@
                         }
                     };
                     speechUtterance.onerror = (e) => {
+                        console.log('Speech error:', e.error);
                         if (e.error !== 'interrupted' && e.error !== 'canceled') {
                             currentChunkIndex++;
                             if (isSpeechPlaying && !isPaused) speakNextChunk();
@@ -1353,6 +1360,7 @@
                     return;
                 }
 
+                // If currently playing and not paused, pause it
                 if (isSpeechPlaying && !isPaused) {
                     speechSynth.pause();
                     isPaused = true;
@@ -1362,16 +1370,38 @@
                     return;
                 }
                 
+                // If paused, create a NEW utterance from current position
                 if (isSpeechPlaying && isPaused) {
-                    speechSynth.resume();
+                    // Cancel current speech
+                    speechSynth.cancel();
+                    
+                    // Get remaining text from current chunk and beyond
+                    const currentChunk = speechQueue[currentChunkIndex];
+                    const wordsPerSecond = 150 * currentSpeed;
+                    const wordsElapsed = Math.floor((pausedAt * wordsPerSecond) / 60);
+                    const words = currentChunk.split(' ');
+                    const startWord = Math.min(wordsElapsed, words.length - 1);
+                    const remainingCurrentChunk = words.slice(startWord).join(' ');
+                    
+                    // Create new queue with remaining text
+                    const newQueue = [remainingCurrentChunk, ...speechQueue.slice(currentChunkIndex + 1)].filter(c => c.trim());
+                    speechQueue = newQueue;
+                    currentChunkIndex = 0;
+                    
+                    // Start speaking from new queue
                     isPaused = false;
                     speechStartTime = Date.now();
+                    estimatedDuration = estimateSpeakingTime(speechQueue.join(' ')) / currentSpeed;
+                    
+                    speakNextChunk();
                     startProgressTimer();
                     updatePlayButtonState();
                     return;
                 }
                 
+                // Fresh start
                 stopSpeech();
+                currentText = CHAPTER_TEXT;
                 
                 try {
                     await initSpeech();
@@ -1401,7 +1431,10 @@
                     alert('No chapter text loaded');
                     return;
                 }
-                if (isDownloading) { alert('Download already in progress'); return; }
+                if (isDownloading) { 
+                    alert('Download already in progress'); 
+                    return; 
+                }
 
                 isDownloading = true;
                 if (downloadBtn) downloadBtn.disabled = true;
@@ -1424,8 +1457,11 @@
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
-                    a.href = url; a.download = filename;
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    a.href = url; 
+                    a.download = filename;
+                    document.body.appendChild(a); 
+                    a.click(); 
+                    document.body.removeChild(a);
                     window.URL.revokeObjectURL(url);
 
                     if (downloadBtn) {
@@ -1450,7 +1486,10 @@
                     speechSynth.cancel();
                     currentChunkIndex = Math.min(targetChunk, speechQueue.length - 1);
                     pausedAt = targetTime;
-                    if (!isPaused) { speechStartTime = Date.now(); speakNextChunk(); }
+                    if (!isPaused) { 
+                        speechStartTime = Date.now(); 
+                        speakNextChunk(); 
+                    }
                     updateSpeechProgress();
                 }
             }
@@ -1485,7 +1524,9 @@
                 });
             });
 
-            window.addEventListener('beforeunload', () => { if (speechSynth) speechSynth.cancel(); });
+            window.addEventListener('beforeunload', () => { 
+                if (speechSynth) speechSynth.cancel(); 
+            });
             if (speechSynth) speechSynth.getVoices();
 
             updateReadingProgress();
