@@ -81,7 +81,7 @@ def get_daily_verse() -> dict:
     _daily_verse_cache["verse"] = verse
     return verse
 
-# Updated BIBLE_BOOKS with proper display names and slugs
+# Bible books with proper display names and slugs
 BIBLE_BOOKS = [
     {"name": "Genesis", "chapters": 50, "slug": "genesis"},
     {"name": "Exodus", "chapters": 40, "slug": "exodus"},
@@ -227,132 +227,101 @@ def fetch_chapter_bibleapi(book_name: str, chapter: int, version_id: str = "en-k
         return [], ""
 
 
-def _fetch_voice_rss_chunk(text: str, voice: str = "en-us") -> bytes:
-    """Fetch a single chunk from Voice RSS API."""
+# ========== AUDIO GENERATION (VOICE RSS) ==========
+
+def text_to_speech_voicerss(text: str, voice: str = "en-us") -> bytes:
+    """Convert text to speech using Voice RSS API. Returns MP3 audio data as bytes."""
+    if not text or not text.strip():
+        print("ERROR: No text provided for audio generation")
+        return None
+    
+    text = text.strip()
+    print(f"🎵 Generating audio: {len(text)} chars")
+    
     params = {
         "key": VOICE_RSS_API_KEY,
         "src": text,
         "hl": voice,
         "r": "0",
-        "c": "mp3",
-        "f": "44khz_16bit_stereo",
-        "ssml": "false",
-        "b64": "false"
+        "c": "MP3",
+        "f": "16khz_16bit_mono"
     }
     
     try:
-        response = requests.get(VOICE_RSS_URL, params=params, timeout=30)
+        response = requests.post(VOICE_RSS_URL, data=params, timeout=30)
+        
         if response.status_code == 200:
-            content_type = response.headers.get('Content-Type', '')
-            if 'audio' in content_type or response.content[:3] in [b'ID3', b'\xff\xfb']:
-                return response.content
-            else:
-                error_msg = response.text[:200]
-                print(f"Voice RSS API error: {error_msg}")
-                return None
+            print(f"  ✓ Audio generated: {len(response.content)} bytes")
+            return response.content
         else:
-            print(f"Voice RSS API returned status {response.status_code}")
+            print(f"  ✗ Voice RSS error: {response.status_code}")
             return None
+            
     except Exception as e:
-        print(f"Voice RSS request failed: {e}")
+        print(f"  ✗ Voice RSS failed: {e}")
         return None
-
-
-def text_to_speech_voicerss(text: str, voice: str = "en-us") -> bytes:
-    """
-    Convert text to speech using Voice RSS API with chunking for long texts.
-    Returns MP3 audio data as bytes.
-    """
-    MAX_CHARS = 4500  # Leave room for API overhead
-    
-    def chunk_text(text: str, max_length: int = 4500) -> list:
-        """Split text into chunks at sentence boundaries."""
-        chunks = []
-        sentences = re.split(r'(?<=[.!?])\s+', text)
-        
-        current_chunk = ""
-        for sentence in sentences:
-            if len(current_chunk) + len(sentence) + 1 > max_length and current_chunk:
-                chunks.append(current_chunk.strip())
-                current_chunk = sentence
-            else:
-                current_chunk += (" " if current_chunk else "") + sentence
-        
-        if current_chunk:
-            chunks.append(current_chunk.strip())
-        
-        return chunks if chunks else [text[:max_length]]
-
-    # Split text into chunks
-    chunks = chunk_text(text, MAX_CHARS)
-    
-    if len(chunks) == 1:
-        # Single chunk - process normally
-        return _fetch_voice_rss_chunk(chunks[0], voice)
-    
-    # Multiple chunks - fetch and combine
-    print(f"Processing {len(chunks)} chunks for audio generation...")
-    
-    audio_chunks = []
-    for i, chunk in enumerate(chunks):
-        print(f"  Fetching chunk {i+1}/{len(chunks)} ({len(chunk)} chars)...")
-        chunk_audio = _fetch_voice_rss_chunk(chunk, voice)
-        if chunk_audio is None:
-            print(f"  Failed to fetch chunk {i+1}")
-            return None
-        audio_chunks.append(chunk_audio)
-    
-    # Combine all audio chunks
-    combined = b''.join(audio_chunks)
-    print(f"Successfully combined {len(chunks)} chunks ({len(combined)} bytes)")
-    return combined
 
 
 @app.route("/api/download-audio", methods=["POST"])
 def download_audio():
     """Generate and download MP3 audio for given text."""
-    data = request.get_json()
-    if not data or 'text' not in data:
-        return jsonify({"error": "Missing text parameter"}), 400
-    
-    text = data['text'].strip()
-    filename = data.get('filename', 'bible-audio.mp3')
-    
-    if not filename.endswith('.mp3'):
-        filename += '.mp3'
-    
-    print(f"Generating audio for text length: {len(text)} characters")
-    audio_data = text_to_speech_voicerss(text)
-    
-    if audio_data is None:
-        return jsonify({"error": "Failed to generate audio. Voice RSS API may be unavailable."}), 500
-    
-    return send_file(
-        io.BytesIO(audio_data),
-        mimetype="audio/mpeg",
-        as_attachment=True,
-        download_name=filename
-    )
+    try:
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({"error": "Missing text parameter"}), 400
+        
+        text = data['text'].strip()
+        filename = data.get('filename', 'bible-audio.mp3')
+        
+        if not text:
+            return jsonify({"error": "Text cannot be empty"}), 400
+        
+        if not filename.endswith('.mp3'):
+            filename += '.mp3'
+        
+        audio_data = text_to_speech_voicerss(text)
+        
+        if audio_data is None:
+            return jsonify({"error": "Failed to generate audio. Please try again."}), 500
+        
+        return send_file(
+            io.BytesIO(audio_data),
+            mimetype="audio/mpeg",
+            as_attachment=True,
+            download_name=filename
+        )
+        
+    except Exception as e:
+        print(f"Download audio error: {e}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
 @app.route("/api/play-audio", methods=["POST"])
 def play_audio():
     """Stream MP3 audio for playback."""
-    data = request.get_json()
-    if not data or 'text' not in data:
-        return jsonify({"error": "Missing text parameter"}), 400
-    
-    text = data['text'].strip()
-    
-    audio_data = text_to_speech_voicerss(text)
-    
-    if audio_data is None:
-        return jsonify({"error": "Failed to generate audio"}), 500
-    
-    return send_file(
-        io.BytesIO(audio_data),
-        mimetype="audio/mpeg"
-    )
+    try:
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({"error": "Missing text parameter"}), 400
+        
+        text = data['text'].strip()
+        
+        if not text:
+            return jsonify({"error": "Text cannot be empty"}), 400
+        
+        audio_data = text_to_speech_voicerss(text)
+        
+        if audio_data is None:
+            return jsonify({"error": "Failed to generate audio."}), 500
+        
+        return send_file(
+            io.BytesIO(audio_data),
+            mimetype="audio/mpeg"
+        )
+        
+    except Exception as e:
+        print(f"Play audio error: {e}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
 @app.route("/")
@@ -399,9 +368,9 @@ def search():
                         })
             else:
                 search_results = []
-                print(f"API Error: {response.status_code} - {response.text}")
+                print(f"API Error: {response.status_code}")
         except Exception as e:
-            print(f"Request failed: {e}")
+            print(f"Search request failed: {e}")
             search_results = []       
         search_performed = True
 
@@ -527,7 +496,6 @@ def books(book_slug):
     book = get_book_by_slug(book_slug)
     
     if not book:
-        # Try legacy format or return 404
         return f"Book '{book_slug}' not found", 404
 
     selected_chapter = request.form.get("chapter")
@@ -537,7 +505,6 @@ def books(book_slug):
 
     if selected_chapter:
         selected_chapter = int(selected_chapter)
-        # Use the display name for API calls
         verses, chapter_text = fetch_chapter_bibleapi(
             book['name'], selected_chapter, selected_version
         )
@@ -546,36 +513,13 @@ def books(book_slug):
         "books.html",
         current_year=dt.datetime.now().year,
         book=book,
-        books=BIBLE_BOOKS,  # Pass all books for breadcrumb dropdown
+        books=BIBLE_BOOKS,
         selected_chapter=selected_chapter,
         selected_version=selected_version,
         chapter_text=chapter_text,
         verses=verses,
         versions=VERSION_LIST,
     )
-
-
-# Legacy route for backward compatibility
-@app.route("/books/<book_name>", methods=["GET", "POST"])
-def books_legacy(book_name):
-    """Legacy route - redirects to the new slug-based route."""
-    # Try to find by slug first
-    book = get_book_by_slug(book_name)
-    if book:
-        return redirect(url_for('books', book_slug=book['slug']), code=301)
-    
-    # Try to find by display name
-    book = get_book_by_name(book_name)
-    if book:
-        return redirect(url_for('books', book_slug=book['slug']), code=301)
-    
-    # Try old format (removing hyphens and spaces)
-    clean_name = book_name.lower().replace('-', '').replace(' ', '')
-    for b in BIBLE_BOOKS:
-        if b['name'].lower().replace(' ', '') == clean_name:
-            return redirect(url_for('books', book_slug=b['slug']), code=301)
-    
-    return f"Book '{book_name}' not found", 404
 
 
 @app.route('/api/chapter/<book_name>/<int:chapter>')
@@ -585,7 +529,6 @@ def api_chapter(book_name, chapter):
     verse_end = request.args.get('verse_end', type=int)
     format_type = request.args.get('format', 'full')
     
-    # Try to find book by slug or name
     book = get_book_by_slug(book_name) or get_book_by_name(book_name)
     if not book:
         return jsonify({'error': f'Book "{book_name}" not found'}), 404
@@ -655,7 +598,7 @@ def api_books():
         books = books[39:]
     
     enriched_books = []
-    for i, book in enumerate(books):
+    for book in books:
         enriched_books.append({
             'name': book['name'],
             'slug': book['slug'],
@@ -732,7 +675,6 @@ def api_search():
 def api_verse(book_name, chapter, verse):
     selected_version = request.args.get('version', 'en-kjv')
     
-    # Find the actual book name
     book = get_book_by_slug(book_name) or get_book_by_name(book_name)
     if not book:
         return jsonify({'error': f'Book "{book_name}" not found'}), 404
