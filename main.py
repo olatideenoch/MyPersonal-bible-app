@@ -15,11 +15,11 @@ load_dotenv()
 app = Flask(__name__)
 
 # Resend API configuration
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "re_Fg7PVpfa_7LhZBGxyR6AJzTZmxyox4aXW")
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 RESEND_API_URL = "https://api.resend.com/emails"
 
 # Voice RSS API configuration
-VOICE_RSS_API_KEY = os.environ.get("VOICE_RSS_API_KEY", "a653b618b6c248e18ce97e74db6bfc0e")
+VOICE_RSS_API_KEY = os.environ.get("VOICE_RSS_API_KEY")
 VOICE_RSS_URL = "https://api.voicerss.org/"
 
 # bible-api.com (Tim Morgan) helpers
