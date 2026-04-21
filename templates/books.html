@@ -71,6 +71,68 @@
             --breadcrumb-bg: rgba(22, 33, 62, 0.8);
         }
 
+        /* Google Sign-In Button Styling */
+        .google-signin-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+        
+        .google-signin-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+        
+        .user-profile-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 30px;
+            padding: 5px 12px 5px 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .user-profile-btn:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .user-profile-btn img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-primary);
+        }
+        
+        /* Sync Toast Notification */
+        .sync-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            z-index: 2000;
+            animation: slideUp 0.3s ease;
+        }
+
         /* App Icon Styling */
         .navbar-brand img {
             border-radius: 8px;
@@ -82,7 +144,6 @@
             transform: scale(1.05);
         }
 
-        /* Dark mode icon adjustment */
         [data-theme="dark"] .navbar-brand img {
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
@@ -359,7 +420,6 @@
                 margin: 0 1px;
             }
             
-            /* Stack breadcrumb items nicely on very small screens */
             .breadcrumb-item .full-text {
                 display: none;
             }
@@ -374,7 +434,6 @@
             }
         }
 
-        /* Hide short text by default, show full text */
         .breadcrumb-item .short-text {
             display: none;
         }
@@ -897,6 +956,39 @@
                     <li class="nav-item"><a class="nav-link active" href="{{ url_for('books', book_slug=book.slug) }}">Books</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
                     
+                    <!-- Google Sign-In / User Profile -->
+                    <li class="nav-item d-flex align-items-center ms-2">
+                        {% if user %}
+                        <div class="dropdown">
+                            <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                {% if user.picture %}
+                                <img src="{{ user.picture }}" alt="{{ user.name }}">
+                                {% else %}
+                                <i class="fas fa-user-circle fa-2x"></i>
+                                {% endif %}
+                                <span class="d-none d-lg-inline">{{ user.name.split(' ')[0] }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="syncNow(); return false;">
+                                        <i class="fas fa-sync-alt me-2"></i>Sync Now
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
+                            </ul>
+                        </div>
+                        {% else %}
+                        <a href="{{ url_for('google_login') }}" class="google-signin-btn text-decoration-none">
+                            <i class="fab fa-google"></i>
+                            <span class="d-none d-md-inline">Sign in with Google</span>
+                            <span class="d-md-none">Sign in</span>
+                        </a>
+                        {% endif %}
+                    </li>
+                    
                     <!-- Desktop Theme Toggle -->
                     <li class="nav-item d-none d-lg-flex align-items-center ms-2">
                         <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
@@ -1172,6 +1264,11 @@
         const CHAPTER_NUM = {{ selected_chapter }};
         const SELECTED_VERSION = "{{ selected_version|default('en-kjv') }}";
         const MAX_CHAPTERS = {{ book.chapters }};
+        const USER_AUTHENTICATED = {{ 'true' if user else 'false' }};
+    </script>
+    {% else %}
+    <script>
+        const USER_AUTHENTICATED = {{ 'true' if user else 'false' }};
     </script>
     {% endif %}
 
@@ -1180,6 +1277,84 @@
         function navigateToBook(bookSlug) {
             if (bookSlug) {
                 window.location.href = "/books/" + bookSlug;
+            }
+        }
+
+        // Sync function
+        function showSyncToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'sync-toast';
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'sync-alt'} me-2"></i>${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function getAllReadingProgress() {
+            const progress = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('reading_progress_')) {
+                    try {
+                        progress[key] = JSON.parse(localStorage.getItem(key));
+                    } catch (e) {}
+                }
+            }
+            return progress;
+        }
+        
+        async function syncNow() {
+            if (!USER_AUTHENTICATED) {
+                showSyncToast('Please sign in to sync your data', 'warning');
+                return;
+            }
+            
+            showSyncToast('Syncing your data...');
+            
+            try {
+                const localData = {
+                    bookmarks: JSON.parse(localStorage.getItem('bibleBookmarks') || '[]'),
+                    highlights: JSON.parse(localStorage.getItem('bibleHighlights') || '{}'),
+                    progress: getAllReadingProgress(),
+                    font_size: localStorage.getItem('bibleFontSize'),
+                    theme: localStorage.getItem('bibleAppTheme')
+                };
+                
+                const response = await fetch('/api/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(localData)
+                });
+                
+                if (response.ok) {
+                    const syncResponse = await fetch('/api/sync');
+                    const serverData = await syncResponse.json();
+                    
+                    if (serverData.bookmarks) {
+                        localStorage.setItem('bibleBookmarks', JSON.stringify(serverData.bookmarks));
+                        if (typeof updateBookmarksList === 'function') {
+                            bookmarks = serverData.bookmarks;
+                            updateBookmarksList();
+                            updateBookmarkCount();
+                            updateBookmarkButtons();
+                        }
+                    }
+                    if (serverData.highlights) {
+                        localStorage.setItem('bibleHighlights', JSON.stringify(serverData.highlights));
+                    }
+                    if (serverData.font_size) {
+                        localStorage.setItem('bibleFontSize', serverData.font_size);
+                    }
+                    if (serverData.theme) {
+                        localStorage.setItem('bibleAppTheme', serverData.theme);
+                    }
+                    
+                    showSyncToast('Sync completed successfully!', 'success');
+                } else {
+                    showSyncToast('Sync failed. Please try again.', 'danger');
+                }
+            } catch (error) {
+                console.error('Sync error:', error);
+                showSyncToast('Sync failed. Please try again.', 'danger');
             }
         }
 
@@ -1843,6 +2018,15 @@
             if (speechSynth) speechSynth.getVoices();
 
             updateReadingProgress();
+            
+            // Auto-sync if authenticated
+            if (USER_AUTHENTICATED) {
+                window.addEventListener('load', () => {
+                    setTimeout(() => {
+                        syncNow();
+                    }, 2000);
+                });
+            }
         })();
     </script>
 </body>

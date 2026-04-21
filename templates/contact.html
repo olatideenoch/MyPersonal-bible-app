@@ -68,6 +68,53 @@
             --warning-bg: rgba(255, 193, 7, 0.1);
             --warning-border: #ffc107;
         }
+
+        /* Google Sign-In Button Styling */
+        .google-signin-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+        
+        .google-signin-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+        
+        .user-profile-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 30px;
+            padding: 5px 12px 5px 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .user-profile-btn:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .user-profile-btn img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-primary);
+        }
+
         /* App Icon Styling */
         .navbar-brand img {
             border-radius: 8px;
@@ -79,7 +126,6 @@
             transform: scale(1.05);
         }
 
-        /* Dark mode icon adjustment */
         [data-theme="dark"] .navbar-brand img {
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
@@ -501,6 +547,33 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="{{ url_for('contact') }}">Contact</a>
+                    </li>
+                    
+                    <!-- Google Sign-In / User Profile -->
+                    <li class="nav-item d-flex align-items-center ms-2">
+                        {% if user %}
+                        <div class="dropdown">
+                            <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                {% if user.picture %}
+                                <img src="{{ user.picture }}" alt="{{ user.name }}">
+                                {% else %}
+                                <i class="fas fa-user-circle fa-2x"></i>
+                                {% endif %}
+                                <span class="d-none d-lg-inline">{{ user.name.split(' ')[0] }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
+                            </ul>
+                        </div>
+                        {% else %}
+                        <a href="{{ url_for('google_login') }}" class="google-signin-btn text-decoration-none">
+                            <i class="fab fa-google"></i>
+                            <span class="d-none d-md-inline">Sign in with Google</span>
+                            <span class="d-md-none">Sign in</span>
+                        </a>
+                        {% endif %}
                     </li>
                     
                     <!-- Desktop Theme Toggle -->
