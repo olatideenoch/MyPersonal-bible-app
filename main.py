@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, redirect, request, jsonify, send_file
+from flask import Flask, render_template, url_for, redirect, request, jsonify, send_file, session
 import requests
 import datetime as dt
 import random
@@ -6,13 +6,33 @@ import os
 import re
 import json
 import io
+import secrets
 from typing import List
+from pathlib import Path
 
 from dotenv import load_dotenv
+from authlib.integrations.flask_client import OAuth
 
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
+
+# Google OAuth setup
+oauth = OAuth(app)
+google = oauth.register(
+    name='google',
+    client_id=os.environ.get("GOOGLE_CLIENT_ID"),
+    client_secret=os.environ.get("GOOGLE_CLIENT_SECRET"),
+    access_token_url='https://accounts.google.com/o/oauth2/token',
+    authorize_url='https://accounts.google.com/o/oauth2/auth',
+    userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={
+        'scope': 'openid email profile',
+        'prompt': 'select_account'
+    }
+)
 
 # Resend API configuration
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
@@ -24,6 +44,10 @@ VOICE_RSS_URL = "https://api.voicerss.org/"
 
 # bible-api.com (Tim Morgan) helpers
 BIBLE_API_BASE = "https://bible-api.com"
+
+# Create sync data directory if it doesn't exist
+SYNC_DATA_DIR = Path("sync_data")
+SYNC_DATA_DIR.mkdir(exist_ok=True)
 
 BIBLEAPI_VERSION_MAP = {
     "en-kjv":  "kjv",
@@ -81,7 +105,7 @@ def get_daily_verse() -> dict:
     _daily_verse_cache["verse"] = verse
     return verse
 
-# Bible books with proper display names and slugs
+# Updated BIBLE_BOOKS with proper display names and slugs
 BIBLE_BOOKS = [
     {"name": "Genesis", "chapters": 50, "slug": "genesis"},
     {"name": "Exodus", "chapters": 40, "slug": "exodus"},
@@ -227,112 +251,230 @@ def fetch_chapter_bibleapi(book_name: str, chapter: int, version_id: str = "en-k
         return [], ""
 
 
-# ========== AUDIO GENERATION (VOICE RSS) ==========
-
-def text_to_speech_voicerss(text: str, voice: str = "en-us") -> bytes:
-    """Convert text to speech using Voice RSS API. Returns MP3 audio data as bytes."""
-    if not text or not text.strip():
-        print("ERROR: No text provided for audio generation")
-        return None
-    
-    text = text.strip()
-    print(f"🎵 Generating audio: {len(text)} chars")
-    
+def _fetch_voice_rss_chunk(text: str, voice: str = "en-us") -> bytes:
+    """Fetch a single chunk from Voice RSS API."""
     params = {
         "key": VOICE_RSS_API_KEY,
         "src": text,
         "hl": voice,
         "r": "0",
-        "c": "MP3",
-        "f": "16khz_16bit_mono"
+        "c": "mp3",
+        "f": "44khz_16bit_stereo",
+        "ssml": "false",
+        "b64": "false"
     }
     
     try:
-        response = requests.post(VOICE_RSS_URL, data=params, timeout=30)
-        
+        response = requests.get(VOICE_RSS_URL, params=params, timeout=30)
         if response.status_code == 200:
-            print(f"  ✓ Audio generated: {len(response.content)} bytes")
-            return response.content
+            content_type = response.headers.get('Content-Type', '')
+            if 'audio' in content_type or response.content[:3] in [b'ID3', b'\xff\xfb']:
+                return response.content
+            else:
+                error_msg = response.text[:200]
+                print(f"Voice RSS API error: {error_msg}")
+                return None
         else:
-            print(f"  ✗ Voice RSS error: {response.status_code}")
+            print(f"Voice RSS API returned status {response.status_code}")
             return None
-            
     except Exception as e:
-        print(f"  ✗ Voice RSS failed: {e}")
+        print(f"Voice RSS request failed: {e}")
         return None
 
+
+def text_to_speech_voicerss(text: str, voice: str = "en-us") -> bytes:
+    """
+    Convert text to speech using Voice RSS API with chunking for long texts.
+    Returns MP3 audio data as bytes.
+    """
+    MAX_CHARS = 4500  # Leave room for API overhead
+    
+    def chunk_text(text: str, max_length: int = 4500) -> list:
+        """Split text into chunks at sentence boundaries."""
+        chunks = []
+        sentences = re.split(r'(?<=[.!?])\s+', text)
+        
+        current_chunk = ""
+        for sentence in sentences:
+            if len(current_chunk) + len(sentence) + 1 > max_length and current_chunk:
+                chunks.append(current_chunk.strip())
+                current_chunk = sentence
+            else:
+                current_chunk += (" " if current_chunk else "") + sentence
+        
+        if current_chunk:
+            chunks.append(current_chunk.strip())
+        
+        return chunks if chunks else [text[:max_length]]
+
+    # Split text into chunks
+    chunks = chunk_text(text, MAX_CHARS)
+    
+    if len(chunks) == 1:
+        # Single chunk - process normally
+        return _fetch_voice_rss_chunk(chunks[0], voice)
+    
+    # Multiple chunks - fetch and combine
+    print(f"Processing {len(chunks)} chunks for audio generation...")
+    
+    audio_chunks = []
+    for i, chunk in enumerate(chunks):
+        print(f"  Fetching chunk {i+1}/{len(chunks)} ({len(chunk)} chars)...")
+        chunk_audio = _fetch_voice_rss_chunk(chunk, voice)
+        if chunk_audio is None:
+            print(f"  Failed to fetch chunk {i+1}")
+            return None
+        audio_chunks.append(chunk_audio)
+    
+    # Combine all audio chunks
+    combined = b''.join(audio_chunks)
+    print(f"Successfully combined {len(chunks)} chunks ({len(combined)} bytes)")
+    return combined
+
+
+# ========== USER DATA SYNC FUNCTIONS (JSON File Storage) ==========
+
+def get_user_sync_file(user_id: str) -> Path:
+    """Get the sync file path for a user."""
+    # Sanitize user_id for filename
+    safe_id = re.sub(r'[^a-zA-Z0-9_-]', '_', user_id)
+    return SYNC_DATA_DIR / f"{safe_id}.json"
+
+def load_user_sync_data(user_id: str) -> dict:
+    """Load synced data for a user from JSON file."""
+    sync_file = get_user_sync_file(user_id)
+    if sync_file.exists():
+        try:
+            with open(sync_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error loading sync data for {user_id}: {e}")
+    return {
+        "bookmarks": [],
+        "highlights": {},
+        "progress": {},
+        "font_size": None,
+        "theme": None,
+        "last_sync": None
+    }
+
+def save_user_sync_data(user_id: str, data: dict) -> bool:
+    """Save synced data for a user to JSON file."""
+    sync_file = get_user_sync_file(user_id)
+    try:
+        data["last_sync"] = dt.datetime.now().isoformat()
+        with open(sync_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2)
+        return True
+    except Exception as e:
+        print(f"Error saving sync data for {user_id}: {e}")
+        return False
+
+def merge_sync_data(local_data: dict, server_data: dict) -> dict:
+    """Merge local and server data, keeping most recent or combining."""
+    merged = {}
+    
+    # Merge bookmarks (combine and dedupe by reference)
+    local_bookmarks = local_data.get("bookmarks", [])
+    server_bookmarks = server_data.get("bookmarks", [])
+    bookmark_map = {}
+    for b in server_bookmarks + local_bookmarks:
+        ref = b.get("reference", "")
+        if ref not in bookmark_map or b.get("timestamp", "") > bookmark_map[ref].get("timestamp", ""):
+            bookmark_map[ref] = b
+    merged["bookmarks"] = list(bookmark_map.values())
+    
+    # Merge highlights (combine by chapter)
+    merged["highlights"] = {}
+    server_highlights = server_data.get("highlights", {})
+    local_highlights = local_data.get("highlights", {})
+    all_chapters = set(server_highlights.keys()) | set(local_highlights.keys())
+    for chapter in all_chapters:
+        server_verses = set(server_highlights.get(chapter, []))
+        local_verses = set(local_highlights.get(chapter, []))
+        merged["highlights"][chapter] = list(server_verses | local_verses)
+    
+    # Merge progress (keep most recent per chapter)
+    merged["progress"] = {}
+    server_progress = server_data.get("progress", {})
+    local_progress = local_data.get("progress", {})
+    all_progress = set(server_progress.keys()) | set(local_progress.keys())
+    for key in all_progress:
+        server_val = server_progress.get(key, {})
+        local_val = local_progress.get(key, {})
+        server_ts = server_val.get("timestamp", "")
+        local_ts = local_val.get("timestamp", "")
+        merged["progress"][key] = server_val if server_ts > local_ts else local_val
+    
+    # Use most recent font size
+    merged["font_size"] = local_data.get("font_size") or server_data.get("font_size")
+    
+    # Use most recent theme
+    merged["theme"] = local_data.get("theme") or server_data.get("theme")
+    
+    return merged
+
+
+# ========== ROUTES ==========
 
 @app.route("/api/download-audio", methods=["POST"])
 def download_audio():
     """Generate and download MP3 audio for given text."""
-    try:
-        data = request.get_json()
-        if not data or 'text' not in data:
-            return jsonify({"error": "Missing text parameter"}), 400
-        
-        text = data['text'].strip()
-        filename = data.get('filename', 'bible-audio.mp3')
-        
-        if not text:
-            return jsonify({"error": "Text cannot be empty"}), 400
-        
-        if not filename.endswith('.mp3'):
-            filename += '.mp3'
-        
-        audio_data = text_to_speech_voicerss(text)
-        
-        if audio_data is None:
-            return jsonify({"error": "Failed to generate audio. Please try again."}), 500
-        
-        return send_file(
-            io.BytesIO(audio_data),
-            mimetype="audio/mpeg",
-            as_attachment=True,
-            download_name=filename
-        )
-        
-    except Exception as e:
-        print(f"Download audio error: {e}")
-        return jsonify({"error": f"Server error: {str(e)}"}), 500
+    data = request.get_json()
+    if not data or 'text' not in data:
+        return jsonify({"error": "Missing text parameter"}), 400
+    
+    text = data['text'].strip()
+    filename = data.get('filename', 'bible-audio.mp3')
+    
+    if not filename.endswith('.mp3'):
+        filename += '.mp3'
+    
+    print(f"Generating audio for text length: {len(text)} characters")
+    audio_data = text_to_speech_voicerss(text)
+    
+    if audio_data is None:
+        return jsonify({"error": "Failed to generate audio. Voice RSS API may be unavailable."}), 500
+    
+    return send_file(
+        io.BytesIO(audio_data),
+        mimetype="audio/mpeg",
+        as_attachment=True,
+        download_name=filename
+    )
 
 
 @app.route("/api/play-audio", methods=["POST"])
 def play_audio():
     """Stream MP3 audio for playback."""
-    try:
-        data = request.get_json()
-        if not data or 'text' not in data:
-            return jsonify({"error": "Missing text parameter"}), 400
-        
-        text = data['text'].strip()
-        
-        if not text:
-            return jsonify({"error": "Text cannot be empty"}), 400
-        
-        audio_data = text_to_speech_voicerss(text)
-        
-        if audio_data is None:
-            return jsonify({"error": "Failed to generate audio."}), 500
-        
-        return send_file(
-            io.BytesIO(audio_data),
-            mimetype="audio/mpeg"
-        )
-        
-    except Exception as e:
-        print(f"Play audio error: {e}")
-        return jsonify({"error": f"Server error: {str(e)}"}), 500
+    data = request.get_json()
+    if not data or 'text' not in data:
+        return jsonify({"error": "Missing text parameter"}), 400
+    
+    text = data['text'].strip()
+    
+    audio_data = text_to_speech_voicerss(text)
+    
+    if audio_data is None:
+        return jsonify({"error": "Failed to generate audio"}), 500
+    
+    return send_file(
+        io.BytesIO(audio_data),
+        mimetype="audio/mpeg"
+    )
 
 
 @app.route("/")
 def index():
     daily_verse = get_daily_verse()
+    user = session.get('user')
     return render_template(
         "index.html",
         current_year=dt.datetime.now().year,
         daily_verse=daily_verse,
         books=BIBLE_BOOKS,
         versions=VERSION_LIST,
+        user=user
     )
 
 
@@ -368,13 +510,14 @@ def search():
                         })
             else:
                 search_results = []
-                print(f"API Error: {response.status_code}")
+                print(f"API Error: {response.status_code} - {response.text}")
         except Exception as e:
-            print(f"Search request failed: {e}")
+            print(f"Request failed: {e}")
             search_results = []       
         search_performed = True
 
     daily_verse = get_daily_verse()
+    user = session.get('user')
     return render_template(
         "index.html",
         current_year=dt.datetime.now().year,
@@ -384,6 +527,7 @@ def search():
         search_results=search_results,
         search_performed=search_performed,
         query=query,
+        user=user
     )
 
 
@@ -459,6 +603,7 @@ def contact():
     form_data = {'name': '', 'email': '', 'subject': '', 'message': ''}
     status_message = None
     status_type = 'info'
+    user = session.get('user')
 
     if request.method == 'POST':
         form_data['name']    = request.form.get('name', '').strip()
@@ -487,6 +632,7 @@ def contact():
         status_message=status_message,
         status_type=status_type,
         form_data=form_data,
+        user=user
     )
 
 
@@ -502,6 +648,7 @@ def books(book_slug):
     selected_version = request.form.get("version", "en-kjv")
     verses       = []
     chapter_text = ""
+    user = session.get('user')
 
     if selected_chapter:
         selected_chapter = int(selected_chapter)
@@ -519,7 +666,28 @@ def books(book_slug):
         chapter_text=chapter_text,
         verses=verses,
         versions=VERSION_LIST,
+        user=user
     )
+
+
+# Legacy route for backward compatibility
+@app.route("/books/<book_name>", methods=["GET", "POST"])
+def books_legacy(book_name):
+    """Legacy route - redirects to the new slug-based route."""
+    book = get_book_by_slug(book_name)
+    if book:
+        return redirect(url_for('books', book_slug=book['slug']), code=301)
+    
+    book = get_book_by_name(book_name)
+    if book:
+        return redirect(url_for('books', book_slug=book['slug']), code=301)
+    
+    clean_name = book_name.lower().replace('-', '').replace(' ', '')
+    for b in BIBLE_BOOKS:
+        if b['name'].lower().replace(' ', '') == clean_name:
+            return redirect(url_for('books', book_slug=b['slug']), code=301)
+    
+    return f"Book '{book_name}' not found", 404
 
 
 @app.route('/api/chapter/<book_name>/<int:chapter>')
@@ -702,6 +870,96 @@ def api_verse(book_name, chapter, verse):
         'text': target_verse['text'],
         'version': selected_version
     })
+
+
+# ========== GOOGLE OAUTH ROUTES ==========
+
+@app.route('/login/google')
+def google_login():
+    """Initiate Google OAuth login."""
+    redirect_uri = url_for('google_callback', _external=True)
+    return google.authorize_redirect(redirect_uri)
+
+
+@app.route('/login/google/callback')
+def google_callback():
+    """Handle Google OAuth callback."""
+    try:
+        token = google.authorize_access_token()
+        user_info = google.get('https://openidconnect.googleapis.com/v1/userinfo').json()
+        
+        # Store user info in session (no database!)
+        session['user'] = {
+            'id': user_info['sub'],  # Google's unique ID
+            'name': user_info['name'],
+            'email': user_info['email'],
+            'picture': user_info.get('picture', '')
+        }
+        
+        return redirect(url_for('index'))
+    except Exception as e:
+        print(f"Google OAuth error: {e}")
+        return redirect(url_for('index'))
+
+
+@app.route('/logout')
+def logout():
+    """Log out the current user."""
+    session.pop('user', None)
+    return redirect(url_for('index'))
+
+
+# ========== SYNC API ROUTES ==========
+
+@app.route('/api/sync', methods=['POST'])
+def sync_data():
+    """Save user data to JSON file storage."""
+    if 'user' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user_id = session['user']['id']
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    
+    # Load existing server data
+    server_data = load_user_sync_data(user_id)
+    
+    # Merge with new data
+    merged_data = merge_sync_data(data, server_data)
+    
+    # Save merged data
+    if save_user_sync_data(user_id, merged_data):
+        return jsonify({'success': True, 'message': 'Data synced successfully'})
+    else:
+        return jsonify({'error': 'Failed to save data'}), 500
+
+
+@app.route('/api/sync', methods=['GET'])
+def get_sync_data():
+    """Retrieve synced data for current user."""
+    if 'user' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user_id = session['user']['id']
+    data = load_user_sync_data(user_id)
+    
+    return jsonify(data)
+
+
+@app.route('/api/user', methods=['GET'])
+def get_user():
+    """Get current user info."""
+    user = session.get('user')
+    if user:
+        return jsonify({
+            'authenticated': True,
+            'name': user['name'],
+            'email': user['email'],
+            'picture': user.get('picture', '')
+        })
+    return jsonify({'authenticated': False})
 
 
 @app.route("/health")
