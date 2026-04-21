@@ -16,7 +16,7 @@ from authlib.integrations.flask_client import OAuth
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
+app.secret_key = os.environ.get("APP_SECRET_KEY")
 
 # Google OAuth setup
 oauth = OAuth(app)
