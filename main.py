@@ -49,23 +49,35 @@ BIBLE_API_BASE = "https://bible-api.com"
 SYNC_DATA_DIR = Path("sync_data")
 SYNC_DATA_DIR.mkdir(exist_ok=True)
 
+# Expanded Bible API version mapping
 BIBLEAPI_VERSION_MAP = {
-    "en-kjv":  "kjv",
-    "en-web":  "web",
-    "en-oeb":  "oeb-us",
+    # English versions
+    "en-kjv":     "kjv",
+    "en-web":     "web",
+    "en-asv":     "asv",
+    "en-bbe":     "bbe",
+    "en-darby":   "darby",
+    "en-dra":     "dra",
+    "en-ylt":     "ylt",
+    "en-oeb-us":  "oeb-us",
+    "en-oeb-cw":  "oeb-cw",
+    "en-webbe":   "webbe",
+    # Other languages
     "en-clementine": "clementine",
     "pt-almeida":    "almeida",
     "ro-rccv":       "rccv",
+    "zh-cuv":        "cuv",
+    "cs-bkr":        "bkr",
+    "ta-ov":         "ta-ov",
+    "ml-svp":        "ml-svp",
 }
 
 def _bibleapi_translation(version_id: str) -> str:
-    """Return bible-api.com translation slug for a given version ID, defaulting to KJV."""
     return BIBLEAPI_VERSION_MAP.get(version_id, "kjv")
 
 _daily_verse_cache = {"date": None, "verse": None}
 
 def get_daily_verse() -> dict:
-    """Return a daily verse that stays constant for the whole day."""
     today_str = dt.date.today().isoformat()        
 
     if _daily_verse_cache["date"] == today_str and _daily_verse_cache["verse"]:
@@ -82,8 +94,8 @@ def get_daily_verse() -> dict:
             reference = data.get("reference", "").strip()
             if text and reference:
                 verse = {"text": text, "reference": reference}
-    except Exception as e:
-        print(f"Daily verse fetch failed: {e}")
+    except Exception:
+        pass
 
     if not verse:
         fallback_list = [
@@ -105,7 +117,6 @@ def get_daily_verse() -> dict:
     _daily_verse_cache["verse"] = verse
     return verse
 
-# Updated BIBLE_BOOKS with proper display names and slugs
 BIBLE_BOOKS = [
     {"name": "Genesis", "chapters": 50, "slug": "genesis"},
     {"name": "Exodus", "chapters": 40, "slug": "exodus"},
@@ -176,7 +187,6 @@ BIBLE_BOOKS = [
 ]
 
 def get_book_by_slug(slug: str):
-    """Find a book by its URL slug."""
     slug_lower = slug.lower()
     for book in BIBLE_BOOKS:
         if book['slug'] == slug_lower:
@@ -184,7 +194,6 @@ def get_book_by_slug(slug: str):
     return None
 
 def get_book_by_name(name: str):
-    """Find a book by its display name (case-insensitive)."""
     name_lower = name.lower()
     for book in BIBLE_BOOKS:
         if book['name'].lower() == name_lower:
@@ -192,23 +201,34 @@ def get_book_by_name(name: str):
     return None
 
 VERSION_LIST = [
+    # Popular Modern English
     {"id": "en-kjv",        "version": "King James Version (KJV)"},
     {"id": "en-web",        "version": "World English Bible (WEB)"},
-    {"id": "en-oeb",        "version": "Open English Bible (OEB-US)"},
+    {"id": "en-asv",        "version": "American Standard Version (ASV)"},
+    {"id": "en-bbe",        "version": "Bible in Basic English (BBE)"},
+    {"id": "en-darby",      "version": "Darby Bible"},
+    {"id": "en-dra",        "version": "Douay-Rheims (DRA)"},
+    {"id": "en-ylt",        "version": "Young's Literal Translation (YLT)"},
+    {"id": "en-oeb-us",     "version": "Open English Bible (OEB-US)"},
+    {"id": "en-oeb-cw",     "version": "Open English Bible (OEB-UK)"},
+    {"id": "en-webbe",      "version": "World English Bible (WEB-UK)"},
+    # Other Languages
     {"id": "en-clementine", "version": "Clementine Latin Vulgate"},
-    {"id": "pt-almeida",    "version": "João Ferreira de Almeida (Portuguese)"},
-    {"id": "ro-rccv",       "version": "Romanian Cornilescu Version (RCCV)"},
+    {"id": "pt-almeida",    "version": "João Ferreira de Almeida (Português)"},
+    {"id": "ro-rccv",       "version": "Cornilescu (Română)"},
+    {"id": "zh-cuv",        "version": "Chinese Union Version (中文)"},
+    {"id": "cs-bkr",        "version": "Bible Kralická (Čeština)"},
+    {"id": "ta-ov",         "version": "Tamil Old Version (தமிழ்)"},
+    {"id": "ml-svp",        "version": "Malayalam SVP (മലയാളം)"},
 ]
 
 def clean_text(text: str) -> str:
-    """Clean verse text from API using regex."""
     if not text:
         return text
     text = text.replace('…', '')
     return text
 
 def dedupe_verses(raw_verses: list) -> list:
-    """Remove duplicate verse entries while preserving order."""
     seen = set()
     out = []
     for v in raw_verses:
@@ -227,7 +247,6 @@ def fetch_chapter_bibleapi(book_name: str, chapter: int, version_id: str = "en-k
     try:
         resp = requests.get(url, timeout=10)
         if resp.status_code != 200:
-            print(f"bible-api.com error {resp.status_code} for {url}")
             return [], ""
 
         data = resp.json()
@@ -246,14 +265,13 @@ def fetch_chapter_bibleapi(book_name: str, chapter: int, version_id: str = "en-k
         chapter_text = " ".join(v["text"] for v in verses)
         return verses, chapter_text
 
-    except Exception as e:
-        print(f"fetch_chapter_bibleapi failed: {e}")
+    except Exception:
         return [], ""
 
 
 def _fetch_voice_rss_chunk(text: str, voice: str = "en-us") -> bytes:
-    """Fetch a single chunk from Voice RSS API."""
-    params = {
+    """Fetch a single chunk from Voice RSS API using POST request."""
+    data = {
         "key": VOICE_RSS_API_KEY,
         "src": text,
         "hl": voice,
@@ -265,32 +283,29 @@ def _fetch_voice_rss_chunk(text: str, voice: str = "en-us") -> bytes:
     }
     
     try:
-        response = requests.get(VOICE_RSS_URL, params=params, timeout=30)
+        # Voice RSS requires POST with form data
+        response = requests.post(VOICE_RSS_URL, data=data, timeout=30)
+        
         if response.status_code == 200:
             content_type = response.headers.get('Content-Type', '')
             if 'audio' in content_type or response.content[:3] in [b'ID3', b'\xff\xfb']:
                 return response.content
             else:
+                # Voice RSS returns error messages as plain text
                 error_msg = response.text[:200]
                 print(f"Voice RSS API error: {error_msg}")
-                return None
         else:
             print(f"Voice RSS API returned status {response.status_code}")
-            return None
+        return None
     except Exception as e:
         print(f"Voice RSS request failed: {e}")
         return None
 
 
 def text_to_speech_voicerss(text: str, voice: str = "en-us") -> bytes:
-    """
-    Convert text to speech using Voice RSS API with chunking for long texts.
-    Returns MP3 audio data as bytes.
-    """
-    MAX_CHARS = 4500  # Leave room for API overhead
+    MAX_CHARS = 4500
     
     def chunk_text(text: str, max_length: int = 4500) -> list:
-        """Split text into chunks at sentence boundaries."""
         chunks = []
         sentences = re.split(r'(?<=[.!?])\s+', text)
         
@@ -307,48 +322,33 @@ def text_to_speech_voicerss(text: str, voice: str = "en-us") -> bytes:
         
         return chunks if chunks else [text[:max_length]]
 
-    # Split text into chunks
     chunks = chunk_text(text, MAX_CHARS)
     
     if len(chunks) == 1:
-        # Single chunk - process normally
         return _fetch_voice_rss_chunk(chunks[0], voice)
-    
-    # Multiple chunks - fetch and combine
-    print(f"Processing {len(chunks)} chunks for audio generation...")
     
     audio_chunks = []
     for i, chunk in enumerate(chunks):
-        print(f"  Fetching chunk {i+1}/{len(chunks)} ({len(chunk)} chars)...")
         chunk_audio = _fetch_voice_rss_chunk(chunk, voice)
         if chunk_audio is None:
-            print(f"  Failed to fetch chunk {i+1}")
             return None
         audio_chunks.append(chunk_audio)
     
-    # Combine all audio chunks
-    combined = b''.join(audio_chunks)
-    print(f"Successfully combined {len(chunks)} chunks ({len(combined)} bytes)")
-    return combined
+    return b''.join(audio_chunks)
 
-
-# ========== USER DATA SYNC FUNCTIONS (JSON File Storage) ==========
 
 def get_user_sync_file(user_id: str) -> Path:
-    """Get the sync file path for a user."""
-    # Sanitize user_id for filename
     safe_id = re.sub(r'[^a-zA-Z0-9_-]', '_', user_id)
     return SYNC_DATA_DIR / f"{safe_id}.json"
 
 def load_user_sync_data(user_id: str) -> dict:
-    """Load synced data for a user from JSON file."""
     sync_file = get_user_sync_file(user_id)
     if sync_file.exists():
         try:
             with open(sync_file, 'r', encoding='utf-8') as f:
                 return json.load(f)
-        except Exception as e:
-            print(f"Error loading sync data for {user_id}: {e}")
+        except Exception:
+            pass
     return {
         "bookmarks": [],
         "highlights": {},
@@ -359,22 +359,18 @@ def load_user_sync_data(user_id: str) -> dict:
     }
 
 def save_user_sync_data(user_id: str, data: dict) -> bool:
-    """Save synced data for a user to JSON file."""
     sync_file = get_user_sync_file(user_id)
     try:
         data["last_sync"] = dt.datetime.now().isoformat()
         with open(sync_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2)
         return True
-    except Exception as e:
-        print(f"Error saving sync data for {user_id}: {e}")
+    except Exception:
         return False
 
 def merge_sync_data(local_data: dict, server_data: dict) -> dict:
-    """Merge local and server data, keeping most recent or combining."""
     merged = {}
     
-    # Merge bookmarks (combine and dedupe by reference)
     local_bookmarks = local_data.get("bookmarks", [])
     server_bookmarks = server_data.get("bookmarks", [])
     bookmark_map = {}
@@ -384,7 +380,6 @@ def merge_sync_data(local_data: dict, server_data: dict) -> dict:
             bookmark_map[ref] = b
     merged["bookmarks"] = list(bookmark_map.values())
     
-    # Merge highlights (combine by chapter)
     merged["highlights"] = {}
     server_highlights = server_data.get("highlights", {})
     local_highlights = local_data.get("highlights", {})
@@ -394,7 +389,6 @@ def merge_sync_data(local_data: dict, server_data: dict) -> dict:
         local_verses = set(local_highlights.get(chapter, []))
         merged["highlights"][chapter] = list(server_verses | local_verses)
     
-    # Merge progress (keep most recent per chapter)
     merged["progress"] = {}
     server_progress = server_data.get("progress", {})
     local_progress = local_data.get("progress", {})
@@ -406,10 +400,7 @@ def merge_sync_data(local_data: dict, server_data: dict) -> dict:
         local_ts = local_val.get("timestamp", "")
         merged["progress"][key] = server_val if server_ts > local_ts else local_val
     
-    # Use most recent font size
     merged["font_size"] = local_data.get("font_size") or server_data.get("font_size")
-    
-    # Use most recent theme
     merged["theme"] = local_data.get("theme") or server_data.get("theme")
     
     return merged
@@ -419,7 +410,6 @@ def merge_sync_data(local_data: dict, server_data: dict) -> dict:
 
 @app.route("/api/download-audio", methods=["POST"])
 def download_audio():
-    """Generate and download MP3 audio for given text."""
     data = request.get_json()
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
@@ -430,11 +420,10 @@ def download_audio():
     if not filename.endswith('.mp3'):
         filename += '.mp3'
     
-    print(f"Generating audio for text length: {len(text)} characters")
     audio_data = text_to_speech_voicerss(text)
     
     if audio_data is None:
-        return jsonify({"error": "Failed to generate audio. Voice RSS API may be unavailable."}), 500
+        return jsonify({"error": "Failed to generate audio"}), 500
     
     return send_file(
         io.BytesIO(audio_data),
@@ -446,22 +435,17 @@ def download_audio():
 
 @app.route("/api/play-audio", methods=["POST"])
 def play_audio():
-    """Stream MP3 audio for playback."""
     data = request.get_json()
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
     
     text = data['text'].strip()
-    
     audio_data = text_to_speech_voicerss(text)
     
     if audio_data is None:
         return jsonify({"error": "Failed to generate audio"}), 500
     
-    return send_file(
-        io.BytesIO(audio_data),
-        mimetype="audio/mpeg"
-    )
+    return send_file(io.BytesIO(audio_data), mimetype="audio/mpeg")
 
 
 @app.route("/")
@@ -510,9 +494,7 @@ def search():
                         })
             else:
                 search_results = []
-                print(f"API Error: {response.status_code} - {response.text}")
-        except Exception as e:
-            print(f"Request failed: {e}")
+        except Exception:
             search_results = []       
         search_performed = True
 
@@ -532,7 +514,6 @@ def search():
 
 
 def _send_contact_email_resend(sender_name: str, sender_email: str, subject: str, message: str):
-    """Send contact form email using Resend API."""
     if not RESEND_API_KEY:
         return False, 'Resend API key is not configured.'
     
@@ -588,14 +569,12 @@ Sent from MyPersonal Bible App Contact Form
         else:
             error_data = response.json() if response.text else {}
             error_msg = error_data.get('message', f'API error: {response.status_code}')
-            print(f"Resend API error: {error_msg}")
             return False, f'Failed to send email: {error_msg}'
             
     except requests.exceptions.Timeout:
         return False, 'Email service timeout. Please try again later.'
-    except Exception as e:
-        print(f"Resend request failed: {e}")
-        return False, f'Failed to send email: {str(e)}'
+    except Exception:
+        return False, 'Failed to send email. Please try again later.'
 
 
 @app.route('/contact', methods=['GET', 'POST'])
@@ -638,7 +617,6 @@ def contact():
 
 @app.route("/books/<book_slug>", methods=["GET", "POST"])
 def books(book_slug):
-    """Display a book's chapters using clean URL slug."""
     book = get_book_by_slug(book_slug)
     
     if not book:
@@ -670,10 +648,8 @@ def books(book_slug):
     )
 
 
-# Legacy route for backward compatibility
 @app.route("/books/<book_name>", methods=["GET", "POST"])
 def books_legacy(book_name):
-    """Legacy route - redirects to the new slug-based route."""
     book = get_book_by_slug(book_name)
     if book:
         return redirect(url_for('books', book_slug=book['slug']), code=301)
@@ -835,8 +811,8 @@ def api_search():
         else:
             return jsonify({'error': f'Search API error: {response.status_code}'}), response.status_code
             
-    except Exception as e:
-        return jsonify({'error': f'Search request failed: {str(e)}'}), 500
+    except Exception:
+        return jsonify({'error': 'Search request failed'}), 500
 
 
 @app.route('/api/verse/<book_name>/<int:chapter>/<int:verse>')
@@ -872,48 +848,38 @@ def api_verse(book_name, chapter, verse):
     })
 
 
-# ========== GOOGLE OAUTH ROUTES ==========
-
 @app.route('/login/google')
 def google_login():
-    """Initiate Google OAuth login."""
     redirect_uri = url_for('google_callback', _external=True)
     return google.authorize_redirect(redirect_uri)
 
 
 @app.route('/login/google/callback')
 def google_callback():
-    """Handle Google OAuth callback."""
     try:
         token = google.authorize_access_token()
         user_info = google.get('https://openidconnect.googleapis.com/v1/userinfo').json()
         
-        # Store user info in session (no database!)
         session['user'] = {
-            'id': user_info['sub'],  # Google's unique ID
+            'id': user_info['sub'],
             'name': user_info['name'],
             'email': user_info['email'],
             'picture': user_info.get('picture', '')
         }
         
         return redirect(url_for('index'))
-    except Exception as e:
-        print(f"Google OAuth error: {e}")
+    except Exception:
         return redirect(url_for('index'))
 
 
 @app.route('/logout')
 def logout():
-    """Log out the current user."""
     session.pop('user', None)
     return redirect(url_for('index'))
 
 
-# ========== SYNC API ROUTES ==========
-
 @app.route('/api/sync', methods=['POST'])
 def sync_data():
-    """Save user data to JSON file storage."""
     if 'user' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
     
@@ -923,13 +889,9 @@ def sync_data():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
     
-    # Load existing server data
     server_data = load_user_sync_data(user_id)
-    
-    # Merge with new data
     merged_data = merge_sync_data(data, server_data)
     
-    # Save merged data
     if save_user_sync_data(user_id, merged_data):
         return jsonify({'success': True, 'message': 'Data synced successfully'})
     else:
@@ -938,7 +900,6 @@ def sync_data():
 
 @app.route('/api/sync', methods=['GET'])
 def get_sync_data():
-    """Retrieve synced data for current user."""
     if 'user' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
     
@@ -950,7 +911,6 @@ def get_sync_data():
 
 @app.route('/api/user', methods=['GET'])
 def get_user():
-    """Get current user info."""
     user = session.get('user')
     if user:
         return jsonify({
