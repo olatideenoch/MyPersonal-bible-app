@@ -1,22 +1,27 @@
 {
     "name": "MyPersonal Bible App",
-    "short_name": "MyBible",
+    "short_name": "MyPersonalBible",
     "description": "Your daily companion for reading, listening, and meditating on Scripture.",
     "start_url": "/",
+    "scope": "/",
     "display": "standalone",
-    "background_color": "#f5f0e6",
-    "theme_color": "#8d9b6a",
+    "background_color": "#F5F0E6",
+    "theme_color": "#8D9B6A",
     "orientation": "any",
+    "lang": "en",
+    "dir": "ltr",
     "icons": [
         {
-            "src": "/static/img/app-icon.jpg",
+            "src": "https://mypersonal-bible-app.onrender.com/static/img/app-icon.jpg",
             "sizes": "192x192",
-            "type": "image/jpeg"
+            "type": "image/jpeg",
+            "purpose": "any maskable"
         },
         {
-            "src": "/static/img/app-icon.jpg",
+            "src": "https://mypersonal-bible-app.onrender.com/static/img/app-icon.jpg",
             "sizes": "512x512",
-            "type": "image/jpeg"
+            "type": "image/jpeg",
+            "purpose": "any maskable"
         }
     ]
 }
