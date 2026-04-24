@@ -375,15 +375,25 @@
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='img/app-icon.jpg') }}" alt="MyPersonal Bible" width="36" height="36" class="me-2 rounded-2" style="object-fit: cover;">
+                <img src="{{ url_for('static', filename='img/app-icon.jpg') }}" 
+                    alt="MyPersonal Bible" 
+                    width="36" 
+                    height="36" 
+                    class="me-2 rounded-2"
+                    style="object-fit: cover;">
                 <span>MyPersonal Bible App</span>
             </a>
             
-            <div class="d-flex align-items-center gap-2">
+            <!-- Mobile: Action icons OUTSIDE hamburger -->
+            <div class="d-lg-none d-flex align-items-center gap-2 ms-auto">
                 {% if user %}
                 <div class="dropdown">
                     <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        {% if user.picture %}<img src="{{ user.picture }}" alt="{{ user.name }}">{% else %}<i class="fas fa-user-circle"></i>{% endif %}
+                        {% if user.picture %}
+                        <img src="{{ user.picture }}" alt="{{ user.name }}">
+                        {% else %}
+                        <i class="fas fa-user-circle"></i>
+                        {% endif %}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
@@ -394,21 +404,71 @@
                     </ul>
                 </div>
                 {% else %}
-                <a href="{{ url_for('google_login') }}" class="google-signin-btn"><i class="fab fa-google"></i><span style="font-size: 0.8rem;">Sign In</span></a>
+                <a href="{{ url_for('google_login') }}" class="google-signin-btn">
+                    <i class="fab fa-google"></i>
+                    <span style="font-size: 0.8rem;">Sign In</span>
+                </a>
                 {% endif %}
                 
-                <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode"><i class="fas fa-moon" id="themeIcon"></i></button>
-                <button class="theme-toggle-btn" id="helpButton" title="Show app features & help"><i class="fas fa-question"></i></button>
-                <button class="navbar-toggler ms-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+                <button class="theme-toggle-btn" id="themeToggleMobile" title="Toggle dark mode">
+                    <i class="fas fa-moon" id="themeIconMobile"></i>
+                </button>
+                
+                <button class="theme-toggle-btn" id="helpButtonMobile" title="Show app features & help">
+                    <i class="fas fa-question"></i>
+                </button>
             </div>
             
+            <!-- Hamburger button (mobile only) - ALWAYS LAST -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Everything else pushed to the right on desktop -->
             <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Nav links FIRST -->
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="#daily">Daily Verse</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#search">Search</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#books">Books</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#daily">Daily Verse</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#search">Search</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#books">Books</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
                 </ul>
+                
+                <!-- Desktop: Action icons AFTER nav links -->
+                <div class="d-none d-lg-flex align-items-center gap-2 ms-3">
+                    {% if user %}
+                    <div class="dropdown">
+                        <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            {% if user.picture %}
+                            <img src="{{ user.picture }}" alt="{{ user.name }}">
+                            {% else %}
+                            <i class="fas fa-user-circle"></i>
+                            {% endif %}
+                            <span class="ms-1">{{ user.name.split(' ')[0] }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <a href="{{ url_for('google_login') }}" class="google-signin-btn">
+                        <i class="fab fa-google"></i>
+                        <span style="font-size: 0.8rem;">Sign In</span>
+                    </a>
+                    {% endif %}
+                    
+                    <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                    </button>
+                    
+                    <button class="theme-toggle-btn" id="helpButton" title="Show app features & help">
+                        <i class="fas fa-question"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
