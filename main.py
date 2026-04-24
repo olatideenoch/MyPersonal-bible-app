@@ -9,30 +9,24 @@ import io
 import secrets
 from typing import List
 from pathlib import Path
+from requests_oauthlib import OAuth2Session
 
 from dotenv import load_dotenv
-from authlib.integrations.flask_client import OAuth
+
+# Allow OAuth over HTTP for local development
+# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("APP_SECRET_KEY")
 
-# Google OAuth setup
-oauth = OAuth(app)
-google = oauth.register(
-    name='google',
-    client_id=os.environ.get("GOOGLE_CLIENT_ID"),
-    client_secret=os.environ.get("GOOGLE_CLIENT_SECRET"),
-    access_token_url='https://accounts.google.com/o/oauth2/token',
-    authorize_url='https://accounts.google.com/o/oauth2/auth',
-    userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',
-    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
-    client_kwargs={
-        'scope': 'openid email profile',
-        'prompt': 'select_account'
-    }
-)
+# Google OAuth configuration
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
+GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
 
 # Resend API configuration
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
@@ -283,22 +277,14 @@ def _fetch_voice_rss_chunk(text: str, voice: str = "en-us") -> bytes:
     }
     
     try:
-        # Voice RSS requires POST with form data
         response = requests.post(VOICE_RSS_URL, data=data, timeout=30)
         
         if response.status_code == 200:
             content_type = response.headers.get('Content-Type', '')
             if 'audio' in content_type or response.content[:3] in [b'ID3', b'\xff\xfb']:
                 return response.content
-            else:
-                # Voice RSS returns error messages as plain text
-                error_msg = response.text[:200]
-                print(f"Voice RSS API error: {error_msg}")
-        else:
-            print(f"Voice RSS API returned status {response.status_code}")
         return None
-    except Exception as e:
-        print(f"Voice RSS request failed: {e}")
+    except Exception:
         return None
 
 
@@ -328,7 +314,7 @@ def text_to_speech_voicerss(text: str, voice: str = "en-us") -> bytes:
         return _fetch_voice_rss_chunk(chunks[0], voice)
     
     audio_chunks = []
-    for i, chunk in enumerate(chunks):
+    for chunk in chunks:
         chunk_audio = _fetch_voice_rss_chunk(chunk, voice)
         if chunk_audio is None:
             return None
@@ -848,35 +834,72 @@ def api_verse(book_name, chapter, verse):
     })
 
 
+# ========== GOOGLE OAUTH ROUTES ==========
+
 @app.route('/login/google')
 def google_login():
-    redirect_uri = url_for('google_callback', _external=True)
-    return google.authorize_redirect(redirect_uri)
+    """Initiate Google OAuth login using requests-oauthlib."""
+    google = OAuth2Session(
+        GOOGLE_CLIENT_ID,
+        redirect_uri=url_for('google_callback', _external=True),
+        scope=['openid', 'email', 'profile']
+    )
+    
+    auth_url, state = google.authorization_url(
+        GOOGLE_AUTH_URL,
+        access_type='offline',
+        prompt='select_account'
+    )
+    
+    session['oauth_state'] = state
+    return redirect(auth_url)
 
 
 @app.route('/login/google/callback')
 def google_callback():
+    """Handle Google OAuth callback using requests-oauthlib."""
     try:
-        token = google.authorize_access_token()
-        user_info = google.get('https://openidconnect.googleapis.com/v1/userinfo').json()
+        google = OAuth2Session(
+            GOOGLE_CLIENT_ID,
+            state=session.get('oauth_state'),
+            redirect_uri=url_for('google_callback', _external=True)
+        )
+        
+        token = google.fetch_token(
+            GOOGLE_TOKEN_URL,
+            client_secret=GOOGLE_CLIENT_SECRET,
+            authorization_response=request.url
+        )
+        
+        session.pop('oauth_state', None)
+        
+        google = OAuth2Session(GOOGLE_CLIENT_ID, token=token)
+        user_info = google.get(GOOGLE_USERINFO_URL).json()
         
         session['user'] = {
             'id': user_info['sub'],
-            'name': user_info['name'],
+            'name': user_info.get('name', user_info.get('email')),
             'email': user_info['email'],
             'picture': user_info.get('picture', '')
         }
         
+        print(f"✅ LOGIN SUCCESS: {user_info.get('email')}")
         return redirect(url_for('index'))
-    except Exception:
+        
+    except Exception as e:
+        print(f"❌ LOGIN FAILED: {e}")
+        session.pop('oauth_state', None)
         return redirect(url_for('index'))
 
 
 @app.route('/logout')
 def logout():
+    """Log out the current user."""
     session.pop('user', None)
     return redirect(url_for('index'))
 
+
+# ========== SYNC API ROUTES ==========
 
 @app.route('/api/sync', methods=['POST'])
 def sync_data():
