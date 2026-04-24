@@ -14,7 +14,7 @@ from requests_oauthlib import OAuth2Session
 from dotenv import load_dotenv
 
 # Allow OAuth over HTTP for local development
-# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 load_dotenv()
 
@@ -943,6 +943,11 @@ def get_user():
             'picture': user.get('picture', '')
         })
     return jsonify({'authenticated': False})
+
+@app.route('/install')
+def install_guide():
+    user = session.get('user')
+    return render_template('install.html', user=user, current_year=dt.datetime.now().year)
 
 
 @app.route("/health")

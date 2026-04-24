@@ -1,0 +1,22 @@
+{
+    "name": "MyPersonal Bible App",
+    "short_name": "MyBible",
+    "description": "Your daily companion for reading, listening, and meditating on Scripture.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f5f0e6",
+    "theme_color": "#8d9b6a",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "/static/img/app-icon.jpg",
+            "sizes": "192x192",
+            "type": "image/jpeg"
+        },
+        {
+            "src": "/static/img/app-icon.jpg",
+            "sizes": "512x512",
+            "type": "image/jpeg"
+        }
+    ]
+}

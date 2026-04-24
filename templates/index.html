@@ -7,6 +7,8 @@
     <!-- Favicon & App Icons -->
     <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     
     <!-- PWA / Mobile -->
     <meta name="theme-color" content="#8d9b6a">
@@ -18,6 +20,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&display=swap" rel="stylesheet">
+    
 
     <style>
         /* Light mode (default) variables */
@@ -960,6 +963,29 @@
         </div>
     </div>
     </section>
+
+    <!-- Mobile App Download Banner -->
+    <div id="android-banner" style="display:none; background: var(--accent-primary); color: white; padding: 15px; border-radius: 10px; margin: 20px 0;">
+        <div class="d-flex align-items-center justify-content-between flex-wrap">
+            <div class="d-flex align-items-center gap-3">
+                <i class="fab fa-android fa-3x"></i>
+                <div>
+                    <h5 class="mb-1">Get the Android App</h5>
+                    <p class="mb-0 small opacity-75">Install on your phone for a better experience</p>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-2 mt-md-0">
+                <a href="{{ url_for('static', filename='app/MyPersonalBible.apk') }}" 
+                class="btn btn-light" download>
+                    <i class="fas fa-download me-2"></i>Download APK
+                </a>
+                <a href="{{ url_for('install_guide') }}" class="btn btn-outline-light">
+                    <i class="fas fa-question-circle me-2"></i>How to Install
+                </a>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <div class="container text-center">
             <p class="mt-3">&copy; {{ current_year }} MyPersonal Bible App • Made with reverence for the Holy Scriptures</p>
@@ -969,6 +995,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Show banner only on Android devices
+        if (/Android/i.test(navigator.userAgent)) {
+            document.getElementById('android-banner').style.display = 'block';
+        }
         /* ── Template data injected by Flask ─────────────────────────── */
         const BIBLE_BOOKS    = {{ books|tojson|safe }};
         const BIBLE_VERSIONS = {{ versions|tojson|safe }};
