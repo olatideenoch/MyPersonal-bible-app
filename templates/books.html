@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Prevent theme flash on page load - MUST be first -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
@@ -86,6 +98,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 0.95rem;
+            text-decoration: none;
         }
         
         .google-signin-btn:hover {
@@ -134,6 +147,11 @@
             z-index: 2000;
             animation: slideUp 0.3s ease;
         }
+        
+        @keyframes slideUp {
+            from { bottom: -50px; opacity: 0; }
+            to { bottom: 20px; opacity: 1; }
+        }
 
         /* App Icon Styling */
         .navbar-brand img {
@@ -148,6 +166,13 @@
 
         [data-theme="dark"] .navbar-brand img {
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Navbar brand font size for mobile */
+        @media (max-width: 480px) {
+            .navbar-brand {
+                font-size: 1.2rem !important;
+            }
         }
         
         /* Smooth transitions */
@@ -201,7 +226,7 @@
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
         }
 
-        /* Mobile menu specific styling */
+        /* Mobile menu - hamburger drops full width */
         @media (max-width: 991px) {
             .navbar-collapse {
                 background: var(--navbar-bg);
@@ -211,6 +236,7 @@
                 box-shadow: var(--card-shadow);
                 border: 1px solid var(--border-color);
                 border-top: none;
+                width: 100%;
             }
             
             .navbar-nav .nav-item {
@@ -226,6 +252,7 @@
                 font-size: 1.1rem;
                 display: flex;
                 align-items: center;
+                width: 100%;
             }
             
             .navbar-nav .nav-link i {
@@ -236,6 +263,110 @@
             .navbar-nav .nav-link:hover {
                 background: var(--bg-tertiary);
                 border-radius: 8px;
+            }
+        }
+
+        /* Mobile navbar - keep everything on one line */
+        @media (max-width: 991px) {
+            .navbar .container {
+                flex-wrap: nowrap;
+            }
+            
+            .navbar-brand {
+                flex: 1;
+                margin-right: 4px;
+                font-size: 0.85rem !important;
+            }
+            
+            .navbar-brand img {
+                width: 28px !important;
+                height: 28px !important;
+            }
+            
+            .navbar-brand span {
+                font-size: 0.75rem !important;
+            }
+            
+            .user-profile-btn {
+                padding: 3px 6px;
+            }
+            
+            .user-profile-btn img {
+                width: 24px;
+                height: 24px;
+            }
+            
+            .google-signin-btn {
+                padding: 2px 5px;
+                font-size: 0.65rem;
+                line-height: 1.1;
+                text-align: center;
+                max-width: 42px;
+                flex-direction: column;
+                gap: 1px;
+                border-radius: 8px;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            .google-signin-btn i {
+                font-size: 0.8rem;
+            }
+            
+            .google-signin-btn span {
+                font-size: 0.55rem !important;
+                line-height: 1;
+            }
+            
+            .theme-toggle-btn {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .theme-toggle-btn i {
+                font-size: 0.85rem;
+            }
+            
+            .navbar-toggler {
+                padding: 4px 8px;
+            }
+            
+            .navbar-toggler-icon {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .gap-2 {
+                gap: 3px !important;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .navbar-brand span {
+                font-size: 0.65rem !important;
+            }
+            
+            .navbar-brand img {
+                width: 24px !important;
+                height: 24px !important;
+            }
+            
+            .google-signin-btn {
+                padding: 2px 4px;
+                max-width: 38px;
+            }
+            
+            .google-signin-btn i {
+                font-size: 0.7rem;
+            }
+            
+            .google-signin-btn span {
+                font-size: 0.5rem !important;
+            }
+            
+            .theme-toggle-btn {
+                width: 28px;
+                height: 28px;
             }
         }
 
@@ -370,96 +501,31 @@
 
         /* Mobile optimizations for breadcrumb */
         @media (max-width: 768px) {
-            .breadcrumb-wrapper {
-                margin-top: 15px;
-                padding: 0 5px;
-            }
-            
-            .breadcrumb-nav {
-                padding: 8px 12px;
-                border-radius: 30px;
-                gap: 0;
-            }
-            
-            .breadcrumb-item {
-                font-size: 0.85rem;
-            }
-            
-            .breadcrumb-item a {
-                padding: 3px 4px;
-            }
-            
-            .breadcrumb-item i {
-                font-size: 0.75rem;
-            }
-            
-            .breadcrumb-separator {
-                margin: 0 2px;
-                font-size: 0.6rem;
-            }
-            
-            .breadcrumb-book-selector {
-                margin-left: 0;
-                padding-left: 0;
-                border-left: none;
-                margin-top: 5px;
-                width: 100%;
-            }
-            
-            .breadcrumb-book-selector select {
-                width: 100%;
-                min-width: unset;
-                padding: 6px 28px 6px 12px;
-                font-size: 0.85rem;
-                text-align: center;
-                background-position: right 10px center;
-            }
+            .breadcrumb-wrapper { margin-top: 15px; padding: 0 5px; }
+            .breadcrumb-nav { padding: 8px 12px; border-radius: 30px; gap: 0; }
+            .breadcrumb-item { font-size: 0.85rem; }
+            .breadcrumb-item a { padding: 3px 4px; }
+            .breadcrumb-item i { font-size: 0.75rem; }
+            .breadcrumb-separator { margin: 0 2px; font-size: 0.6rem; }
+            .breadcrumb-book-selector { margin-left: 0; padding-left: 0; border-left: none; margin-top: 5px; width: 100%; }
+            .breadcrumb-book-selector select { width: 100%; min-width: unset; padding: 6px 28px 6px 12px; font-size: 0.85rem; text-align: center; background-position: right 10px center; }
         }
 
         @media (max-width: 480px) {
-            .breadcrumb-nav {
-                padding: 6px 10px;
-                border-radius: 25px;
-            }
-            
-            .breadcrumb-item {
-                font-size: 0.8rem;
-            }
-            
-            .breadcrumb-item i {
-                font-size: 0.7rem;
-            }
-            
-            .breadcrumb-separator {
-                margin: 0 1px;
-            }
-            
-            .breadcrumb-item .full-text {
-                display: none;
-            }
-            
-            .breadcrumb-item .short-text {
-                display: inline;
-            }
-            
-            .breadcrumb-book-selector select {
-                padding: 5px 24px 5px 10px;
-                font-size: 0.8rem;
-            }
+            .breadcrumb-nav { padding: 6px 10px; border-radius: 25px; }
+            .breadcrumb-item { font-size: 0.8rem; }
+            .breadcrumb-item i { font-size: 0.7rem; }
+            .breadcrumb-separator { margin: 0 1px; }
+            .breadcrumb-item .full-text { display: none; }
+            .breadcrumb-item .short-text { display: inline; }
+            .breadcrumb-book-selector select { padding: 5px 24px 5px 10px; font-size: 0.8rem; }
         }
 
-        .breadcrumb-item .short-text {
-            display: none;
-        }
+        .breadcrumb-item .short-text { display: none; }
 
         @media (max-width: 480px) {
-            .breadcrumb-item .full-text {
-                display: none;
-            }
-            
-            .breadcrumb-item .short-text {
-                display: inline;
-            }
+            .breadcrumb-item .full-text { display: none; }
+            .breadcrumb-item .short-text { display: inline; }
         }
 
         .section-title {
@@ -624,18 +690,8 @@
         .bookmark-btn:hover { color: var(--accent-primary); transform: scale(1.1); }
         .bookmark-btn.bookmarked { opacity: 1; color: #ffd700; }
 
-        /* Mobile verse adjustments */
-        @media (max-width: 768px) {
-            .verse-item { padding: 15px 12px; }
-            .bookmark-btn { opacity: 1; padding: 3px 8px; margin-left: 5px; }
-            .verse-text { font-size: 1.1rem; padding-right: 5px; }
-        }
-
-        @media (max-width: 480px) {
-            .verse-item { padding: 12px 10px; }
-            .verse-text { font-size: 1rem; }
-            .bookmark-btn { padding: 2px 5px; font-size: 1rem; }
-        }
+        @media (max-width: 768px) { .verse-item { padding: 15px 12px; } .bookmark-btn { opacity: 1; padding: 3px 8px; margin-left: 5px; } .verse-text { font-size: 1.1rem; } }
+        @media (max-width: 480px) { .verse-item { padding: 12px 10px; } .verse-text { font-size: 1rem; } .bookmark-btn { padding: 2px 5px; font-size: 1rem; } }
 
         /* Bookmarks Panel */
         .bookmarks-panel {
@@ -773,22 +829,8 @@
             font-weight: 600;
         }
 
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-            .page-header h1 { font-size: 2.5rem; }
-            .verse-container { padding: 20px 15px; }
-            .chapter-navigation { gap: 15px; }
-            .chapter-nav-btn { width: 45px; height: 45px; }
-            .bookmarks-panel { width: 280px; }
-        }
-
-        @media (max-width: 480px) {
-            .navbar-brand { font-size: 1.4rem; }
-            .page-header h1 { font-size: 2rem; }
-            .bookmarks-panel { width: 100%; right: -100%; }
-            .bookmarks-panel.open { right: 0; }
-            .chapter-indicator { font-size: 0.9rem; }
-        }
+        @media (max-width: 768px) { .page-header h1 { font-size: 2.5rem; } .verse-container { padding: 20px 15px; } .chapter-navigation { gap: 15px; } .chapter-nav-btn { width: 45px; height: 45px; } .bookmarks-panel { width: 280px; } }
+        @media (max-width: 480px) { .page-header h1 { font-size: 2rem; } .bookmarks-panel { width: 100%; right: -100%; } .bookmarks-panel.open { right: 0; } .chapter-indicator { font-size: 0.9rem; } }
 
         /* Form controls */
         .form-control, .form-select, .input-group-text {
@@ -867,59 +909,8 @@
             align-items: center;
         }
 
-        /* Mobile navbar - icons outside hamburger */
-        @media (max-width: 991px) {
-            .navbar .container {
-                flex-wrap: nowrap;
-            }
-            
-            .navbar-brand {
-                flex: 1;
-                margin-right: 4px;
-            }
-            
-            .navbar-brand span {
-                font-size: 1rem;
-            }
-            
-            .user-profile-btn {
-                padding: 4px 8px;
-            }
-            
-            .user-profile-btn img {
-                width: 28px;
-                height: 28px;
-            }
-            
-            .google-signin-btn {
-                padding: 6px 10px;
-                font-size: 0.85rem;
-            }
-            
-            .theme-toggle-btn {
-                width: 36px;
-                height: 36px;
-            }
-            
-            /* Remove old mobile-only menu items (no longer needed) */
-            .navbar-nav .d-lg-none {
-                display: none !important;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .audio-controls-container { padding: 15px; }
-            .audio-main-controls { gap: 10px; }
-            .audio-play-btn { padding: 10px 20px; font-size: 1rem; }
-            .audio-time-display { min-width: 80px; font-size: 0.85rem; }
-        }
-
-        @media (max-width: 576px) {
-            .audio-play-section { width: 100%; justify-content: center; }
-            .audio-play-btn { padding: 10px 25px; width: auto; }
-            .audio-menu-section { margin-top: 10px; justify-content: center; }
-            .skip-buttons { display: flex; gap: 5px; }
-        }
+        @media (max-width: 768px) { .audio-controls-container { padding: 15px; } .audio-main-controls { gap: 10px; } .audio-play-btn { padding: 10px 20px; font-size: 1rem; } .audio-time-display { min-width: 80px; font-size: 0.85rem; } }
+        @media (max-width: 576px) { .audio-play-section { width: 100%; justify-content: center; } .audio-play-btn { padding: 10px 25px; width: auto; } .audio-menu-section { margin-top: 10px; justify-content: center; } .skip-buttons { display: flex; gap: 5px; } }
 
         .progress { background-color: var(--bg-tertiary); cursor: pointer; }
         .dropdown-menu { background-color: var(--card-bg); border-color: var(--border-color); }
@@ -998,13 +989,11 @@
                     height="36" 
                     class="me-2 rounded-2"
                     style="object-fit: cover;">
-                <span class="d-none d-sm-inline">MyPersonal Bible App</span>
-                <span class="d-sm-none">MyBible</span>
+                <span>MyPersonal Bible App</span>
             </a>
             
-            <!-- Right side icons -->
+            <!-- Right side icons (ALWAYS visible, NEVER in hamburger) -->
             <div class="d-flex align-items-center gap-2">
-                <!-- User Profile / Sign In -->
                 {% if user %}
                 <div class="dropdown">
                     <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -1014,21 +1003,18 @@
                         <i class="fas fa-user-circle"></i>
                         {% endif %}
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end" style="position: absolute; right: 0;">
+                    <ul class="dropdown-menu dropdown-menu-end">
                         <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="#" onclick="syncNow(); return false;">
-                                <i class="fas fa-sync-alt me-2"></i>Sync Now
-                            </a>
-                        </li>
+                        <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
                     </ul>
                 </div>
                 {% else %}
-                <a href="{{ url_for('google_login') }}" class="google-signin-btn text-decoration-none">
+                <a href="{{ url_for('google_login') }}" class="google-signin-btn">
                     <i class="fab fa-google"></i>
+                    <span style="font-size: 0.8rem;">Sign In</span>
                 </a>
                 {% endif %}
                 
@@ -1037,12 +1023,13 @@
                     <i class="fas fa-moon" id="themeIcon"></i>
                 </button>
                 
-                <!-- Hamburger Menu -->
+                <!-- Hamburger (ONLY for nav links) -->
                 <button class="navbar-toggler ms-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
             </div>
             
+            <!-- Hamburger collapse (ONLY nav links) -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#daily">Daily Verse</a></li>
@@ -1407,10 +1394,7 @@
         (function() {
             // ========== DARK MODE (System preference aware) ==========
             const themeToggle = document.getElementById('themeToggle');
-            const themeToggleMobile = document.getElementById('themeToggleMobile');
             const themeIcon = document.getElementById('themeIcon');
-            const themeIconMobile = document.getElementById('themeIconMobile');
-            const themeTextMobile = document.getElementById('themeTextMobile');
             const htmlElement = document.documentElement;
             
             const savedTheme = localStorage.getItem('bibleAppTheme');
@@ -1439,19 +1423,9 @@
                     themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
                     if (themeToggle) themeToggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
                 }
-                if (themeIconMobile) {
-                    themeIconMobile.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-                }
-                if (themeTextMobile) {
-                    themeTextMobile.textContent = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
-                }
             }
             
             if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
-            if (themeToggleMobile) themeToggleMobile.addEventListener('click', (e) => {
-                e.preventDefault();
-                toggleTheme();
-            });
             
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
                 if (!localStorage.getItem('bibleAppTheme')) {
@@ -1944,7 +1918,7 @@
                 isDownloading = true;
                 if (downloadBtn) downloadBtn.disabled = true;
                 const originalHtml = downloadBtn ? downloadBtn.innerHTML : '';
-                if (downloadBtn) downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Generating MP3...';
+                if (downloadBtn) downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i><span style="color: var(--text-primary);">Generating MP3...</span>';
 
                 try {
                     const filename = `${typeof BOOK_SLUG !== 'undefined' ? BOOK_SLUG : 'bible'}_Chapter${typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : ''}.mp3`;
@@ -1970,7 +1944,8 @@
                     window.URL.revokeObjectURL(url);
 
                     if (downloadBtn) {
-                        downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i><span style="color: var(--text-primary);">Generating MP3...</span>';
+                        downloadBtn.innerHTML = '<i class="fas fa-check me-2"></i><span style="color: var(--text-primary);">Downloaded!</span>';
+                        setTimeout(() => { downloadBtn.innerHTML = originalHtml; }, 3000);
                     }
                 } catch (error) {
                     console.error('Download error:', error);

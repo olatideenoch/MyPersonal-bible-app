@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Prevent theme flash on page load - MUST be first -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
@@ -84,6 +96,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 0.95rem;
+            text-decoration: none;
         }
         
         .google-signin-btn:hover {
@@ -130,6 +143,13 @@
 
         [data-theme="dark"] .navbar-brand img {
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Navbar brand font size for mobile */
+        @media (max-width: 480px) {
+            .navbar-brand {
+                font-size: 1.2rem !important;
+            }
         }
 
         /* Smooth transitions */
@@ -193,7 +213,7 @@
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
         }
 
-        /* Mobile menu specific styling */
+        /* Mobile menu - hamburger drops full width */
         @media (max-width: 991px) {
             .navbar-collapse {
                 background: var(--navbar-bg);
@@ -203,6 +223,7 @@
                 box-shadow: var(--card-shadow);
                 border: 1px solid var(--border-color);
                 border-top: none;
+                width: 100%;
             }
             
             .navbar-nav .nav-item {
@@ -218,6 +239,7 @@
                 font-size: 1.1rem;
                 display: flex;
                 align-items: center;
+                width: 100%;
             }
             
             .navbar-nav .nav-link i {
@@ -229,6 +251,132 @@
                 background: var(--bg-tertiary);
                 border-radius: 8px;
             }
+        }
+
+        /* Mobile navbar - keep everything on one line */
+        @media (max-width: 991px) {
+            .navbar .container {
+                flex-wrap: nowrap;
+            }
+            
+            .navbar-brand {
+                flex: 1;
+                margin-right: 4px;
+                font-size: 0.85rem !important;
+            }
+            
+            .navbar-brand img {
+                width: 28px !important;
+                height: 28px !important;
+            }
+            
+            .navbar-brand span {
+                font-size: 0.75rem !important;
+            }
+            
+            .user-profile-btn {
+                padding: 3px 6px;
+            }
+            
+            .user-profile-btn img {
+                width: 24px;
+                height: 24px;
+            }
+            
+            .google-signin-btn {
+                padding: 2px 5px;
+                font-size: 0.65rem;
+                line-height: 1.1;
+                text-align: center;
+                max-width: 42px;
+                flex-direction: column;
+                gap: 1px;
+                border-radius: 8px;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            .google-signin-btn i {
+                font-size: 0.8rem;
+            }
+            
+            .google-signin-btn span {
+                font-size: 0.55rem !important;
+                line-height: 1;
+            }
+            
+            .theme-toggle-btn {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .theme-toggle-btn i {
+                font-size: 0.85rem;
+            }
+            
+            .navbar-toggler {
+                padding: 4px 8px;
+            }
+            
+            .navbar-toggler-icon {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .gap-2 {
+                gap: 3px !important;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .navbar-brand span {
+                font-size: 0.65rem !important;
+            }
+            
+            .navbar-brand img {
+                width: 24px !important;
+                height: 24px !important;
+            }
+            
+            .google-signin-btn {
+                padding: 2px 4px;
+                max-width: 38px;
+            }
+            
+            .google-signin-btn i {
+                font-size: 0.7rem;
+            }
+            
+            .google-signin-btn span {
+                font-size: 0.5rem !important;
+            }
+            
+            .theme-toggle-btn {
+                width: 28px;
+                height: 28px;
+            }
+        }
+
+        /* Desktop action buttons */
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+            transform: rotate(360deg);
         }
 
         .page-header {
@@ -301,7 +449,7 @@
             font-weight: 500;
         }
 
-        /* Warning/Disclaimer Box - Improved Mobile Responsive */
+        /* Warning/Disclaimer Box */
         .disclaimer-box {
             background-color: var(--warning-bg);
             border: 1px solid var(--warning-border);
@@ -316,19 +464,9 @@
             gap: 15px;
         }
 
-        .disclaimer-icon {
-            flex-shrink: 0;
-        }
-
-        .disclaimer-icon i {
-            color: var(--warning-border);
-            font-size: 1.5rem;
-        }
-
-        .disclaimer-text {
-            flex: 1;
-            min-width: 0;
-        }
+        .disclaimer-icon { flex-shrink: 0; }
+        .disclaimer-icon i { color: var(--warning-border); font-size: 1.5rem; }
+        .disclaimer-text { flex: 1; min-width: 0; }
 
         .disclaimer-text h5 {
             color: var(--text-primary);
@@ -340,221 +478,37 @@
             gap: 5px;
         }
 
-        .disclaimer-text p {
-            margin-bottom: 8px;
-            color: var(--text-primary);
-            word-break: break-word;
-        }
+        .disclaimer-text p { margin-bottom: 8px; color: var(--text-primary); word-break: break-word; }
+        .disclaimer-text .email-highlight { font-size: 1.2rem; font-weight: 600; color: var(--accent-primary); word-break: break-all; }
+        .disclaimer-text .email-highlight a { color: var(--accent-primary); text-decoration: none; }
+        .disclaimer-text .email-highlight a:hover { text-decoration: underline; }
 
-        .disclaimer-text .email-highlight {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--accent-primary);
-            word-break: break-all;
-        }
-
-        .disclaimer-text .email-highlight a {
-            color: var(--accent-primary);
-            text-decoration: none;
-        }
-
-        .disclaimer-text .email-highlight a:hover {
-            text-decoration: underline;
-        }
-
-        /* Mobile optimizations for disclaimer */
-        @media (max-width: 768px) {
-            .disclaimer-box {
-                padding: 15px;
-            }
-            
-            .disclaimer-content {
-                gap: 12px;
-            }
-            
-            .disclaimer-icon i {
-                font-size: 1.3rem;
-            }
-            
-            .disclaimer-text h5 {
-                font-size: 1.1rem;
-            }
-            
-            .disclaimer-text .email-highlight {
-                font-size: 1rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .disclaimer-box {
-                padding: 12px;
-            }
-            
-            .disclaimer-content {
-                gap: 10px;
-            }
-            
-            .disclaimer-icon i {
-                font-size: 1.2rem;
-            }
-            
-            .disclaimer-text h5 {
-                font-size: 1rem;
-                margin-bottom: 8px;
-            }
-            
-            .disclaimer-text p {
-                font-size: 0.9rem;
-                margin-bottom: 6px;
-            }
-            
-            .disclaimer-text .email-highlight {
-                font-size: 0.9rem;
-            }
-            
-            .disclaimer-text .small {
-                font-size: 0.8rem !important;
-            }
-        }
+        @media (max-width: 768px) { .disclaimer-box { padding: 15px; } .disclaimer-content { gap: 12px; } .disclaimer-icon i { font-size: 1.3rem; } .disclaimer-text h5 { font-size: 1.1rem; } .disclaimer-text .email-highlight { font-size: 1rem; } }
+        @media (max-width: 480px) { .disclaimer-box { padding: 12px; } .disclaimer-content { gap: 10px; } .disclaimer-icon i { font-size: 1.2rem; } .disclaimer-text h5 { font-size: 1rem; margin-bottom: 8px; } .disclaimer-text p { font-size: 0.9rem; margin-bottom: 6px; } .disclaimer-text .email-highlight { font-size: 0.9rem; } .disclaimer-text .small { font-size: 0.8rem !important; } }
 
         /* Alert styling */
-        .alert {
-            background-color: var(--card-bg);
-            border-color: var(--border-color);
-            color: var(--text-primary);
-        }
-
-        /* Theme toggle button (desktop) */
-        .theme-toggle-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .theme-toggle-btn:hover {
-            background: var(--accent-primary);
-            color: white;
-            border-color: var(--accent-primary);
-            transform: rotate(360deg);
-        }
+        .alert { background-color: var(--card-bg); border-color: var(--border-color); color: var(--text-primary); }
 
         /* Button styling */
-        .btn-success {
-            background-color: var(--accent-primary);
-            border-color: var(--accent-primary);
-            color: white;
-        }
+        .btn-success { background-color: var(--accent-primary); border-color: var(--accent-primary); color: white; }
+        .btn-success:hover:not(:disabled) { background-color: var(--text-secondary); border-color: var(--text-secondary); }
+        .btn-success:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .btn-success:hover:not(:disabled) {
-            background-color: var(--text-secondary);
-            border-color: var(--text-secondary);
-        }
+        a { color: var(--accent-primary); text-decoration: none; }
+        a:hover { color: var(--text-secondary); text-decoration: underline; }
 
-        .btn-success:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        footer { background: var(--footer-bg); color: var(--footer-text); padding: 50px 0 30px; margin-top: 100px; }
 
-        /* Link styling */
-        a {
-            color: var(--accent-primary);
-            text-decoration: none;
-        }
+        @media (max-width: 768px) { .page-header h1 { font-size: 2.5rem; } .page-header { padding: 80px 0 80px; } .contact-card { padding: 25px; } .page-header p { font-size: 1.1rem; } }
+        @media (max-width: 480px) { .page-header h1 { font-size: 2rem; } .page-header { padding: 60px 0 60px; } .contact-card { padding: 20px 15px; } .btn-lg { padding: 0.5rem 1rem; font-size: 1rem; } .page-header p { font-size: 1rem; } .section-title { font-size: 1.5rem; } .form-label { font-size: 0.9rem; } }
 
-        a:hover {
-            color: var(--text-secondary);
-            text-decoration: underline;
-        }
-
-        footer {
-            background: var(--footer-bg);
-            color: var(--footer-text);
-            padding: 50px 0 30px;
-            margin-top: 100px;
-        }
-
-        /* Mobile navbar - icons outside hamburger */
-        @media (max-width: 991px) {
-            .navbar .container {
-                flex-wrap: nowrap;
-            }
-            
-            .navbar-brand {
-                flex: 1;
-                margin-right: 4px;
-            }
-            
-            .navbar-brand span {
-                font-size: 1rem;
-            }
-            
-            .user-profile-btn {
-                padding: 4px 8px;
-            }
-            
-            .user-profile-btn img {
-                width: 28px;
-                height: 28px;
-            }
-            
-            .google-signin-btn {
-                padding: 6px 10px;
-                font-size: 0.85rem;
-            }
-            
-            .theme-toggle-btn {
-                width: 36px;
-                height: 36px;
-            }
-            
-            /* Remove old mobile-only menu items (no longer needed) */
-            .navbar-nav .d-lg-none {
-                display: none !important;
-            }
-        }
-
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-            .page-header h1 { font-size: 2.5rem; }
-            .page-header { padding: 80px 0 80px; }
-            .contact-card { padding: 25px; }
-            .navbar-brand { font-size: 1.5rem; }
-            .page-header p { font-size: 1.1rem; }
-        }
-
-        @media (max-width: 480px) {
-            .page-header h1 { font-size: 2rem; }
-            .page-header { padding: 60px 0 60px; }
-            .contact-card { padding: 20px 15px; }
-            .navbar-brand { font-size: 1.3rem; }
-            .btn-lg { padding: 0.5rem 1rem; font-size: 1rem; }
-            .page-header p { font-size: 1rem; }
-            .section-title { font-size: 1.5rem; }
-            .form-label { font-size: 0.9rem; }
-        }
-
-        /* Scrollbar */
         ::-webkit-scrollbar { width: 10px; }
         ::-webkit-scrollbar-track { background: var(--bg-primary); }
         ::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 5px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
-        /* Dark mode specific fixes */
-        [data-theme="dark"] .btn-close {
-            filter: invert(1) grayscale(100%) brightness(200%);
-        }
-
-        [data-theme="dark"] .text-muted {
-            color: var(--text-muted) !important;
-        }
+        [data-theme="dark"] .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+        [data-theme="dark"] .text-muted { color: var(--text-muted) !important; }
     </style>
     <script data-goatcounter="https://olatideenoch.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
@@ -571,13 +525,11 @@
                     height="36" 
                     class="me-2 rounded-2"
                     style="object-fit: cover;">
-                <span class="d-none d-sm-inline">MyPersonal Bible App</span>
-                <span class="d-sm-none">MyBible</span>
+                <span>MyPersonal Bible App</span>
             </a>
             
-            <!-- Right side icons (visible on mobile outside hamburger) -->
+            <!-- Right side icons (ALWAYS visible, NEVER in hamburger) -->
             <div class="d-flex align-items-center gap-2">
-                <!-- User Profile / Sign In (always visible) -->
                 {% if user %}
                 <div class="dropdown">
                     <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -587,53 +539,37 @@
                         <i class="fas fa-user-circle"></i>
                         {% endif %}
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end" style="position: absolute; right: 0;">
+                    <ul class="dropdown-menu dropdown-menu-end">
                         <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
                     </ul>
                 </div>
                 {% else %}
-                <a href="{{ url_for('google_login') }}" class="google-signin-btn text-decoration-none">
+                <a href="{{ url_for('google_login') }}" class="google-signin-btn">
                     <i class="fab fa-google"></i>
+                    <span style="font-size: 0.8rem;">Sign In</span>
                 </a>
                 {% endif %}
                 
-                <!-- Theme Toggle (always visible) -->
+                <!-- Theme Toggle -->
                 <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
                     <i class="fas fa-moon" id="themeIcon"></i>
                 </button>
                 
-                <!-- Hamburger Menu (for navigation links) -->
+                <!-- Hamburger (ONLY for nav links) -->
                 <button class="navbar-toggler ms-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
             </div>
             
+            <!-- Hamburger collapse (ONLY nav links) -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#daily">Daily Verse</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#search">Search</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#books">Books</a></li>
                     <li class="nav-item"><a class="nav-link active" href="{{ url_for('contact') }}">Contact</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>                    
-                    <!-- Desktop Theme Toggle -->
-                    <li class="nav-item d-none d-lg-flex align-items-center ms-2">
-                        <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
-                            <i class="fas fa-moon" id="themeIcon"></i>
-                        </button>
-                    </li>
-                    
-                    <!-- Mobile Theme Toggle Menu Item -->
-                    <li class="nav-item d-lg-none">
-                        <a class="nav-link" href="#" id="themeToggleMobile">
-                            <i class="fas fa-moon" id="themeIconMobile"></i>
-                            <span id="themeTextMobile">Switch to Dark Mode</span>
-                        </a>
-                    </li>
                 </ul>
             </div>
         </div>
@@ -652,7 +588,6 @@
         <div class="container col-11 col-md-10 col-lg-8">
             <div class="contact-card mx-auto">
                 
-                <!-- Status Message (if any from backend) -->
                 {% if status_message %}
                     <div class="alert alert-{{ status_type }} alert-dismissible fade show" role="alert">
                         <h4 class="alert-heading">
@@ -669,7 +604,7 @@
                     </div>
                 {% endif %}
 
-                <!-- Disclaimer Box - Mobile Responsive -->
+                <!-- Disclaimer Box -->
                 <div class="disclaimer-box">
                     <div class="disclaimer-content">
                         <div class="disclaimer-icon">
@@ -760,24 +695,17 @@
 
     <!-- Dark Mode Toggle Script -->
     <script>
-        /* ── Dark mode toggle (System preference aware) ──────────────────── */
         (function() {
             const themeToggle = document.getElementById('themeToggle');
-            const themeToggleMobile = document.getElementById('themeToggleMobile');
             const themeIcon = document.getElementById('themeIcon');
-            const themeIconMobile = document.getElementById('themeIconMobile');
-            const themeTextMobile = document.getElementById('themeTextMobile');
             const htmlElement = document.documentElement;
             
             const savedTheme = localStorage.getItem('bibleAppTheme');
             
-            // Priority: 1. User's saved preference, 2. System preference, 3. Light mode default
             if (savedTheme) {
-                // User has explicitly chosen a theme
                 htmlElement.setAttribute('data-theme', savedTheme);
                 updateThemeUI(savedTheme);
             } else {
-                // Check system preference
                 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                 const themeToApply = prefersDark ? 'dark' : 'light';
                 htmlElement.setAttribute('data-theme', themeToApply);
@@ -787,35 +715,20 @@
             function toggleTheme() {
                 const currentTheme = htmlElement.getAttribute('data-theme');
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                
                 htmlElement.setAttribute('data-theme', newTheme);
                 localStorage.setItem('bibleAppTheme', newTheme);
                 updateThemeUI(newTheme);
             }
             
             function updateThemeUI(theme) {
-                // Desktop icon
                 if (themeIcon) {
                     themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
                     if (themeToggle) themeToggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
                 }
-                // Mobile icon and text
-                if (themeIconMobile) {
-                    themeIconMobile.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-                }
-                if (themeTextMobile) {
-                    themeTextMobile.textContent = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
-                }
             }
             
-            // Event listeners for toggle buttons
             if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
-            if (themeToggleMobile) themeToggleMobile.addEventListener('click', (e) => {
-                e.preventDefault();
-                toggleTheme();
-            });
             
-            // Listen for system theme changes (only if user hasn't set a preference)
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
                 if (!localStorage.getItem('bibleAppTheme')) {
                     const newTheme = e.matches ? 'dark' : 'light';
