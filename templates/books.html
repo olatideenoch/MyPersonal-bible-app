@@ -867,6 +867,46 @@
             align-items: center;
         }
 
+        /* Mobile navbar - icons outside hamburger */
+        @media (max-width: 991px) {
+            .navbar .container {
+                flex-wrap: nowrap;
+            }
+            
+            .navbar-brand {
+                flex: 1;
+                margin-right: 4px;
+            }
+            
+            .navbar-brand span {
+                font-size: 1rem;
+            }
+            
+            .user-profile-btn {
+                padding: 4px 8px;
+            }
+            
+            .user-profile-btn img {
+                width: 28px;
+                height: 28px;
+            }
+            
+            .google-signin-btn {
+                padding: 6px 10px;
+                font-size: 0.85rem;
+            }
+            
+            .theme-toggle-btn {
+                width: 36px;
+                height: 36px;
+            }
+            
+            /* Remove old mobile-only menu items (no longer needed) */
+            .navbar-nav .d-lg-none {
+                display: none !important;
+            }
+        }
+
         @media (max-width: 768px) {
             .audio-controls-container { padding: 15px; }
             .audio-main-controls { gap: 10px; }
@@ -958,65 +998,57 @@
                     height="36" 
                     class="me-2 rounded-2"
                     style="object-fit: cover;">
-                <span>MyPersonal Bible App</span>
+                <span class="d-none d-sm-inline">MyPersonal Bible App</span>
+                <span class="d-sm-none">MyBible</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            
+            <!-- Right side icons -->
+            <div class="d-flex align-items-center gap-2">
+                <!-- User Profile / Sign In -->
+                {% if user %}
+                <div class="dropdown">
+                    <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% if user.picture %}
+                        <img src="{{ user.picture }}" alt="{{ user.name }}">
+                        {% else %}
+                        <i class="fas fa-user-circle"></i>
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" style="position: absolute; right: 0;">
+                        <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="syncNow(); return false;">
+                                <i class="fas fa-sync-alt me-2"></i>Sync Now
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
+                    </ul>
+                </div>
+                {% else %}
+                <a href="{{ url_for('google_login') }}" class="google-signin-btn text-decoration-none">
+                    <i class="fab fa-google"></i>
+                </a>
+                {% endif %}
+                
+                <!-- Theme Toggle -->
+                <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                </button>
+                
+                <!-- Hamburger Menu -->
+                <button class="navbar-toggler ms-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+            
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#daily">Daily Verse</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#search">Search</a></li>
                     <li class="nav-item"><a class="nav-link active" href="{{ url_for('books', book_slug=book.slug) }}">Books</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
-                    
-                    <!-- Google Sign-In / User Profile -->
-                    <li class="nav-item d-flex align-items-center ms-2">
-                        {% if user %}
-                        <div class="dropdown">
-                            <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                {% if user.picture %}
-                                <img src="{{ user.picture }}" alt="{{ user.name }}">
-                                {% else %}
-                                <i class="fas fa-user-circle fa-2x"></i>
-                                {% endif %}
-                                <span class="d-none d-lg-inline">{{ user.name.split(' ')[0] }}</span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item" href="#" onclick="syncNow(); return false;">
-                                        <i class="fas fa-sync-alt me-2"></i>Sync Now
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
-                            </ul>
-                        </div>
-                        {% else %}
-                        <a href="{{ url_for('google_login') }}" class="google-signin-btn text-decoration-none">
-                            <i class="fab fa-google"></i>
-                            <span class="d-none d-md-inline">Sign in with Google</span>
-                            <span class="d-md-none">Sign in</span>
-                        </a>
-                        {% endif %}
-                    </li>
-                    
-                    <!-- Desktop Theme Toggle -->
-                    <li class="nav-item d-none d-lg-flex align-items-center ms-2">
-                        <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
-                            <i class="fas fa-moon" id="themeIcon"></i>
-                        </button>
-                    </li>
-                    
-                    <!-- Mobile Theme Toggle Menu Item -->
-                    <li class="nav-item d-lg-none">
-                        <a class="nav-link" href="#" id="themeToggleMobile">
-                            <i class="fas fa-moon" id="themeIconMobile"></i>
-                            <span id="themeTextMobile">Switch to Dark Mode</span>
-                        </a>
-                    </li>
                 </ul>
             </div>
         </div>
