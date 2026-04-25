@@ -145,76 +145,316 @@
             animation: slideUp 0.3s ease;
         }
         
-        @keyframes slideUp { from { bottom: -50px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
+        @keyframes slideUp {
+            from {
+                bottom: -50px;
+                opacity: 0;
+            }
+            to {
+                bottom: 20px;
+                opacity: 1;
+            }
+        }
         
         /* App Icon Styling */
-        .navbar-brand img { border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); transition: transform 0.2s ease; }
-        .navbar-brand:hover img { transform: scale(1.05); }
-        [data-theme="dark"] .navbar-brand img { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
+        .navbar-brand img {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .navbar-brand:hover img {
+            transform: scale(1.05);
+        }
+        
+        [data-theme="dark"] .navbar-brand img {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
 
-        * { transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.2s ease; }
+        * {
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.2s ease;
+        }
 
-        body { font-family: 'Crimson Text', serif; background-color: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
-        .navbar { background-color: var(--navbar-bg); backdrop-filter: blur(10px); box-shadow: var(--card-shadow); }
-        .navbar-brand { font-family: 'Lora', serif; font-size: 1.8rem; color: var(--text-secondary) !important; }
-        .nav-link { color: var(--text-primary) !important; }
-        .nav-link:hover { color: var(--accent-primary) !important; }
+        body {
+            font-family: 'Crimson Text', serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
         
-        .hero { background: var(--hero-overlay), url('../static/img/bg.jpg') no-repeat center/cover; color: white; padding: 120px 0; text-align: center; }
-        .hero h1 { font-family: 'Lora', serif; font-size: 4rem; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-        .hero p { font-size: 1.4rem; max-width: 800px; margin: 0 auto; opacity: 0.95; }
+        .navbar {
+            background-color: var(--navbar-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--card-shadow);
+        }
         
-        .section-title { font-family: 'Lora', serif; color: var(--text-secondary); position: relative; display: inline-block; }
-        .section-title::after { content: ''; width: 60px; height: 3px; background: var(--accent-primary); position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); }
+        .navbar-brand {
+            font-family: 'Lora', serif;
+            font-size: 1.8rem;
+            color: var(--text-secondary) !important;
+        }
         
-        .verse-card { background: var(--card-bg); border-radius: 20px; box-shadow: var(--card-shadow); padding: 40px; text-align: center; }
-        .verse-text { font-size: 1.8rem; line-height: 2; font-style: italic; color: var(--text-primary); }
-        .reference { font-size: 1.3rem; font-weight: 600; color: var(--accent-primary); margin-top: 30px; }
+        .nav-link {
+            color: var(--text-primary) !important;
+        }
         
-        .search-form { max-width: 700px; margin: 0 auto; }
-        .book-card { background: var(--card-bg); border-radius: 15px; padding: 30px; text-align: center; transition: all 0.3s ease; height: 100%; box-shadow: var(--card-shadow); border: 1px solid var(--border-color); }
-        .book-card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-        .book-card i { font-size: 3rem; color: var(--accent-primary); margin-bottom: 20px; }
-        .book-card h5 { color: var(--text-secondary); }
+        .nav-link:hover {
+            color: var(--accent-primary) !important;
+        }
+
+        /* APK Download nav item styling */
+        .nav-link.apk-download-link {
+            color: var(--accent-primary) !important;
+            font-weight: 600;
+        }
         
-        footer { background: var(--footer-bg); color: var(--footer-text); padding: 50px 0 30px; margin-top: 100px; }
-        footer a { color: var(--footer-text); text-decoration: none; }
+        .nav-link.apk-download-link:hover {
+            color: var(--text-secondary) !important;
+        }
+        
+        .nav-link.apk-download-link i {
+            color: var(--accent-primary);
+        }
+        
+        .hero {
+            background: var(--hero-overlay), url('../static/img/bg.jpg') no-repeat center/cover;
+            color: white;
+            padding: 120px 0;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-family: 'Lora', serif;
+            font-size: 4rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .hero p {
+            font-size: 1.4rem;
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0.95;
+        }
+        
+        .section-title {
+            font-family: 'Lora', serif;
+            color: var(--text-secondary);
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title::after {
+            content: '';
+            width: 60px;
+            height: 3px;
+            background: var(--accent-primary);
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .verse-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .verse-text {
+            font-size: 1.8rem;
+            line-height: 2;
+            font-style: italic;
+            color: var(--text-primary);
+        }
+        
+        .reference {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin-top: 30px;
+        }
+        
+        .search-form {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .book-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            height: 100%;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+        
+        .book-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        .book-card i {
+            font-size: 3rem;
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+        }
+        
+        .book-card h5 {
+            color: var(--text-secondary);
+        }
+        
+        footer {
+            background: var(--footer-bg);
+            color: var(--footer-text);
+            padding: 50px 0 30px;
+            margin-top: 100px;
+        }
+        
+        footer a {
+            color: var(--footer-text);
+            text-decoration: none;
+        }
 
         /* Form controls */
-        .form-control, .form-select, .input-group-text { background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-primary); }
-        .form-control:focus, .form-select:focus { background-color: var(--input-bg); border-color: var(--accent-primary); color: var(--text-primary); box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25); }
-        .form-control::placeholder { color: var(--text-muted); opacity: 0.7; }
-        .input-group-text { color: var(--text-muted); background-color: var(--bg-tertiary); }
+        .form-control,
+        .form-select,
+        .input-group-text {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-primary);
+        }
         
-        .btn-light { background-color: var(--btn-light-bg); border-color: var(--btn-light-border); color: var(--text-primary); }
-        .btn-outline-secondary { color: var(--text-primary); border-color: var(--border-color); }
-        .btn-outline-secondary:hover { background-color: var(--accent-primary); border-color: var(--accent-primary); }
+        .form-control:focus,
+        .form-select:focus {
+            background-color: var(--input-bg);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
+        }
         
-        .dropdown-menu { background-color: var(--card-bg); border-color: var(--border-color); }
-        .dropdown-item { color: var(--text-primary); }
-        .dropdown-item:hover { background-color: var(--accent-primary); color: white; }
-        .dropdown-divider { border-color: var(--border-color); }
+        .form-control::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
         
-        .alert { background-color: var(--card-bg); border-color: var(--border-color); color: var(--text-primary); }
-        .bg-light { background-color: var(--bg-tertiary) !important; }
-        .text-muted { color: var(--text-muted) !important; }
-        .progress { background-color: var(--bg-tertiary); }
-        .card { background: var(--card-bg); box-shadow: var(--card-shadow); border-color: var(--border-color); }
+        .input-group-text {
+            color: var(--text-muted);
+            background-color: var(--bg-tertiary);
+        }
+        
+        .btn-light {
+            background-color: var(--btn-light-bg);
+            border-color: var(--btn-light-border);
+            color: var(--text-primary);
+        }
+        
+        .btn-outline-secondary {
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+        
+        .btn-outline-secondary:hover {
+            background-color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+        
+        .dropdown-menu {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+        }
+        
+        .dropdown-item {
+            color: var(--text-primary);
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--accent-primary);
+            color: white;
+        }
+        
+        .dropdown-divider {
+            border-color: var(--border-color);
+        }
+        
+        .alert {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .bg-light {
+            background-color: var(--bg-tertiary) !important;
+        }
+        
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+        
+        .progress {
+            background-color: var(--bg-tertiary);
+        }
+        
+        .card {
+            background: var(--card-bg);
+            box-shadow: var(--card-shadow);
+            border-color: var(--border-color);
+        }
 
         /* Quick Lookup Section */
-        #quick-lookup { background-color: var(--section-bg) !important; }
-        #quick-lookup .card { background: var(--card-bg) !important; border-color: var(--border-color) !important; }
-        #quick-lookup .form-label { color: var(--text-primary) !important; font-weight: 500; }
-        #quick-lookup .form-select, #quick-lookup .form-control { background-color: var(--input-bg) !important; border-color: var(--input-border) !important; color: var(--text-primary) !important; }
-        #quick-lookup .form-select option { background-color: var(--card-bg); color: var(--text-primary); }
-        .bg-white { background-color: var(--section-bg) !important; }
+        #quick-lookup {
+            background-color: var(--section-bg) !important;
+        }
+        
+        #quick-lookup .card {
+            background: var(--card-bg) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        #quick-lookup .form-label {
+            color: var(--text-primary) !important;
+            font-weight: 500;
+        }
+        
+        #quick-lookup .form-select,
+        #quick-lookup .form-control {
+            background-color: var(--input-bg) !important;
+            border-color: var(--input-border) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        #quick-lookup .form-select option {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+        }
+        
+        .bg-white {
+            background-color: var(--section-bg) !important;
+        }
 
         /* Navbar toggler */
-        .navbar-toggler { border-color: var(--border-color) !important; }
-        .navbar-toggler:focus { box-shadow: 0 0 0 0.25rem rgba(141, 155, 106, 0.25) !important; }
-        [data-theme="dark"] .navbar-toggler:focus { box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25) !important; }
-        .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2860, 47, 47, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important; }
-        [data-theme="dark"] .navbar-toggler-icon { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important; }
+        .navbar-toggler {
+            border-color: var(--border-color) !important;
+        }
+        
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.25rem rgba(141, 155, 106, 0.25) !important;
+        }
+        
+        [data-theme="dark"] .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25) !important;
+        }
+        
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2860, 47, 47, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+        }
+        
+        [data-theme="dark"] .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+        }
 
         /* Mobile menu - hamburger drops full width */
         @media (max-width: 991px) {
@@ -229,26 +469,90 @@
                 width: 100%;
             }
             
-            .navbar-nav .nav-item { border-bottom: 1px solid var(--border-color); }
-            .navbar-nav .nav-item:last-child { border-bottom: none; }
-            .navbar-nav .nav-link { padding: 12px 15px !important; font-size: 1.1rem; display: flex; align-items: center; width: 100%; }
-            .navbar-nav .nav-link i { width: 28px; color: var(--accent-primary); }
-            .navbar-nav .nav-link:hover { background: var(--bg-tertiary); border-radius: 8px; }
+            .navbar-nav .nav-item {
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .navbar-nav .nav-item:last-child {
+                border-bottom: none;
+            }
+            
+            .navbar-nav .nav-link {
+                padding: 12px 15px !important;
+                font-size: 1.1rem;
+                display: flex;
+                align-items: center;
+                width: 100%;
+            }
+            
+            .navbar-nav .nav-link i {
+                width: 28px;
+                color: var(--accent-primary);
+            }
+            
+            .navbar-nav .nav-link:hover {
+                background: var(--bg-tertiary);
+                border-radius: 8px;
+            }
         }
 
         /* Desktop action buttons */
-        .theme-toggle-btn, #helpButton { background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; }
-        .theme-toggle-btn:hover, #helpButton:hover { background: var(--accent-primary); color: white; border-color: var(--accent-primary); transform: rotate(360deg); }
-        #helpButton:hover { transform: scale(1.1); }
+        .theme-toggle-btn,
+        #helpButton {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle-btn:hover,
+        #helpButton:hover {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+            transform: rotate(360deg);
+        }
+        
+        #helpButton:hover {
+            transform: scale(1.1);
+        }
 
         /* Mobile navbar - keep everything on one line */
         @media (max-width: 991px) {
-            .navbar .container { flex-wrap: nowrap; }
-            .navbar-brand { flex: 1; margin-right: 4px; font-size: 0.85rem !important; }
-            .navbar-brand img { width: 28px !important; height: 28px !important; }
-            .navbar-brand span { font-size: 0.75rem !important; }
-            .user-profile-btn { padding: 3px 6px; }
-            .user-profile-btn img { width: 24px; height: 24px; }
+            .navbar .container {
+                flex-wrap: nowrap;
+            }
+            
+            .navbar-brand {
+                flex: 1;
+                margin-right: 4px;
+                font-size: 0.85rem !important;
+            }
+            
+            .navbar-brand img {
+                width: 28px !important;
+                height: 28px !important;
+            }
+            
+            .navbar-brand span {
+                font-size: 0.75rem !important;
+            }
+            
+            .user-profile-btn {
+                padding: 3px 6px;
+            }
+            
+            .user-profile-btn img {
+                width: 24px;
+                height: 24px;
+            }
             
             .google-signin-btn {
                 padding: 2px 5px;
@@ -262,61 +566,327 @@
                 justify-content: center;
                 align-items: center;
             }
-            .google-signin-btn i { font-size: 0.8rem; }
-            .google-signin-btn span { font-size: 0.55rem !important; line-height: 1; }
             
-            .theme-toggle-btn { width: 32px; height: 32px; }
-            .theme-toggle-btn i { font-size: 0.85rem; }
-            .navbar-toggler { padding: 4px 8px; }
-            .navbar-toggler-icon { width: 20px; height: 20px; }
-            .gap-2 { gap: 3px !important; }
+            .google-signin-btn i {
+                font-size: 0.8rem;
+            }
+            
+            .google-signin-btn span {
+                font-size: 0.55rem !important;
+                line-height: 1;
+            }
+            
+            .theme-toggle-btn {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .theme-toggle-btn i {
+                font-size: 0.85rem;
+            }
+            
+            .navbar-toggler {
+                padding: 4px 8px;
+            }
+            
+            .navbar-toggler-icon {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .gap-2 {
+                gap: 3px !important;
+            }
         }
 
         @media (max-width: 380px) {
-            .navbar-brand span { font-size: 0.65rem !important; }
-            .navbar-brand img { width: 24px !important; height: 24px !important; }
-            .google-signin-btn { padding: 2px 4px; max-width: 38px; }
-            .google-signin-btn i { font-size: 0.7rem; }
-            .google-signin-btn span { font-size: 0.5rem !important; }
-            .theme-toggle-btn { width: 28px; height: 28px; }
+            .navbar-brand span {
+                font-size: 0.65rem !important;
+            }
+            
+            .navbar-brand img {
+                width: 24px !important;
+                height: 24px !important;
+            }
+            
+            .google-signin-btn {
+                padding: 2px 4px;
+                max-width: 38px;
+            }
+            
+            .google-signin-btn i {
+                font-size: 0.7rem;
+            }
+            
+            .google-signin-btn span {
+                font-size: 0.5rem !important;
+            }
+            
+            .theme-toggle-btn {
+                width: 28px;
+                height: 28px;
+            }
         }
 
         /* Welcome Modal */
-        .modal { padding: 0 !important; }
-        .modal-dialog { display: flex; align-items: center; min-height: calc(100% - 1rem); margin: 0.5rem auto; }
-        .modal-dialog-centered { display: flex; align-items: center; min-height: calc(100% - 1rem); }
-        @media (min-width: 576px) { .modal-dialog, .modal-dialog-centered { min-height: calc(100% - 3.5rem); } }
-        .modal-content { background-color: var(--card-bg); color: var(--text-primary); border: 1px solid var(--border-color); margin: 0 auto; width: 100%; }
-        .modal.fade .modal-dialog, .modal.show .modal-dialog { transform: translate(0, 0); }
-        .modal-header { border-bottom-color: var(--border-color); }
-        .modal-footer { border-top-color: var(--border-color); }
-        [data-theme="dark"] .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
-        .feature-item { transition: transform 0.3s ease, box-shadow 0.3s ease; height: 100%; }
-        .feature-item:hover { transform: translateY(-3px); box-shadow: var(--card-shadow); }
-        .feature-item i { transition: transform 0.3s ease; }
-        .feature-item:hover i { transform: scale(1.1); }
-        .navigation-tips i { color: var(--accent-primary); width: 20px; }
-        .announcement { transition: all 0.3s ease; }
-        .announcement:hover { box-shadow: var(--card-shadow); }
-        .form-check-input:checked { background-color: var(--accent-primary); border-color: var(--accent-primary); }
-        .form-check-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25); }
-
-        @media (max-width: 768px) { .modal-dialog { margin: 0.5rem; width: auto; } .modal-body { padding: 1rem; } .modal-title { font-size: 1.4rem; } .feature-item { padding: 0.75rem !important; } .feature-item i { font-size: 1.5rem !important; } .feature-item h6 { font-size: 0.9rem; margin-bottom: 0.25rem; } .feature-item small { font-size: 0.75rem; } .navigation-tips .row > div { font-size: 0.85rem; } .modal-footer { flex-wrap: wrap; gap: 0.5rem; } .modal-footer .form-check { width: 100%; margin-bottom: 0.5rem; } .modal-footer .btn { width: 100%; } .modal-content { max-height: 90vh; } .btn-close { padding: 1rem; } .hero h1 { font-size: 2.5rem; } .hero p { font-size: 1.1rem; } }
-        @media (max-width: 480px) { .modal-title { font-size: 1.2rem; } .modal-header h3 { font-size: 1.1rem; } .feature-item { padding: 0.5rem !important; } .feature-item i { font-size: 1.25rem !important; } .lead { font-size: 1rem; } .navigation-tips .row > div { width: 100%; } .modal-body h5 { font-size: 1rem; margin-bottom: 0.75rem !important; } .announcement { padding: 0.75rem !important; } }
-        @media (hover: none) and (pointer: coarse) { .modal-footer .btn, .btn-close, #helpButton, .theme-toggle-btn, .google-signin-btn, .user-profile-btn { min-height: 44px; min-width: 44px; } .form-check-input { min-height: 20px; min-width: 20px; } }
-
-        .modal-dialog-scrollable .modal-content { max-height: calc(100vh - 1rem); -webkit-overflow-scrolling: touch; }
-        body.modal-open { position: fixed; width: 100%; }
-
-        ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: var(--bg-primary); }
-        ::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 5px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+        .modal {
+            padding: 0 !important;
+        }
         
-        .audio-progress-container { margin: 15px 0 10px 0; }
-        .audio-progress { height: 4px; background-color: var(--bg-tertiary); border-radius: 2px; cursor: pointer; }
-        .audio-progress-bar { height: 4px; background-color: var(--accent-primary); border-radius: 2px; width: 0%; transition: width 0.1s linear; }
-        .audio-time-display { font-size: 0.85rem; color: var(--text-muted); }
+        .modal-dialog {
+            display: flex;
+            align-items: center;
+            min-height: calc(100% - 1rem);
+            margin: 0.5rem auto;
+        }
+        
+        .modal-dialog-centered {
+            display: flex;
+            align-items: center;
+            min-height: calc(100% - 1rem);
+        }
+        
+        @media (min-width: 576px) {
+            .modal-dialog,
+            .modal-dialog-centered {
+                min-height: calc(100% - 3.5rem);
+            }
+        }
+        
+        .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .modal.fade .modal-dialog,
+        .modal.show .modal-dialog {
+            transform: translate(0, 0);
+        }
+        
+        .modal-header {
+            border-bottom-color: var(--border-color);
+        }
+        
+        .modal-footer {
+            border-top-color: var(--border-color);
+        }
+        
+        [data-theme="dark"] .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+        
+        .feature-item {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--card-shadow);
+        }
+        
+        .feature-item i {
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-item:hover i {
+            transform: scale(1.1);
+        }
+        
+        .navigation-tips i {
+            color: var(--accent-primary);
+            width: 20px;
+        }
+        
+        .announcement {
+            transition: all 0.3s ease;
+        }
+        
+        .announcement:hover {
+            box-shadow: var(--card-shadow);
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+        
+        .form-check-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
+        }
+
+        @media (max-width: 768px) {
+            .modal-dialog {
+                margin: 0.5rem;
+                width: auto;
+            }
+            
+            .modal-body {
+                padding: 1rem;
+            }
+            
+            .modal-title {
+                font-size: 1.4rem;
+            }
+            
+            .feature-item {
+                padding: 0.75rem !important;
+            }
+            
+            .feature-item i {
+                font-size: 1.5rem !important;
+            }
+            
+            .feature-item h6 {
+                font-size: 0.9rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .feature-item small {
+                font-size: 0.75rem;
+            }
+            
+            .navigation-tips .row > div {
+                font-size: 0.85rem;
+            }
+            
+            .modal-footer {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            
+            .modal-footer .form-check {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            
+            .modal-footer .btn {
+                width: 100%;
+            }
+            
+            .modal-content {
+                max-height: 90vh;
+            }
+            
+            .btn-close {
+                padding: 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .modal-title {
+                font-size: 1.2rem;
+            }
+            
+            .modal-header h3 {
+                font-size: 1.1rem;
+            }
+            
+            .feature-item {
+                padding: 0.5rem !important;
+            }
+            
+            .feature-item i {
+                font-size: 1.25rem !important;
+            }
+            
+            .lead {
+                font-size: 1rem;
+            }
+            
+            .navigation-tips .row > div {
+                width: 100%;
+            }
+            
+            .modal-body h5 {
+                font-size: 1rem;
+                margin-bottom: 0.75rem !important;
+            }
+            
+            .announcement {
+                padding: 0.75rem !important;
+            }
+        }
+        
+        @media (hover: none) and (pointer: coarse) {
+            .modal-footer .btn,
+            .btn-close,
+            #helpButton,
+            .theme-toggle-btn,
+            .google-signin-btn,
+            .user-profile-btn {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            .form-check-input {
+                min-height: 20px;
+                min-width: 20px;
+            }
+        }
+
+        .modal-dialog-scrollable .modal-content {
+            max-height: calc(100vh - 1rem);
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        body.modal-open {
+            position: fixed;
+            width: 100%;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+        
+        .audio-progress-container {
+            margin: 15px 0 10px 0;
+        }
+        
+        .audio-progress {
+            height: 4px;
+            background-color: var(--bg-tertiary);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        
+        .audio-progress-bar {
+            height: 4px;
+            background-color: var(--accent-primary);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        
+        .audio-time-display {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
     </style>
     <script data-goatcounter="https://olatideenoch.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
@@ -327,33 +897,93 @@
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
-                    <h3 class="modal-title fw-bold" id="welcomeModalLabel"><i class="fas fa-bible me-2" style="color: var(--accent-primary);"></i><span class="d-none d-sm-inline">Welcome to</span> MyPersonal Bible App</h3>
+                    <h3 class="modal-title fw-bold" id="welcomeModalLabel">
+                        <i class="fas fa-bible me-2" style="color: var(--accent-primary);"></i>
+                        <span class="d-none d-sm-inline">Welcome to</span> MyPersonal Bible App
+                    </h3>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="text-center mb-3 mb-md-4"><p class="lead mb-2">Draw near to God through His living Word.</p><p class="text-muted small d-md-block">Your daily companion for reading, listening, and meditating on Scripture.</p></div>
-                    <h5 class="mb-2 mb-md-3"><i class="fas fa-star me-2" style="color: var(--accent-primary);"></i>Features</h5>
-                    <div class="row g-2 g-md-3 mb-3 mb-md-4">
-                        <div class="col-6 col-md-6"><div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);"><i class="fas fa-calendar-day d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i><h6 class="mb-1">Daily Verse</h6><small class="text-muted d-none d-md-block">A new inspiring verse every day.</small></div></div>
-                        <div class="col-6 col-md-6"><div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);"><i class="fas fa-bookmark d-block d-md-inline mb-1 mb-md-2" style="color: #ffd700; font-size: 1.5rem;"></i><h6 class="mb-1">Bookmarks</h6><small class="text-muted d-none d-md-block">Save your favorite verses.</small></div></div>
-                        <div class="col-6 col-md-6"><div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);"><i class="fas fa-highlighter d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i><h6 class="mb-1">Verse Highlighting</h6><small class="text-muted d-none d-md-block">Highlight important passages.</small></div></div>
-                        <div class="col-6 col-md-6"><div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);"><i class="fas fa-headphones d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i><h6 class="mb-1">Audio Bible</h6><small class="text-muted d-none d-md-block">Listen or download MP3s.</small></div></div>
-                        <div class="col-6 col-md-6"><div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);"><i class="fas fa-chart-line d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i><h6 class="mb-1">Reading Progress</h6><small class="text-muted d-none d-md-block">Track your reading.</small></div></div>
-                        <div class="col-6 col-md-6"><div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);"><i class="fas fa-cloud-upload-alt d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i><h6 class="mb-1">Cloud Sync</h6><small class="text-muted d-none d-md-block">Sync across devices.</small></div></div>
+                    <div class="text-center mb-3 mb-md-4">
+                        <p class="lead mb-2">Draw near to God through His living Word.</p>
+                        <p class="text-muted small d-md-block">Your daily companion for reading, listening, and meditating on Scripture.</p>
                     </div>
-                    <h5 class="mb-2 mb-md-3"><i class="fas fa-compass me-2" style="color: var(--accent-primary);"></i>How to Navigate</h5>
+                    <h5 class="mb-2 mb-md-3">
+                        <i class="fas fa-star me-2" style="color: var(--accent-primary);"></i>Features
+                    </h5>
+                    <div class="row g-2 g-md-3 mb-3 mb-md-4">
+                        <div class="col-6 col-md-6">
+                            <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
+                                <i class="fas fa-calendar-day d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <h6 class="mb-1">Daily Verse</h6>
+                                <small class="text-muted d-none d-md-block">A new inspiring verse every day.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
+                                <i class="fas fa-bookmark d-block d-md-inline mb-1 mb-md-2" style="color: #ffd700; font-size: 1.5rem;"></i>
+                                <h6 class="mb-1">Bookmarks</h6>
+                                <small class="text-muted d-none d-md-block">Save your favorite verses.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
+                                <i class="fas fa-highlighter d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <h6 class="mb-1">Verse Highlighting</h6>
+                                <small class="text-muted d-none d-md-block">Highlight important passages.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
+                                <i class="fas fa-headphones d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <h6 class="mb-1">Audio Bible</h6>
+                                <small class="text-muted d-none d-md-block">Listen or download MP3s.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
+                                <i class="fas fa-chart-line d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <h6 class="mb-1">Reading Progress</h6>
+                                <small class="text-muted d-none d-md-block">Track your reading.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-6">
+                            <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
+                                <i class="fas fa-cloud-upload-alt d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <h6 class="mb-1">Cloud Sync</h6>
+                                <small class="text-muted d-none d-md-block">Sync across devices.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <h5 class="mb-2 mb-md-3">
+                        <i class="fas fa-compass me-2" style="color: var(--accent-primary);"></i>How to Navigate
+                    </h5>
                     <div class="navigation-tips p-2 p-md-3 rounded mb-3 mb-md-4" style="background: var(--bg-tertiary);">
                         <div class="row g-2">
-                            <div class="col-6 col-md-4 mb-1 mb-md-2"><i class="fas fa-home me-1 me-md-2"></i> <strong>Home</strong></div>
-                            <div class="col-6 col-md-4 mb-1 mb-md-2"><i class="fas fa-arrow-down me-1 me-md-2"></i> <strong>Scroll</strong></div>
-                            <div class="col-6 col-md-4 mb-1 mb-md-2"><i class="fas fa-book me-1 me-md-2"></i> <strong>Books</strong></div>
-                            <div class="col-6 col-md-4 mb-1 mb-md-2"><i class="fas fa-search me-1 me-md-2"></i> <strong>Search</strong></div>
-                            <div class="col-6 col-md-4 mb-1 mb-md-2"><i class="fas fa-play me-1 me-md-2"></i> <strong>Play</strong></div>
-                            <div class="col-6 col-md-4 mb-1 mb-md-2"><i class="fas fa-download me-1 me-md-2"></i> <strong>Download</strong></div>
+                            <div class="col-6 col-md-4 mb-1 mb-md-2">
+                                <i class="fas fa-home me-1 me-md-2"></i> <strong>Home</strong>
+                            </div>
+                            <div class="col-6 col-md-4 mb-1 mb-md-2">
+                                <i class="fas fa-arrow-down me-1 me-md-2"></i> <strong>Scroll</strong>
+                            </div>
+                            <div class="col-6 col-md-4 mb-1 mb-md-2">
+                                <i class="fas fa-book me-1 me-md-2"></i> <strong>Books</strong>
+                            </div>
+                            <div class="col-6 col-md-4 mb-1 mb-md-2">
+                                <i class="fas fa-search me-1 me-md-2"></i> <strong>Search</strong>
+                            </div>
+                            <div class="col-6 col-md-4 mb-1 mb-md-2">
+                                <i class="fas fa-play me-1 me-md-2"></i> <strong>Play</strong>
+                            </div>
+                            <div class="col-6 col-md-4 mb-1 mb-md-2">
+                                <i class="fas fa-download me-1 me-md-2"></i> <strong>Download</strong>
+                            </div>
                         </div>
                     </div>
                     <div id="announcementSection" class="announcement p-2 p-md-3 rounded" style="background: var(--bg-tertiary); border-left: 4px solid var(--accent-primary);">
-                        <h6 class="mb-2"><i class="fas fa-gift me-2" style="color: var(--accent-primary);"></i>What's New</h6>
+                        <h6 class="mb-2">
+                            <i class="fas fa-gift me-2" style="color: var(--accent-primary);"></i>What's New
+                        </h6>
                         <ul class="mb-0 ps-3 small text-muted">
                             <li class="mb-1"><strong>☁️ Google Sign-In</strong> - Sync your data across all devices</li>
                             <li class="mb-1"><strong>📚 Bookmarks</strong> - Save your favorite verses</li>
@@ -364,8 +994,13 @@
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <div class="form-check"><input class="form-check-input" type="checkbox" id="dontShowAgain"><label class="form-check-label small" for="dontShowAgain">Don't show this again</label></div>
-                    <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal"><i class="fas fa-bible me-2"></i>Start Reading</button>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="dontShowAgain">
+                        <label class="form-check-label small" for="dontShowAgain">Don't show this again</label>
+                    </div>
+                    <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-bible me-2"></i>Start Reading
+                    </button>
                 </div>
             </div>
         </div>
@@ -419,19 +1054,39 @@
                 </button>
             </div>
             
-            <!-- Hamburger button (mobile only) - ALWAYS LAST -->
+            <!-- Hamburger button -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
-            <!-- Everything else pushed to the right on desktop -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <!-- Nav links FIRST -->
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#daily">Daily Verse</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#search">Search</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#books">Books</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#daily">
+                            <i class="fas fa-calendar-day d-lg-none me-2"></i>Daily Verse
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#search">
+                            <i class="fas fa-search d-lg-none me-2"></i>Search
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#books">
+                            <i class="fas fa-book d-lg-none me-2"></i>Books
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('contact') }}">
+                            <i class="fas fa-envelope d-lg-none me-2"></i>Contact
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link apk-download-link" href="{{ url_for('install_guide') }}">
+                            <i class="fas fa-download me-2"></i>Download APK
+                        </a>
+                    </li>
                 </ul>
                 
                 <!-- Desktop: Action icons AFTER nav links -->
@@ -484,7 +1139,18 @@
     <section id="daily" class="py-5">
         <div class="container col-11">
             <h2 class="text-center section-title mb-5">Verse of the Day</h2>
-            <div class="row justify-content-center"><div class="col-lg-8 col-11"><div class="verse-card">{% if daily_verse %}<p class="verse-text">"{{ daily_verse.text }}"</p><p class="reference">— {{ daily_verse.reference }}</p>{% else %}<p class="text-muted fs-4">Loading today's verse...</p>{% endif %}</div></div></div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-11">
+                    <div class="verse-card">
+                        {% if daily_verse %}
+                            <p class="verse-text">"{{ daily_verse.text }}"</p>
+                            <p class="reference">— {{ daily_verse.reference }}</p>
+                        {% else %}
+                            <p class="text-muted fs-4">Loading today's verse...</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -501,8 +1167,21 @@
                     </div>
                 </form>
                 {% if search_results %}
-                <div class="mt-5 row g-4">{% for result in search_results %}<div class="col-11 col-md-6 col-lg-4"><div class="card p-4 shadow-sm"><p class="verse-text mb-3">{{ result.text }}</p><p class="reference text-end mb-0">{{ result.reference }}</p></div></div>{% endfor %}</div>
-                {% elif search_performed %}<div class="alert alert-info text-center mt-4"><i class="fas fa-info-circle me-2"></i>No verses found. Try different keywords.</div>{% endif %}
+                    <div class="mt-5 row g-4">
+                        {% for result in search_results %}
+                            <div class="col-11 col-md-6 col-lg-4">
+                                <div class="card p-4 shadow-sm">
+                                    <p class="verse-text mb-3">{{ result.text }}</p>
+                                    <p class="reference text-end mb-0">{{ result.reference }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% elif search_performed %}
+                    <div class="alert alert-info text-center mt-4">
+                        <i class="fas fa-info-circle me-2"></i>No verses found. Try different keywords.
+                    </div>
+                {% endif %}
             </div>
         </div>
     </section>
@@ -513,12 +1192,34 @@
             <p class="text-center text-muted mb-4">Instantly view a specific verse or verse range (e.g., Psalm 36:2-4).</p>
             <div class="card p-4 shadow-sm">
                 <form id="quickLookupForm" class="row g-3 align-items-end">
-                    <div class="col-md-4"><label for="qlBook" class="form-label">Book</label><select id="qlBook" class="form-select" required><option value="" disabled selected>Select a book</option></select></div>
-                    <div class="col-md-2"><label for="qlChapter" class="form-label">Chapter</label><select id="qlChapter" class="form-select" disabled required><option value="" disabled selected>Select chapter</option></select></div>
-                    <div class="col-md-3"><label for="qlVerseRange" class="form-label">Verse (or range)</label><input id="qlVerseRange" type="text" class="form-control" placeholder="e.g. 2 or 2-4" required></div>
-                    <div class="col-md-3"><label for="qlVersion" class="form-label">Version</label><select id="qlVersion" class="form-select" required><option value="" disabled selected>Select version</option></select></div>
-                    <div class="col-12 text-end"><button type="submit" class="btn btn-success">Lookup Verse</button></div>
-                    <div class="col-12"><div id="qlMessage" class="alert d-none" role="alert"></div></div>
+                    <div class="col-md-4">
+                        <label for="qlBook" class="form-label">Book</label>
+                        <select id="qlBook" class="form-select" required>
+                            <option value="" disabled selected>Select a book</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="qlChapter" class="form-label">Chapter</label>
+                        <select id="qlChapter" class="form-select" disabled required>
+                            <option value="" disabled selected>Select chapter</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="qlVerseRange" class="form-label">Verse (or range)</label>
+                        <input id="qlVerseRange" type="text" class="form-control" placeholder="e.g. 2 or 2-4" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="qlVersion" class="form-label">Version</label>
+                        <select id="qlVersion" class="form-select" required>
+                            <option value="" disabled selected>Select version</option>
+                        </select>
+                    </div>
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-success">Lookup Verse</button>
+                    </div>
+                    <div class="col-12">
+                        <div id="qlMessage" class="alert d-none" role="alert"></div>
+                    </div>
                 </form>
                 <div id="quickLookupResults" class="mt-4"></div>
             </div>
@@ -529,8 +1230,19 @@
         <div class="container col-11">
             <h2 class="text-center section-title mb-5">Browse the Bible</h2>
             <div class="row g-4">
-                {% for book in books %}<div class="col-lg-3 col-md-4 col-sm-6 col-6"><a href="{{ url_for('books', book_slug=book.slug) }}" class="text-decoration-none"><div class="book-card"><i class="fas fa-book-open"></i><h5 class="mt-3 mb-1">{{ book.name }}</h5><small class="text-muted">{{ book.chapters }} chapters</small></div></a></div>
-                {% else %}<p class="text-center text-muted col-12">Loading books of the Bible...</p>{% endfor %}
+                {% for book in books %}
+                    <div class="col-lg-3 col-md-4 col-sm-6 col-6">
+                        <a href="{{ url_for('books', book_slug=book.slug) }}" class="text-decoration-none">
+                            <div class="book-card">
+                                <i class="fas fa-book-open"></i>
+                                <h5 class="mt-3 mb-1">{{ book.name }}</h5>
+                                <small class="text-muted">{{ book.chapters }} chapters</small>
+                            </div>
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-center text-muted col-12">Loading books of the Bible...</p>
+                {% endfor %}
             </div>
         </div>
     </section>
@@ -539,13 +1251,35 @@
     <div class="container col-11" style="margin-bottom: 30px;">
         <div style="background: linear-gradient(135deg, #8d9b6a, #5d4037); color: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
             <div class="row align-items-center">
-                <div class="col-md-7"><div class="d-flex align-items-center gap-3 mb-3 mb-md-0"><i class="fab fa-android fa-3x"></i><div><h4 class="mb-1">Get the Android App</h4><p class="mb-0 opacity-75">Install on your phone for quick access</p></div></div></div>
-                <div class="col-md-5 text-md-end"><a href="{{ url_for('static', filename='app/MyPersonalBible.apk') }}" class="btn btn-light btn-lg" download><i class="fas fa-download me-2"></i>Download APK</a><br><small class="opacity-50 mt-1 d-inline-block">Version 1.0 • ~3 MB • Free</small></div>
+                <div class="col-md-7">
+                    <div class="d-flex align-items-center gap-3 mb-3 mb-md-0">
+                        <i class="fab fa-android fa-3x"></i>
+                        <div>
+                            <h4 class="mb-1">Get the Android App</h4>
+                            <p class="mb-0 opacity-75">Install on your phone for quick access</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5 text-md-end">
+                    <a href="{{ url_for('static', filename='app/MyPersonalBible.apk') }}" class="btn btn-light btn-lg" download>
+                        <i class="fas fa-download me-2"></i>Download APK
+                    </a>
+                    <!-- How to Install button - visible only on mobile -->
+                    <a href="{{ url_for('install_guide') }}" class="btn btn-outline-light btn-lg d-md-none mt-2 mt-md-0 ms-md-2">
+                        <i class="fas fa-question-circle me-2"></i>How to Install
+                    </a>
+                    <br>
+                    <small class="opacity-50 mt-1 d-inline-block">Version 1.0 • ~3 MB • Free</small>
+                </div>
             </div>
         </div>
     </div>
 
-    <footer><div class="container text-center"><p class="mt-3">&copy; {{ current_year }} MyPersonal Bible App • Made with reverence for the Holy Scriptures</p></div></footer>
+    <footer>
+        <div class="container text-center">
+            <p class="mt-3">&copy; {{ current_year }} MyPersonal Bible App • Made with reverence for the Holy Scriptures</p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -553,73 +1287,645 @@
         const BIBLE_BOOKS = {{ books|tojson|safe }};
         const BIBLE_VERSIONS = {{ versions|tojson|safe }};
         const USER_AUTHENTICATED = {{ 'true' if user else 'false' }};
-        const qlBook = document.getElementById('qlBook'), qlChapter = document.getElementById('qlChapter'), qlVerseRange = document.getElementById('qlVerseRange'), qlVersion = document.getElementById('qlVersion'), qlMessage = document.getElementById('qlMessage'), qlResults = document.getElementById('quickLookupResults');
-        let speechSynth = window.speechSynthesis, speechUtterance = null, isPaused = false, isSpeechPlaying = false, speechQueue = [], currentChunkIndex = 0, estimatedDuration = 0, speechStartTime = 0, pausedAt = 0, isDownloading = false, progressTimer = null, currentSpeed = 1.0, currentAudioText = '', audioProgressBar = null, audioCurrentTimeSpan = null, audioDurationSpan = null;
+        
+        const qlBook = document.getElementById('qlBook');
+        const qlChapter = document.getElementById('qlChapter');
+        const qlVerseRange = document.getElementById('qlVerseRange');
+        const qlVersion = document.getElementById('qlVersion');
+        const qlMessage = document.getElementById('qlMessage');
+        const qlResults = document.getElementById('quickLookupResults');
+        
+        let speechSynth = window.speechSynthesis;
+        let speechUtterance = null;
+        let isPaused = false;
+        let isSpeechPlaying = false;
+        let speechQueue = [];
+        let currentChunkIndex = 0;
+        let estimatedDuration = 0;
+        let speechStartTime = 0;
+        let pausedAt = 0;
+        let isDownloading = false;
+        let progressTimer = null;
+        let currentSpeed = 1.0;
+        let currentAudioText = '';
+        let audioProgressBar = null;
+        let audioCurrentTimeSpan = null;
+        let audioDurationSpan = null;
 
-        function showSyncToast(msg, type = 'info') { const t = document.createElement('div'); t.className = 'sync-toast'; t.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'sync-alt'} me-2"></i>${msg}`; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
-        function getAllReadingProgress() { const p = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith('reading_progress_')) { try { p[k] = JSON.parse(localStorage.getItem(k)); } catch (e) {} } } return p; }
-        async function syncNow() { if (!USER_AUTHENTICATED) { showSyncToast('Please sign in to sync your data', 'warning'); return; } showSyncToast('Syncing your data...'); try { const ld = { bookmarks: JSON.parse(localStorage.getItem('bibleBookmarks') || '[]'), highlights: JSON.parse(localStorage.getItem('bibleHighlights') || '{}'), progress: getAllReadingProgress(), font_size: localStorage.getItem('bibleFontSize'), theme: localStorage.getItem('bibleAppTheme') }; const r = await fetch('/api/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ld) }); if (r.ok) { const sr = await fetch('/api/sync'); const sd = await sr.json(); if (sd.bookmarks) localStorage.setItem('bibleBookmarks', JSON.stringify(sd.bookmarks)); if (sd.highlights) localStorage.setItem('bibleHighlights', JSON.stringify(sd.highlights)); if (sd.font_size) localStorage.setItem('bibleFontSize', sd.font_size); if (sd.theme) localStorage.setItem('bibleAppTheme', sd.theme); showSyncToast('Sync completed!', 'success'); } else { showSyncToast('Sync failed.', 'danger'); } } catch (e) { showSyncToast('Sync failed.', 'danger'); } }
+        function showSyncToast(msg, type = 'info') {
+            const t = document.createElement('div');
+            t.className = 'sync-toast';
+            t.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'sync-alt'} me-2"></i>${msg}`;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+        
+        function getAllReadingProgress() {
+            const p = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('reading_progress_')) {
+                    try {
+                        p[k] = JSON.parse(localStorage.getItem(k));
+                    } catch (e) {}
+                }
+            }
+            return p;
+        }
+        
+        async function syncNow() {
+            if (!USER_AUTHENTICATED) {
+                showSyncToast('Please sign in to sync your data', 'warning');
+                return;
+            }
+            showSyncToast('Syncing your data...');
+            try {
+                const ld = {
+                    bookmarks: JSON.parse(localStorage.getItem('bibleBookmarks') || '[]'),
+                    highlights: JSON.parse(localStorage.getItem('bibleHighlights') || '{}'),
+                    progress: getAllReadingProgress(),
+                    font_size: localStorage.getItem('bibleFontSize'),
+                    theme: localStorage.getItem('bibleAppTheme')
+                };
+                const r = await fetch('/api/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ld)
+                });
+                if (r.ok) {
+                    const sr = await fetch('/api/sync');
+                    const sd = await sr.json();
+                    if (sd.bookmarks) localStorage.setItem('bibleBookmarks', JSON.stringify(sd.bookmarks));
+                    if (sd.highlights) localStorage.setItem('bibleHighlights', JSON.stringify(sd.highlights));
+                    if (sd.font_size) localStorage.setItem('bibleFontSize', sd.font_size);
+                    if (sd.theme) localStorage.setItem('bibleAppTheme', sd.theme);
+                    showSyncToast('Sync completed!', 'success');
+                } else {
+                    showSyncToast('Sync failed.', 'danger');
+                }
+            } catch (e) {
+                showSyncToast('Sync failed.', 'danger');
+            }
+        }
 
-        function showQlMessage(msg, type = 'danger') { qlMessage.className = `alert alert-${type}`; qlMessage.textContent = msg; qlMessage.classList.remove('d-none'); }
-        function clearQlMessage() { qlMessage.className = 'alert d-none'; qlMessage.textContent = ''; }
-        function buildChapterOptions(name) { const b = BIBLE_BOOKS.find(b => b.name.toLowerCase() === name.toLowerCase()); qlChapter.innerHTML = '<option value="" disabled selected>Select chapter</option>'; if (!b) { qlChapter.disabled = true; return; } for (let i = 1; i <= b.chapters; i++) { const o = document.createElement('option'); o.value = i; o.textContent = i; qlChapter.appendChild(o); } qlChapter.disabled = false; }
-        function buildVersionOptions() { qlVersion.innerHTML = '<option value="" disabled selected>Select version</option>'; BIBLE_VERSIONS.forEach(v => { const o = document.createElement('option'); o.value = v.id; o.textContent = v.version; qlVersion.appendChild(o); }); if (qlVersion.options.length > 1) qlVersion.selectedIndex = 1; }
-        function parseVerseRange(raw) { if (!raw) return null; const p = raw.trim().split('-').map(p => parseInt(p.trim(), 10)); if (p.some(isNaN)) return null; return { start: Math.max(1, p[0]), end: p.length > 1 ? Math.max(p[0], p[1]) : p[0] }; }
-        function verseNumber(item) { if (item.verse) { const n = parseInt(item.verse, 10); if (!isNaN(n)) return n; } if (item.reference) { const m = item.reference.match(/:(\d+)/); if (m) return parseInt(m[1], 10); } return NaN; }
-        function formatTime(seconds) { if (isNaN(seconds) || seconds < 0) seconds = 0; const m = Math.floor(seconds / 60), s = Math.floor(seconds % 60); return `${m}:${s.toString().padStart(2, '0')}`; }
-        function estimateSpeakingTime(text) { return (text.trim().split(/\s+/).length / 150) * 60; }
-        function chunkTextForSpeech(text) { const maxSz = 200, chunks = [], sentences = text.match(/[^.!?]+[.!?]+/g) || [text]; let cur = ''; for (const s of sentences) { if ((cur + ' ' + s).length > maxSz && cur) { chunks.push(cur.trim()); cur = s; } else cur += (cur ? ' ' : '') + s; } if (cur) chunks.push(cur.trim()); return chunks.length ? chunks : [text]; }
-        function stopSpeech() { if (speechSynth) speechSynth.cancel(); speechUtterance = null; isSpeechPlaying = false; isPaused = false; speechQueue = []; currentChunkIndex = 0; stopProgressTimer(); }
-        function updatePlayButtonState() { const b = document.getElementById('qlPlayBtn'); if (b) { if (isSpeechPlaying && !isPaused) { b.innerHTML = '<i class="fas fa-pause me-2"></i>Pause'; b.classList.remove('btn-success'); b.classList.add('btn-warning'); } else if (isPaused) { b.innerHTML = '<i class="fas fa-play me-2"></i>Resume'; b.classList.remove('btn-warning'); b.classList.add('btn-success'); } else { b.innerHTML = '<i class="fas fa-play me-2"></i>Play'; b.classList.remove('btn-warning'); b.classList.add('btn-success'); } } }
-        function updateSpeechProgress() { if (isSpeechPlaying && !isPaused && estimatedDuration > 0) { const el = (Date.now() - speechStartTime) / 1000; let ct = pausedAt + el; if (ct > estimatedDuration) ct = estimatedDuration; if (audioProgressBar) audioProgressBar.style.width = Math.min((ct / estimatedDuration) * 100, 100) + '%'; if (audioCurrentTimeSpan) audioCurrentTimeSpan.textContent = formatTime(ct); } }
-        function startProgressTimer() { if (progressTimer) clearInterval(progressTimer); progressTimer = setInterval(updateSpeechProgress, 100); }
-        function stopProgressTimer() { if (progressTimer) { clearInterval(progressTimer); progressTimer = null; } }
-        function speakNextChunk() { if (!isSpeechPlaying || isPaused) return; if (currentChunkIndex < speechQueue.length) { const c = speechQueue[currentChunkIndex]; speechUtterance = new SpeechSynthesisUtterance(c); speechUtterance.rate = currentSpeed; speechUtterance.pitch = 1.0; speechUtterance.volume = 1.0; speechUtterance.lang = 'en-US'; const v = speechSynth.getVoices(); const ev = v.find(v => v.lang === 'en-US' && v.name.includes('Google')) || v.find(v => v.lang === 'en-US') || v.find(v => v.lang.startsWith('en')); if (ev) speechUtterance.voice = ev; speechUtterance.onstart = () => { speechStartTime = Date.now(); }; speechUtterance.onend = () => { currentChunkIndex++; if (currentChunkIndex < speechQueue.length && isSpeechPlaying && !isPaused) speakNextChunk(); else if (currentChunkIndex >= speechQueue.length) { isSpeechPlaying = false; isPaused = false; stopProgressTimer(); updatePlayButtonState(); if (audioProgressBar) audioProgressBar.style.width = '0%'; if (audioCurrentTimeSpan) audioCurrentTimeSpan.textContent = '0:00'; } }; speechUtterance.onerror = (e) => { if (e.error !== 'interrupted' && e.error !== 'canceled') { currentChunkIndex++; if (isSpeechPlaying && !isPaused) speakNextChunk(); } }; speechSynth.speak(speechUtterance); } }
-        function initSpeech() { return new Promise((resolve) => { if (speechSynth.getVoices().length) resolve(); else speechSynth.onvoiceschanged = () => resolve(); }); }
+        function showQlMessage(msg, type = 'danger') {
+            qlMessage.className = `alert alert-${type}`;
+            qlMessage.textContent = msg;
+            qlMessage.classList.remove('d-none');
+        }
+        
+        function clearQlMessage() {
+            qlMessage.className = 'alert d-none';
+            qlMessage.textContent = '';
+        }
+        
+        function buildChapterOptions(name) {
+            const b = BIBLE_BOOKS.find(b => b.name.toLowerCase() === name.toLowerCase());
+            qlChapter.innerHTML = '<option value="" disabled selected>Select chapter</option>';
+            if (!b) {
+                qlChapter.disabled = true;
+                return;
+            }
+            for (let i = 1; i <= b.chapters; i++) {
+                const o = document.createElement('option');
+                o.value = i;
+                o.textContent = i;
+                qlChapter.appendChild(o);
+            }
+            qlChapter.disabled = false;
+        }
+        
+        function buildVersionOptions() {
+            qlVersion.innerHTML = '<option value="" disabled selected>Select version</option>';
+            BIBLE_VERSIONS.forEach(v => {
+                const o = document.createElement('option');
+                o.value = v.id;
+                o.textContent = v.version;
+                qlVersion.appendChild(o);
+            });
+            if (qlVersion.options.length > 1) qlVersion.selectedIndex = 1;
+        }
+        
+        function parseVerseRange(raw) {
+            if (!raw) return null;
+            const p = raw.trim().split('-').map(p => parseInt(p.trim(), 10));
+            if (p.some(isNaN)) return null;
+            return {
+                start: Math.max(1, p[0]),
+                end: p.length > 1 ? Math.max(p[0], p[1]) : p[0]
+            };
+        }
+        
+        function verseNumber(item) {
+            if (item.verse) {
+                const n = parseInt(item.verse, 10);
+                if (!isNaN(n)) return n;
+            }
+            if (item.reference) {
+                const m = item.reference.match(/:(\d+)/);
+                if (m) return parseInt(m[1], 10);
+            }
+            return NaN;
+        }
+        
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds < 0) seconds = 0;
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+        
+        function estimateSpeakingTime(text) {
+            return (text.trim().split(/\s+/).length / 150) * 60;
+        }
+        
+        function chunkTextForSpeech(text) {
+            const maxSz = 200;
+            const chunks = [];
+            const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+            let cur = '';
+            for (const s of sentences) {
+                if ((cur + ' ' + s).length > maxSz && cur) {
+                    chunks.push(cur.trim());
+                    cur = s;
+                } else {
+                    cur += (cur ? ' ' : '') + s;
+                }
+            }
+            if (cur) chunks.push(cur.trim());
+            return chunks.length ? chunks : [text];
+        }
+        
+        function stopSpeech() {
+            if (speechSynth) speechSynth.cancel();
+            speechUtterance = null;
+            isSpeechPlaying = false;
+            isPaused = false;
+            speechQueue = [];
+            currentChunkIndex = 0;
+            stopProgressTimer();
+        }
+        
+        function updatePlayButtonState() {
+            const b = document.getElementById('qlPlayBtn');
+            if (b) {
+                if (isSpeechPlaying && !isPaused) {
+                    b.innerHTML = '<i class="fas fa-pause me-2"></i>Pause';
+                    b.classList.remove('btn-success');
+                    b.classList.add('btn-warning');
+                } else if (isPaused) {
+                    b.innerHTML = '<i class="fas fa-play me-2"></i>Resume';
+                    b.classList.remove('btn-warning');
+                    b.classList.add('btn-success');
+                } else {
+                    b.innerHTML = '<i class="fas fa-play me-2"></i>Play';
+                    b.classList.remove('btn-warning');
+                    b.classList.add('btn-success');
+                }
+            }
+        }
+        
+        function updateSpeechProgress() {
+            if (isSpeechPlaying && !isPaused && estimatedDuration > 0) {
+                const el = (Date.now() - speechStartTime) / 1000;
+                let ct = pausedAt + el;
+                if (ct > estimatedDuration) ct = estimatedDuration;
+                if (audioProgressBar) {
+                    audioProgressBar.style.width = Math.min((ct / estimatedDuration) * 100, 100) + '%';
+                }
+                if (audioCurrentTimeSpan) {
+                    audioCurrentTimeSpan.textContent = formatTime(ct);
+                }
+            }
+        }
+        
+        function startProgressTimer() {
+            if (progressTimer) clearInterval(progressTimer);
+            progressTimer = setInterval(updateSpeechProgress, 100);
+        }
+        
+        function stopProgressTimer() {
+            if (progressTimer) {
+                clearInterval(progressTimer);
+                progressTimer = null;
+            }
+        }
+        
+        function speakNextChunk() {
+            if (!isSpeechPlaying || isPaused) return;
+            if (currentChunkIndex < speechQueue.length) {
+                const c = speechQueue[currentChunkIndex];
+                speechUtterance = new SpeechSynthesisUtterance(c);
+                speechUtterance.rate = currentSpeed;
+                speechUtterance.pitch = 1.0;
+                speechUtterance.volume = 1.0;
+                speechUtterance.lang = 'en-US';
+                const v = speechSynth.getVoices();
+                const ev = v.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
+                           v.find(v => v.lang === 'en-US') ||
+                           v.find(v => v.lang.startsWith('en'));
+                if (ev) speechUtterance.voice = ev;
+                speechUtterance.onstart = () => {
+                    speechStartTime = Date.now();
+                };
+                speechUtterance.onend = () => {
+                    currentChunkIndex++;
+                    if (currentChunkIndex < speechQueue.length && isSpeechPlaying && !isPaused) {
+                        speakNextChunk();
+                    } else if (currentChunkIndex >= speechQueue.length) {
+                        isSpeechPlaying = false;
+                        isPaused = false;
+                        stopProgressTimer();
+                        updatePlayButtonState();
+                        if (audioProgressBar) audioProgressBar.style.width = '0%';
+                        if (audioCurrentTimeSpan) audioCurrentTimeSpan.textContent = '0:00';
+                    }
+                };
+                speechUtterance.onerror = (e) => {
+                    if (e.error !== 'interrupted' && e.error !== 'canceled') {
+                        currentChunkIndex++;
+                        if (isSpeechPlaying && !isPaused) speakNextChunk();
+                    }
+                };
+                speechSynth.speak(speechUtterance);
+            }
+        }
+        
+        function initSpeech() {
+            return new Promise((resolve) => {
+                if (speechSynth.getVoices().length) {
+                    resolve();
+                } else {
+                    speechSynth.onvoiceschanged = () => resolve();
+                }
+            });
+        }
 
-        async function playAudio(text) { if (!text) { alert('No text to play'); return; } if (isSpeechPlaying && !isPaused) { speechSynth.pause(); isPaused = true; pausedAt += (Date.now() - speechStartTime) / 1000; stopProgressTimer(); updatePlayButtonState(); return; } if (isSpeechPlaying && isPaused) { speechSynth.resume(); isPaused = false; speechStartTime = Date.now(); startProgressTimer(); updatePlayButtonState(); return; } stopSpeech(); try { await initSpeech(); speechQueue = chunkTextForSpeech(text); currentChunkIndex = 0; estimatedDuration = estimateSpeakingTime(text) / currentSpeed; if (audioDurationSpan) audioDurationSpan.textContent = formatTime(estimatedDuration); isSpeechPlaying = true; isPaused = false; pausedAt = 0; speechStartTime = Date.now(); speakNextChunk(); startProgressTimer(); updatePlayButtonState(); } catch (e) { alert('Speech synthesis failed.'); isSpeechPlaying = false; updatePlayButtonState(); } }
+        async function playAudio(text) {
+            if (!text) {
+                alert('No text to play');
+                return;
+            }
+            if (isSpeechPlaying && !isPaused) {
+                speechSynth.pause();
+                isPaused = true;
+                pausedAt += (Date.now() - speechStartTime) / 1000;
+                stopProgressTimer();
+                updatePlayButtonState();
+                return;
+            }
+            if (isSpeechPlaying && isPaused) {
+                speechSynth.resume();
+                isPaused = false;
+                speechStartTime = Date.now();
+                startProgressTimer();
+                updatePlayButtonState();
+                return;
+            }
+            stopSpeech();
+            try {
+                await initSpeech();
+                speechQueue = chunkTextForSpeech(text);
+                currentChunkIndex = 0;
+                estimatedDuration = estimateSpeakingTime(text) / currentSpeed;
+                if (audioDurationSpan) audioDurationSpan.textContent = formatTime(estimatedDuration);
+                isSpeechPlaying = true;
+                isPaused = false;
+                pausedAt = 0;
+                speechStartTime = Date.now();
+                speakNextChunk();
+                startProgressTimer();
+                updatePlayButtonState();
+            } catch (e) {
+                alert('Speech synthesis failed.');
+                isSpeechPlaying = false;
+                updatePlayButtonState();
+            }
+        }
 
-        async function downloadAudio(text, filename) { if (!text) { alert('No text to download'); return; } if (isDownloading) { alert('Download already in progress'); return; } const b = document.getElementById('qlDownloadBtn'); isDownloading = true; b.disabled = true; const oh = b.innerHTML; b.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...'; try { const r = await fetch('/api/download-audio', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, filename }) }); if (!r.ok) { const e = await r.json(); throw new Error(e.error || 'Failed'); } const blob = await r.blob(); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); window.URL.revokeObjectURL(url); b.innerHTML = '<i class="fas fa-check me-2"></i>Downloaded!'; setTimeout(() => { b.innerHTML = oh; }, 3000); } catch (e) { alert('Failed: ' + e.message); b.innerHTML = oh; } finally { b.disabled = false; isDownloading = false; } }
+        async function downloadAudio(text, filename) {
+            if (!text) {
+                alert('No text to download');
+                return;
+            }
+            if (isDownloading) {
+                alert('Download already in progress');
+                return;
+            }
+            const b = document.getElementById('qlDownloadBtn');
+            isDownloading = true;
+            b.disabled = true;
+            const oh = b.innerHTML;
+            b.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+            try {
+                const r = await fetch('/api/download-audio', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, filename })
+                });
+                if (!r.ok) {
+                    const e = await r.json();
+                    throw new Error(e.error || 'Failed');
+                }
+                const blob = await r.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                b.innerHTML = '<i class="fas fa-check me-2"></i>Downloaded!';
+                setTimeout(() => {
+                    b.innerHTML = oh;
+                }, 3000);
+            } catch (e) {
+                alert('Failed: ' + e.message);
+                b.innerHTML = oh;
+            } finally {
+                b.disabled = false;
+                isDownloading = false;
+            }
+        }
 
-        function seekTo(seconds) { if (isSpeechPlaying) { const tt = Math.max(0, Math.min(seconds, estimatedDuration)); const prog = tt / estimatedDuration; const tc = Math.floor(prog * speechQueue.length); speechSynth.cancel(); currentChunkIndex = Math.min(tc, speechQueue.length - 1); pausedAt = tt; if (!isPaused) { speechStartTime = Date.now(); speakNextChunk(); } updateSpeechProgress(); } }
+        function seekTo(seconds) {
+            if (isSpeechPlaying) {
+                const tt = Math.max(0, Math.min(seconds, estimatedDuration));
+                const prog = tt / estimatedDuration;
+                const tc = Math.floor(prog * speechQueue.length);
+                speechSynth.cancel();
+                currentChunkIndex = Math.min(tc, speechQueue.length - 1);
+                pausedAt = tt;
+                if (!isPaused) {
+                    speechStartTime = Date.now();
+                    speakNextChunk();
+                }
+                updateSpeechProgress();
+            }
+        }
 
         let currentVerses = [];
-        function renderVerseCards(verses) { currentVerses = verses || []; stopSpeech(); isSpeechPlaying = false; isPaused = false; if (!verses || !verses.length) { qlResults.innerHTML = '<div class="alert alert-info">No matching verses found.</div>'; return; } const at = verses.map(v => { const ref = v.reference || `${v.book || ''} ${v.chapter || ''}:${v.verse || ''}`; return `${ref}. ${v.text}`; }).join(' '); currentAudioText = at; const fv = verses[0], lv = verses[verses.length - 1]; const fn = `${fv.book || 'bible'}_${fv.chapter}_${fv.verse}-${lv.verse}.mp3`; const cards = verses.map(v => { const ref = v.reference || `${v.book || ''} ${v.chapter || ''}:${v.verse || ''}`; return `<div class="col-12 col-md-6 col-lg-4"><div class="card p-4 shadow-sm mb-3"><p class="verse-text mb-3">${v.text}</p><p class="reference text-end mb-0">${ref}</p></div></div>`; }).join(''); qlResults.innerHTML = `<div class="d-flex justify-content-end mb-3 gap-2"><button id="qlPlayBtn" class="btn btn-success"><i class="fas fa-play me-2"></i>Play</button><button id="qlDownloadBtn" class="btn btn-primary"><i class="fas fa-download me-2"></i>Download MP3</button></div><div class="audio-progress-container"><div class="audio-progress" id="qlAudioProgressContainer"><div class="audio-progress-bar" id="qlAudioProgressBar"></div></div><div class="d-flex justify-content-between mt-1"><span class="audio-time-display"><span id="qlAudioCurrentTime">0:00</span></span><span class="audio-time-display"><span id="qlAudioDuration">0:00</span></span></div></div><div class="row g-4">${cards}</div>`; audioProgressBar = document.getElementById('qlAudioProgressBar'); audioCurrentTimeSpan = document.getElementById('qlAudioCurrentTime'); audioDurationSpan = document.getElementById('qlAudioDuration'); const pc = document.getElementById('qlAudioProgressContainer'); if (pc) { pc.addEventListener('click', (e) => { if (isSpeechPlaying && estimatedDuration > 0) { const rect = pc.getBoundingClientRect(); seekTo(((e.clientX - rect.left) / rect.width) * estimatedDuration); } }); } document.getElementById('qlPlayBtn').addEventListener('click', () => playAudio(currentAudioText)); document.getElementById('qlDownloadBtn').addEventListener('click', () => downloadAudio(currentAudioText, fn)); }
+        
+        function renderVerseCards(verses) {
+            currentVerses = verses || [];
+            stopSpeech();
+            isSpeechPlaying = false;
+            isPaused = false;
+            if (!verses || !verses.length) {
+                qlResults.innerHTML = '<div class="alert alert-info">No matching verses found.</div>';
+                return;
+            }
+            const at = verses.map(v => {
+                const ref = v.reference || `${v.book || ''} ${v.chapter || ''}:${v.verse || ''}`;
+                return `${ref}. ${v.text}`;
+            }).join(' ');
+            currentAudioText = at;
+            const fv = verses[0];
+            const lv = verses[verses.length - 1];
+            const fn = `${fv.book || 'bible'}_${fv.chapter}_${fv.verse}-${lv.verse}.mp3`;
+            const cards = verses.map(v => {
+                const ref = v.reference || `${v.book || ''} ${v.chapter || ''}:${v.verse || ''}`;
+                return `
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card p-4 shadow-sm mb-3">
+                            <p class="verse-text mb-3">${v.text}</p>
+                            <p class="reference text-end mb-0">${ref}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            qlResults.innerHTML = `
+                <div class="d-flex justify-content-end mb-3 gap-2">
+                    <button id="qlPlayBtn" class="btn btn-success">
+                        <i class="fas fa-play me-2"></i>Play
+                    </button>
+                    <button id="qlDownloadBtn" class="btn btn-primary">
+                        <i class="fas fa-download me-2"></i>Download MP3
+                    </button>
+                </div>
+                <div class="audio-progress-container">
+                    <div class="audio-progress" id="qlAudioProgressContainer">
+                        <div class="audio-progress-bar" id="qlAudioProgressBar"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-1">
+                        <span class="audio-time-display">
+                            <span id="qlAudioCurrentTime">0:00</span>
+                        </span>
+                        <span class="audio-time-display">
+                            <span id="qlAudioDuration">0:00</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="row g-4">${cards}</div>
+            `;
+            audioProgressBar = document.getElementById('qlAudioProgressBar');
+            audioCurrentTimeSpan = document.getElementById('qlAudioCurrentTime');
+            audioDurationSpan = document.getElementById('qlAudioDuration');
+            const pc = document.getElementById('qlAudioProgressContainer');
+            if (pc) {
+                pc.addEventListener('click', (e) => {
+                    if (isSpeechPlaying && estimatedDuration > 0) {
+                        const rect = pc.getBoundingClientRect();
+                        seekTo(((e.clientX - rect.left) / rect.width) * estimatedDuration);
+                    }
+                });
+            }
+            document.getElementById('qlPlayBtn').addEventListener('click', () => playAudio(currentAudioText));
+            document.getElementById('qlDownloadBtn').addEventListener('click', () => downloadAudio(currentAudioText, fn));
+        }
 
+        // Theme Toggle - FIXED to work for both mobile and desktop
         (function() {
-            const themeToggle = document.getElementById('themeToggle'), themeIcon = document.getElementById('themeIcon'), htmlElement = document.documentElement;
+            const themeToggle = document.getElementById('themeToggle');
+            const themeToggleMobile = document.getElementById('themeToggleMobile');
+            const themeIcon = document.getElementById('themeIcon');
+            const themeIconMobile = document.getElementById('themeIconMobile');
+            const htmlElement = document.documentElement;
+            
             const savedTheme = localStorage.getItem('bibleAppTheme');
-            if (savedTheme) { htmlElement.setAttribute('data-theme', savedTheme); updateThemeUI(savedTheme); } else { const pd = window.matchMedia('(prefers-color-scheme: dark)').matches; const t = pd ? 'dark' : 'light'; htmlElement.setAttribute('data-theme', t); updateThemeUI(t); }
-            function toggleTheme() { const ct = htmlElement.getAttribute('data-theme'); const nt = ct === 'dark' ? 'light' : 'dark'; htmlElement.setAttribute('data-theme', nt); localStorage.setItem('bibleAppTheme', nt); updateThemeUI(nt); }
-            function updateThemeUI(theme) { if (themeIcon) { themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'; if (themeToggle) themeToggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'; } }
-            if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => { if (!localStorage.getItem('bibleAppTheme')) { const nt = e.matches ? 'dark' : 'light'; htmlElement.setAttribute('data-theme', nt); updateThemeUI(nt); } });
+            if (savedTheme) {
+                htmlElement.setAttribute('data-theme', savedTheme);
+                updateThemeUI(savedTheme);
+            } else {
+                const pd = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const t = pd ? 'dark' : 'light';
+                htmlElement.setAttribute('data-theme', t);
+                updateThemeUI(t);
+            }
+            
+            function toggleTheme() {
+                const ct = htmlElement.getAttribute('data-theme');
+                const nt = ct === 'dark' ? 'light' : 'dark';
+                htmlElement.setAttribute('data-theme', nt);
+                localStorage.setItem('bibleAppTheme', nt);
+                updateThemeUI(nt);
+            }
+            
+            function updateThemeUI(theme) {
+                const isDark = theme === 'dark';
+                if (themeIcon) {
+                    themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+                }
+                if (themeIconMobile) {
+                    themeIconMobile.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+                }
+                if (themeToggle) {
+                    themeToggle.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+                }
+                if (themeToggleMobile) {
+                    themeToggleMobile.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+                }
+            }
+            
+            if (themeToggle) {
+                themeToggle.addEventListener('click', toggleTheme);
+            }
+            if (themeToggleMobile) {
+                themeToggleMobile.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    toggleTheme();
+                });
+            }
+            
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                if (!localStorage.getItem('bibleAppTheme')) {
+                    const nt = e.matches ? 'dark' : 'light';
+                    htmlElement.setAttribute('data-theme', nt);
+                    updateThemeUI(nt);
+                }
+            });
         })();
 
+        // Welcome Modal & Help Button - FIXED to work for both mobile and desktop
         (function() {
-            const wm = new bootstrap.Modal(document.getElementById('welcomeModal'), { backdrop: true, keyboard: true, focus: true });
-            const dsc = document.getElementById('dontShowAgain'), hb = document.getElementById('helpButton');
-            const APP_VERSION = '2.2.0'; const lsv = localStorage.getItem('bibleAppVersion');
-            if (lsv !== APP_VERSION) { localStorage.removeItem('bibleAppWelcomeSeen'); localStorage.removeItem('bibleAppDontShowWelcome'); localStorage.setItem('bibleAppVersion', APP_VERSION); }
+            const wm = new bootstrap.Modal(document.getElementById('welcomeModal'), {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            });
+            const dsc = document.getElementById('dontShowAgain');
+            const hb = document.getElementById('helpButton');
+            const hbMobile = document.getElementById('helpButtonMobile');
+            const APP_VERSION = '2.2.0';
+            const lsv = localStorage.getItem('bibleAppVersion');
+            
+            if (lsv !== APP_VERSION) {
+                localStorage.removeItem('bibleAppWelcomeSeen');
+                localStorage.removeItem('bibleAppDontShowWelcome');
+                localStorage.setItem('bibleAppVersion', APP_VERSION);
+            }
+            
             const dsp = localStorage.getItem('bibleAppDontShowWelcome');
-            if (dsp !== 'true') { requestAnimationFrame(() => { setTimeout(() => { wm.show(); document.body.style.overflow = 'hidden'; setTimeout(() => { document.body.style.overflow = ''; }, 10); }, 150); }); }
-            function showModal(e) { if (e) e.preventDefault(); wm.show(); }
-            dsc.addEventListener('change', function() { if (this.checked) localStorage.setItem('bibleAppDontShowWelcome', 'true'); else localStorage.removeItem('bibleAppDontShowWelcome'); });
-            document.getElementById('welcomeModal').addEventListener('hidden.bs.modal', function() { if (dsc.checked) localStorage.setItem('bibleAppDontShowWelcome', 'true'); });
-            if (hb) hb.addEventListener('click', showModal);
-            window.addEventListener('resize', () => { if (document.querySelector('.modal.show')) { bootstrap.Modal.getInstance(document.getElementById('welcomeModal')).handleUpdate(); } });
+            if (dsp !== 'true') {
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        wm.show();
+                        document.body.style.overflow = 'hidden';
+                        setTimeout(() => {
+                            document.body.style.overflow = '';
+                        }, 10);
+                    }, 150);
+                });
+            }
+            
+            function showModal(e) {
+                if (e) e.preventDefault();
+                wm.show();
+            }
+            
+            dsc.addEventListener('change', function() {
+                if (this.checked) {
+                    localStorage.setItem('bibleAppDontShowWelcome', 'true');
+                } else {
+                    localStorage.removeItem('bibleAppDontShowWelcome');
+                }
+            });
+            
+            document.getElementById('welcomeModal').addEventListener('hidden.bs.modal', function() {
+                if (dsc.checked) {
+                    localStorage.setItem('bibleAppDontShowWelcome', 'true');
+                }
+            });
+            
+            if (hb) {
+                hb.addEventListener('click', showModal);
+            }
+            if (hbMobile) {
+                hbMobile.addEventListener('click', showModal);
+            }
+            
+            window.addEventListener('resize', () => {
+                if (document.querySelector('.modal.show')) {
+                    bootstrap.Modal.getInstance(document.getElementById('welcomeModal')).handleUpdate();
+                }
+            });
         })();
 
-        if (USER_AUTHENTICATED) { window.addEventListener('load', () => { setTimeout(() => { syncNow(); }, 2000); }); }
+        if (USER_AUTHENTICATED) {
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    syncNow();
+                }, 2000);
+            });
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
-            BIBLE_BOOKS.forEach(b => { const o = document.createElement('option'); o.value = b.name; o.textContent = b.name; qlBook.appendChild(o); });
+            BIBLE_BOOKS.forEach(b => {
+                const o = document.createElement('option');
+                o.value = b.name;
+                o.textContent = b.name;
+                qlBook.appendChild(o);
+            });
             buildVersionOptions();
-            qlBook.addEventListener('change', e => { buildChapterOptions(e.target.value); clearQlMessage(); qlResults.innerHTML = ''; stopSpeech(); });
-            document.getElementById('quickLookupForm').addEventListener('submit', async e => { e.preventDefault(); clearQlMessage(); qlResults.innerHTML = ''; stopSpeech(); const book = qlBook.value, chapter = qlChapter.value, version = qlVersion.value, range = parseVerseRange(qlVerseRange.value); if (!book || !chapter || !range) { showQlMessage('Please select a book, chapter, and verse range.', 'warning'); return; } const url = `/api/chapter/${encodeURIComponent(book)}/${encodeURIComponent(chapter)}?version=${encodeURIComponent(version)}`; try { const res = await fetch(url); const data = await res.json(); if (!res.ok) { showQlMessage(data.error || 'Unable to fetch data.', 'danger'); return; } const verses = (data.verses || []).map(v => ({ ...v, book: data.book, chapter: data.chapter })); const filtered = verses.filter(v => { const n = verseNumber(v); return n >= range.start && n <= range.end; }); renderVerseCards(filtered); } catch (err) { showQlMessage('Failed to fetch verse data.', 'danger'); } });
+            
+            qlBook.addEventListener('change', e => {
+                buildChapterOptions(e.target.value);
+                clearQlMessage();
+                qlResults.innerHTML = '';
+                stopSpeech();
+            });
+            
+            document.getElementById('quickLookupForm').addEventListener('submit', async e => {
+                e.preventDefault();
+                clearQlMessage();
+                qlResults.innerHTML = '';
+                stopSpeech();
+                const book = qlBook.value;
+                const chapter = qlChapter.value;
+                const version = qlVersion.value;
+                const range = parseVerseRange(qlVerseRange.value);
+                if (!book || !chapter || !range) {
+                    showQlMessage('Please select a book, chapter, and verse range.', 'warning');
+                    return;
+                }
+                const url = `/api/chapter/${encodeURIComponent(book)}/${encodeURIComponent(chapter)}?version=${encodeURIComponent(version)}`;
+                try {
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    if (!res.ok) {
+                        showQlMessage(data.error || 'Unable to fetch data.', 'danger');
+                        return;
+                    }
+                    const verses = (data.verses || []).map(v => ({
+                        ...v,
+                        book: data.book,
+                        chapter: data.chapter
+                    }));
+                    const filtered = verses.filter(v => {
+                        const n = verseNumber(v);
+                        return n >= range.start && n <= range.end;
+                    });
+                    renderVerseCards(filtered);
+                } catch (err) {
+                    showQlMessage('Failed to fetch verse data.', 'danger');
+                }
+            });
         });
 
-        window.addEventListener('beforeunload', () => { if (speechSynth) speechSynth.cancel(); });
+        window.addEventListener('beforeunload', () => {
+            if (speechSynth) speechSynth.cancel();
+        });
     </script>
 </body>
 </html>

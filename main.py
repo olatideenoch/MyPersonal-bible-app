@@ -504,7 +504,7 @@ def _send_contact_email_resend(sender_name: str, sender_email: str, subject: str
         return False, 'Resend API key is not configured.'
     
     from_email = "MyPersonal Bible App <noreply@resend.dev>"
-    to_email = os.environ.get("MAIL_TO", "mypersonalbibleapp@gmail.com")
+    to_email = os.environ.get("MAIL_TO")
     
     email_body = f"""
     <h2>New Contact Form Submission</h2>
@@ -555,7 +555,7 @@ Sent from MyPersonal Bible App Contact Form
         else:
             error_data = response.json() if response.text else {}
             error_msg = error_data.get('message', f'API error: {response.status_code}')
-            return False, f'Failed to send email: {error_msg}'
+            return False, f'Failed to send email'
             
     except requests.exceptions.Timeout:
         return False, 'Email service timeout. Please try again later.'
