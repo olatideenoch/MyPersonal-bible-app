@@ -7,6 +7,7 @@ import re
 import json
 import io
 import secrets
+from datetime import timedelta
 from typing import List
 from pathlib import Path
 from requests_oauthlib import OAuth2Session
@@ -20,6 +21,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("APP_SECRET_KEY")
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 
 # Google OAuth configuration
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
@@ -882,6 +884,7 @@ def google_callback():
             'email': user_info['email'],
             'picture': user_info.get('picture', '')
         }
+        session.permanent = True
         
         print(f"✅ LOGIN SUCCESS: {user_info.get('email')}")
         return redirect(url_for('index'))
