@@ -35,6 +35,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&display=swap" rel="stylesheet">
+
+    <script>
+    // Auto-open support modal if URL contains ?open=support
+    (function() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('open') === 'support') {
+            document.addEventListener('DOMContentLoaded', function() {
+                const supportModal = new bootstrap.Modal(document.getElementById('supportModal'));
+                supportModal.show();
+            });
+        }
+    })();
+</script>
     
     <style>
         /* Light mode (default) variables */
