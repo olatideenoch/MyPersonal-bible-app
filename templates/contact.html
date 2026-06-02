@@ -27,7 +27,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <title>Contact - MyPersonal Bible App</title>
+    <title>Contact - MyPersonal Bible</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -356,11 +356,6 @@
                 height: 28px;
             }
             
-            .install-app-btn {
-                width: 28px;
-                height: 28px;
-                font-size: 0.75rem;
-            }
         }
 
         /* Desktop action buttons */
@@ -389,29 +384,6 @@
 
         #helpButton:hover {
             transform: scale(1.1);
-        }
-
-        /* Install App button - mobile only */
-        .install-app-btn {
-            background: linear-gradient(135deg, #8d9b6a, #5d4037);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.85rem;
-            text-decoration: none;
-        }
-        
-        .install-app-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            color: white;
         }
 
         .page-header {
@@ -729,10 +701,63 @@
         [data-theme="dark"] .text-muted {
             color: var(--text-muted) !important;
         }
+
+        /* Support Modal Styling */
+        .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        .modal-header { border-bottom-color: var(--border-color); }
+        .modal-footer { border-top-color: var(--border-color); }
+        
+        .bank-details {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px dashed var(--accent-primary);
+        }
+        .bank-details p {
+            margin-bottom: 0.5rem;
+        }
+        .bank-details strong {
+            color: var(--accent-primary);
+        }
     </style>
     <script data-goatcounter="https://olatideenoch.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
+
+    <!-- Support Modal -->
+    <div class="modal fade" id="supportModal" tabindex="-1" aria-labelledby="supportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="supportModalLabel">
+                        <i class="fas fa-heart me-2" style="color: var(--accent-primary);"></i>Support MyPersonal Bible
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Your support helps keep this app free, ad-free, and continuously improved for everyone who wants to draw closer to God through His Word. Thank you for considering a gift!</p>
+                    
+                    <div class="bank-details mt-4">
+                        <h6 class="mb-3"><i class="fas fa-university me-2"></i>Bank Transfer Details</h6>
+                        <p><strong>Bank:</strong> Moniepoint MFB</p>
+                        <p><strong>Account Number:</strong> 6748283733</p>
+                    </div>
+                    
+                    <p class="mt-3 small text-muted">
+                        <i class="fas fa-globe me-1"></i> 
+                        If you would like to support in another currency, please use the contact form and the bank details will be emailed to you.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg fixed-top">
@@ -773,11 +798,6 @@
                 </a>
                 {% endif %}
                 
-                <!-- Install App button - mobile only -->
-                <a href="{{ url_for('static', filename='install.html') }}" class="install-app-btn d-lg-none" title="Install App">
-                    <i class="fas fa-download"></i>
-                </a>
-                
                 <button class="theme-toggle-btn" id="themeToggleMobile" title="Toggle dark mode">
                     <i class="fas fa-moon" id="themeIconMobile"></i>
                 </button>
@@ -787,14 +807,14 @@
                 </button>
             </div>
             
-            <!-- Hamburger button (mobile only) - ALWAYS LAST -->
+            <!-- Hamburger button (mobile only) -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
             <!-- Everything else pushed to the right on desktop -->
             <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Nav links FIRST -->
+                <!-- Nav links -->
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#daily">Daily Verse</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#search">Search</a></li>
@@ -802,7 +822,7 @@
                     <li class="nav-item"><a class="nav-link active" href="{{ url_for('contact') }}">Contact</a></li>
                 </ul>
                 
-                <!-- Desktop: Action icons AFTER nav links -->
+                <!-- Desktop: Action icons  -->
                 <div class="d-none d-lg-flex align-items-center gap-2 ms-3">
                     {% if user %}
                     <div class="dropdown">
@@ -913,8 +933,13 @@
                     </div>
                 </form>
 
-                <!-- Optional: Keep the direct email fallback -->
-                <div class="mt-4 text-center text-muted">
+                <!-- Support button and email fallback -->
+                <div class="mt-4 text-center">
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#supportModal">
+                        <i class="fas fa-heart me-2"></i>Support MyPersonal Bible
+                    </button>
+                </div>
+                <div class="mt-3 text-center text-muted">
                     <p>Prefer to email directly? Reach us at <a href="mailto:mypersonalbibleapp@gmail.com">mypersonalbibleapp@gmail.com</a>.</p>
                 </div>
             </div>
@@ -996,7 +1021,7 @@
         })();
     </script>
 
-    <!-- Help Button Script - FIXED for both mobile and desktop -->
+    <!-- Help Button Script -->
     <script>
         (function() {
             const helpButton = document.getElementById('helpButton');
@@ -1004,7 +1029,6 @@
             
             function redirectToHomeHelp(e) {
                 if (e) e.preventDefault();
-                // Redirect to index with a query param to trigger the welcome modal
                 window.location.href = "{{ url_for('index') }}?showHelp=true";
             }
             

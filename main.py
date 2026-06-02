@@ -182,6 +182,10 @@ BIBLE_BOOKS = [
     {"name": "Revelation", "chapters": 22, "slug": "revelation"},
 ]
 
+# Add testament information to each book
+for i, book in enumerate(BIBLE_BOOKS):
+    book['testament'] = 'Old' if i < 39 else 'New'
+
 def get_book_by_slug(slug: str):
     slug_lower = slug.lower()
     for book in BIBLE_BOOKS:
