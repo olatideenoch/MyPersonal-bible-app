@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^cd \"c:\\\\Users\\\\HP\\\\Documents\\\\Folder\\\\100daysofcode\\\\Day-96\\\\A Bible Web App\" ; python -m py_compile main\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

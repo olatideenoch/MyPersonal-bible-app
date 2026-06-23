@@ -15,6 +15,22 @@
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Contact MyPersonal Bible for questions, feedback, or support. Reach out about Bible reading, audio playback, or app ideas.">
+    <meta name="keywords" content="contact, Bible app support, Christian app feedback, Bible reader questions">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="author" content="MyPersonal Bible">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Contact - MyPersonal Bible">
+    <meta property="og:description" content="Contact MyPersonal Bible for questions, feedback, or support. Reach out about Bible reading, audio playback, or app ideas.">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="{{ url_for('static', filename='img/app-icon.jpg', _external=True) }}">
+    <meta property="og:site_name" content="MyPersonal Bible">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Contact - MyPersonal Bible">
+    <meta name="twitter:description" content="Contact MyPersonal Bible for questions, feedback, or support. Reach out about Bible reading, audio playback, or app ideas.">
+    <meta name="twitter:image" content="{{ url_for('static', filename='img/app-icon.jpg', _external=True) }}">
+    <link rel="canonical" href="{{ request.url }}">
     
     <!-- Favicon & App Icons -->
     <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/app-icon.jpg') }}">

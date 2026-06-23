@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, redirect, request, jsonify, send_file, session
+from flask import Flask, render_template, url_for, redirect, request, jsonify, send_file, session, Response
 import requests
 import datetime as dt
 import random
@@ -955,6 +955,31 @@ def get_user():
 def install_guide():
     user = session.get('user')
     return render_template('install.html', user=user, current_year=dt.datetime.now().year)
+
+
+@app.route('/robots.txt')
+def robots_txt():
+    sitemap_url = url_for('sitemap_xml', _external=True)
+    content = f"User-agent: *\nAllow: /\nSitemap: {sitemap_url}\n"
+    return Response(content, mimetype='text/plain')
+
+
+@app.route('/sitemap.xml')
+def sitemap_xml():
+    pages = [
+        url_for('index', _external=True),
+        url_for('contact', _external=True),
+        url_for('install_guide', _external=True),
+        url_for('search', _external=True)
+    ]
+    pages.extend(url_for('books', book_slug=book['slug'], _external=True) for book in BIBLE_BOOKS)
+    lastmod = dt.date.today().isoformat()
+    xml_urls = "\n".join(
+        f"    <url>\n      <loc>{page}</loc>\n      <lastmod>{lastmod}</lastmod>\n      <changefreq>weekly</changefreq>\n      <priority>0.7</priority>\n    </url>"
+        for page in pages
+    )
+    xml = f"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n{xml_urls}\n</urlset>"
+    return Response(xml, mimetype='application/xml')
 
 
 @app.route("/health")
