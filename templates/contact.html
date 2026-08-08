@@ -39,7 +39,7 @@
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     
     <!-- PWA / Mobile -->
-    <meta name="theme-color" content="#8d9b6a">
+    <meta name="theme-color" content="#3d2205">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
@@ -68,46 +68,48 @@
     <style>
         /* Light mode (default) variables */
         :root {
-            --bg-primary: #f5f0e6;
+            --bg-primary: #faf6ee;
             --bg-secondary: #ffffff;
-            --bg-tertiary: #f8f9fa;
-            --text-primary: #3c2f2f;
-            --text-secondary: #5d4037;
-            --text-muted: #6c757d;
-            --accent-primary: #8d9b6a;
-            --accent-secondary: #5d4037;
+            --bg-tertiary: #f2e8d0;
+            --text-primary: #1a0f00;
+            --text-secondary: #6b3f12;
+            --text-muted: #8a7256;
+            --accent-primary: #c9923a;
+            --accent-secondary: #9a6a1e;
+            --accent-text: #9a6a1e; /* WCAG-safe gold for text/filled-buttons in light mode */
             --card-bg: #ffffff;
-            --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            --border-color: rgba(141, 155, 106, 0.1);
-            --navbar-bg: rgba(255, 255, 255, 0.95);
-            --footer-bg: #5d4037;
-            --footer-text: #d7ccc8;
-            --hero-overlay: linear-gradient(rgba(101, 115, 95, 0.8), rgba(198, 216, 157, 0.8));
+            --card-shadow: 0 10px 30px rgba(26,15,0,0.08);
+            --border-color: rgba(201, 146, 58, 0.15);
+            --navbar-bg: rgba(250, 246, 238, 0.95);
+            --footer-bg: #3d2205;
+            --footer-text: #e8d9bd;
+            --hero-overlay: linear-gradient(rgba(61, 34, 5, 0.75), rgba(154, 106, 30, 0.75));
             --input-bg: #ffffff;
-            --input-border: #ced4da;
+            --input-border: #d8c7a1;
             --warning-bg: rgba(255, 193, 7, 0.15);
             --warning-border: #ffc107;
         }
 
         /* Dark mode variables */
         [data-theme="dark"] {
-            --bg-primary: #1a1a2e;
-            --bg-secondary: #16213e;
-            --bg-tertiary: #0f3460;
-            --text-primary: #e8e8e8;
-            --text-secondary: #e94560;
-            --text-muted: #a0a0a0;
-            --accent-primary: #e94560;
-            --accent-secondary: #533483;
-            --card-bg: #16213e;
-            --card-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            --border-color: rgba(233, 69, 96, 0.2);
-            --navbar-bg: rgba(26, 26, 46, 0.95);
-            --footer-bg: #0f0f1a;
-            --footer-text: #a0a0a0;
-            --hero-overlay: linear-gradient(rgba(83, 52, 131, 0.8), rgba(233, 69, 96, 0.8));
-            --input-bg: #16213e;
-            --input-border: #533483;
+            --bg-primary: #1a0f00;
+            --bg-secondary: #2a1a08;
+            --bg-tertiary: #3d2205;
+            --text-primary: #f2e8d0;
+            --text-secondary: #e8b86a;
+            --text-muted: #b8a082;
+            --accent-primary: #e8b86a;
+            --accent-secondary: #6b3f12;
+            --accent-text: #e8b86a; /* unchanged from --accent-primary in dark mode */
+            --card-bg: #2a1a08;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            --border-color: rgba(232, 184, 106, 0.2);
+            --navbar-bg: rgba(26, 15, 0, 0.95);
+            --footer-bg: #0f0800;
+            --footer-text: #b8a082;
+            --hero-overlay: linear-gradient(rgba(26, 15, 0, 0.85), rgba(154, 106, 30, 0.75));
+            --input-bg: #2a1a08;
+            --input-border: #6b3f12;
             --warning-bg: rgba(255, 193, 7, 0.1);
             --warning-border: #ffc107;
         }
@@ -129,9 +131,9 @@
         }
         
         .google-signin-btn:hover {
-            background: var(--accent-primary);
+            background: var(--accent-text);
             color: white;
-            border-color: var(--accent-primary);
+            border-color: var(--accent-text);
         }
         
         .user-profile-btn {
@@ -213,11 +215,11 @@
         }
         
         .nav-link:hover { 
-            color: var(--accent-primary) !important; 
+            color: var(--accent-text) !important; 
         }
         
         .nav-link.active {
-            color: var(--accent-primary) !important;
+            color: var(--accent-text) !important;
             font-weight: 600;
         }
 
@@ -273,7 +275,7 @@
             
             .navbar-nav .nav-link i {
                 width: 28px;
-                color: var(--accent-primary);
+                color: var(--accent-text);
             }
             
             .navbar-nav .nav-link:hover {
@@ -405,9 +407,9 @@
 
         .theme-toggle-btn:hover,
         #helpButton:hover {
-            background: var(--accent-primary);
+            background: var(--accent-text);
             color: white;
-            border-color: var(--accent-primary);
+            border-color: var(--accent-text);
             transform: rotate(360deg);
         }
 
@@ -536,12 +538,12 @@
         .disclaimer-text .email-highlight {
             font-size: 1.2rem;
             font-weight: 600;
-            color: var(--accent-primary);
+            color: var(--accent-text);
             word-break: break-all;
         }
         
         .disclaimer-text .email-highlight a {
-            color: var(--accent-primary);
+            color: var(--accent-text);
             text-decoration: none;
         }
         
@@ -612,8 +614,8 @@
 
         /* Button styling */
         .btn-success {
-            background-color: var(--accent-primary);
-            border-color: var(--accent-primary);
+            background-color: var(--accent-text);
+            border-color: var(--accent-text);
             color: white;
         }
         
@@ -628,7 +630,7 @@
         }
 
         a {
-            color: var(--accent-primary);
+            color: var(--accent-text);
             text-decoration: none;
         }
         
@@ -750,7 +752,7 @@
             margin-bottom: 0.5rem;
         }
         .bank-details strong {
-            color: var(--accent-primary);
+            color: var(--accent-text);
         }
         .highlight-note {
             background: rgba(141,155,106,0.12);
@@ -776,7 +778,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="supportModalLabel">
-                        <i class="fas fa-heart me-2" style="color: var(--accent-primary);"></i>Support MyPersonal Bible
+                        <i class="fas fa-heart me-2" style="color: var(--accent-text);"></i>Support MyPersonal Bible
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>

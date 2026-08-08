@@ -41,24 +41,26 @@
 
     <style>
         :root {
-            --bg-primary: #f5f0e6;
+            --bg-primary: #faf6ee;
             --bg-card: #ffffff;
-            --text-primary: #3c2f2f;
-            --text-secondary: #5d4037;
-            --accent: #8d9b6a;
-            --accent-dark: #5d4037;
-            --border: rgba(141,155,106,0.15);
-            --shadow: 0 10px 30px rgba(0,0,0,0.06);
+            --text-primary: #1a0f00;
+            --text-secondary: #6b3f12;
+            --accent: #c9923a;
+            --accent-dark: #9a6a1e;
+            --accent-text: #9a6a1e; /* WCAG-safe gold for text/filled-buttons in light mode */
+            --border: rgba(201,146,58,0.15);
+            --shadow: 0 10px 30px rgba(26,15,0,0.08);
         }
 
         [data-theme="dark"] {
-            --bg-primary: #1a1a2e;
-            --bg-card: #16213e;
-            --text-primary: #e8e8e8;
-            --text-secondary: #e94560;
-            --accent: #e94560;
-            --accent-dark: #533483;
-            --border: rgba(233,69,96,0.2);
+            --bg-primary: #1a0f00;
+            --bg-card: #2a1a08;
+            --text-primary: #f2e8d0;
+            --text-secondary: #e8b86a;
+            --accent: #e8b86a;
+            --accent-dark: #c9923a;
+            --accent-text: #e8b86a; /* unchanged from --accent in dark mode */
+            --border: rgba(232,184,106,0.2);
             --shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
@@ -88,7 +90,7 @@
         h1, h2, h3 { font-family: 'Lora', serif; color: var(--text-secondary); }
         .step-icon {
             width: 48px; height: 48px;
-            background: var(--accent);
+            background: var(--accent-text);
             color: white;
             border-radius: 50%;
             display: flex;
@@ -100,17 +102,17 @@
         }
 
         .btn-primary {
-            background-color: var(--accent);
-            border-color: var(--accent);
+            background-color: var(--accent-text);
+            border-color: var(--accent-text);
         }
         .btn-primary:hover { background-color: var(--accent-dark); border-color: var(--accent-dark); }
         .btn-outline-primary {
-            color: var(--accent);
+            color: var(--accent-text);
             border-color: var(--accent);
         }
-        .btn-outline-primary:hover { background-color: var(--accent); color: white; }
+        .btn-outline-primary:hover { background-color: var(--accent-text); color: white; }
 
-        a { color: var(--accent); text-decoration: none; }
+        a { color: var(--accent-text); text-decoration: none; }
         a:hover { text-decoration: underline; }
 
         hr { border-color: var(--border); }
@@ -124,7 +126,7 @@
 <body>
     <div class="install-card">
         <div class="text-center mb-4">
-            <i class="fab fa-android fa-3x" style="color: var(--accent);"></i>
+            <i class="fab fa-android fa-3x" style="color: var(--accent-text);"></i>
             <h1 class="mt-3 fw-bold">Install MyPersonal Bible</h1>
             <p class="text-muted">Get the app on your Android phone in four easy steps.</p>
         </div>

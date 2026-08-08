@@ -7,6 +7,7 @@ import re
 import json
 import io
 import secrets
+import html
 from datetime import timedelta
 from typing import List
 from pathlib import Path
@@ -38,80 +39,16 @@ RESEND_API_URL = "https://api.resend.com/emails"
 VOICE_RSS_API_KEY = os.environ.get("VOICE_RSS_API_KEY")
 VOICE_RSS_URL = "https://api.voicerss.org/"
 
-# bible-api.com (Tim Morgan) helpers
+# Bible API configurations
 BIBLE_API_BASE = "https://bible-api.com"
+API_BIBLE_KEY = os.environ.get("API_BIBLE_KEY")
+API_BIBLE_BASE = "https://rest.api.bible/v1"
 
 # Create sync data directory if it doesn't exist
 SYNC_DATA_DIR = Path("sync_data")
 SYNC_DATA_DIR.mkdir(exist_ok=True)
 
-# Expanded Bible API version mapping
-BIBLEAPI_VERSION_MAP = {
-    # English versions
-    "en-kjv":     "kjv",
-    "en-web":     "web",
-    "en-asv":     "asv",
-    "en-bbe":     "bbe",
-    "en-darby":   "darby",
-    "en-dra":     "dra",
-    "en-ylt":     "ylt",
-    "en-oeb-us":  "oeb-us",
-    "en-oeb-cw":  "oeb-cw",
-    "en-webbe":   "webbe",
-    # Other languages
-    "en-clementine": "clementine",
-    "pt-almeida":    "almeida",
-    "ro-rccv":       "rccv",
-    "zh-cuv":        "cuv",
-    "cs-bkr":        "bkr",
-    "ta-ov":         "ta-ov",
-    "ml-svp":        "ml-svp",
-}
-
-def _bibleapi_translation(version_id: str) -> str:
-    return BIBLEAPI_VERSION_MAP.get(version_id, "kjv")
-
-_daily_verse_cache = {"date": None, "verse": None}
-
-def get_daily_verse() -> dict:
-    today_str = dt.date.today().isoformat()        
-
-    if _daily_verse_cache["date"] == today_str and _daily_verse_cache["verse"]:
-        return _daily_verse_cache["verse"]
-
-    random.seed(today_str)
-
-    verse = None
-    try:
-        resp = requests.get(f"{BIBLE_API_BASE}/?random=verse", timeout=8)
-        if resp.status_code == 200:
-            data = resp.json()
-            text = data.get("text", "").strip()
-            reference = data.get("reference", "").strip()
-            if text and reference:
-                verse = {"text": text, "reference": reference}
-    except Exception:
-        pass
-
-    if not verse:
-        fallback_list = [
-            {"text": "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.", "reference": "John 3:16"},
-            {"text": "The Lord is my shepherd; I shall not want.", "reference": "Psalm 23:1"},
-            {"text": "I can do all this through him who gives me strength.", "reference": "Philippians 4:13"},
-            {"text": "Trust in the Lord with all your heart and lean not on your own understanding.", "reference": "Proverbs 3:5"},
-            {"text": "Be still, and know that I am God.", "reference": "Psalm 46:10"},
-            {"text": "Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God.", "reference": "Philippians 4:6"},
-            {"text": "For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, plans to give you hope and a future.", "reference": "Jeremiah 29:11"},
-            {"text": "Your word is a lamp for my feet, a light on my path.", "reference": "Psalm 119:105"},
-            {"text": "Come to me, all you who are weary and burdened, and I will give you rest.", "reference": "Matthew 11:28"},
-            {"text": "But those who hope in the Lord will renew their strength. They will soar on wings like eagles.", "reference": "Isaiah 40:31"},
-        ]
-        verse = random.choice(fallback_list)
-
-    random.seed()
-    _daily_verse_cache["date"] = today_str
-    _daily_verse_cache["verse"] = verse
-    return verse
+# ========== BIBLE DATA STRUCTURE ==========
 
 BIBLE_BOOKS = [
     {"name": "Genesis", "chapters": 50, "slug": "genesis"},
@@ -182,53 +119,139 @@ BIBLE_BOOKS = [
     {"name": "Revelation", "chapters": 22, "slug": "revelation"},
 ]
 
-# Add testament information to each book
+# Add testament information
 for i, book in enumerate(BIBLE_BOOKS):
     book['testament'] = 'Old' if i < 39 else 'New'
 
+
+# ========== VERSION LIST & MAPPINGS ==========
+
+VERSION_LIST = [
+    {"id": "en-kjv", "version": "King James Version (KJV)", "source": "bible_api", "popularity": 1},
+    {"id": "en-niv", "version": "New International Version (NIV)", "source": "api_bible", "popularity": 2},
+    {"id": "en-nkjv", "version": "New King James Version (NKJV)", "source": "api_bible", "popularity": 3},
+    {"id": "en-esv", "version": "English Standard Version (ESV)", "source": "bible_api", "popularity": 4},
+    {"id": "en-nasb", "version": "New American Standard Bible (NASB)", "source": "bible_api", "popularity": 5},
+    {"id": "en-csb", "version": "Christian Standard Bible (CSB)", "source": "bible_api", "popularity": 6},
+    {"id": "en-nlt", "version": "New Living Translation (NLT)", "source": "api_bible", "popularity": 7},
+    {"id": "en-bsb", "version": "Berean Standard Bible (BSB)", "source": "bible_api", "popularity": 8},
+    {"id": "en-web", "version": "World English Bible (WEB)", "source": "bible_api", "popularity": 9},
+    {"id": "en-nrsv", "version": "New Revised Standard Version (NRSV)", "source": "bible_api", "popularity": 10},
+    {"id": "en-rsv", "version": "Revised Standard Version (RSV)", "source": "bible_api", "popularity": 11},
+    {"id": "en-asv", "version": "American Standard Version (ASV)", "source": "bible_api", "popularity": 12},
+    {"id": "en-bbe", "version": "Bible in Basic English (BBE)", "source": "bible_api", "popularity": 13},
+    {"id": "en-darby", "version": "Darby Bible", "source": "bible_api", "popularity": 14},
+    {"id": "en-dra", "version": "Douay-Rheims (DRA)", "source": "bible_api", "popularity": 15},
+    {"id": "en-ylt", "version": "Young's Literal Translation (YLT)", "source": "bible_api", "popularity": 16},
+    {"id": "en-amp", "version": "Amplified Bible (AMP)", "source": "bible_api", "popularity": 17},
+    {"id": "en-msg", "version": "The Message (MSG)", "source": "bible_api", "popularity": 18},
+    {"id": "en-net", "version": "NET Bible (NET)", "source": "bible_api", "popularity": 19},
+    {"id": "en-erv", "version": "Easy-to-Read Version (ERV)", "source": "bible_api", "popularity": 20},
+    {"id": "pt-almeida", "version": "João Ferreira de Almeida (Português)", "source": "bible_api", "popularity": 21},
+    {"id": "ro-rccv", "version": "Cornilescu (Română)", "source": "bible_api", "popularity": 22},
+    {"id": "zh-cuv", "version": "Chinese Union Version (中文)", "source": "bible_api", "popularity": 23},
+    {"id": "cs-bkr", "version": "Bible Kralická (Čeština)", "source": "bible_api", "popularity": 24},
+]
+
+# API.Bible mapping (book name -> API.Bible book ID)
+# Full reference: https://api.scripture.api.bible/
+API_BIBLE_BOOKS = {
+    "Genesis": "GEN", "Exodus": "EXO", "Leviticus": "LEV", "Numbers": "NUM",
+    "Deuteronomy": "DEU", "Joshua": "JOS", "Judges": "JDG", "Ruth": "RUT",
+    "1 Samuel": "1SA", "2 Samuel": "2SA", "1 Kings": "1KI", "2 Kings": "2KI",
+    "1 Chronicles": "1CH", "2 Chronicles": "2CH", "Ezra": "EZR", "Nehemiah": "NEH",
+    "Esther": "EST", "Job": "JOB", "Psalms": "PSA", "Proverbs": "PRO",
+    "Ecclesiastes": "ECC", "Song of Solomon": "SNG", "Isaiah": "ISA", "Jeremiah": "JER",
+    "Lamentations": "LAM", "Ezekiel": "EZK", "Daniel": "DAN", "Hosea": "HOS",
+    "Joel": "JOL", "Amos": "AMO", "Obadiah": "OBA", "Jonah": "JON",
+    "Micah": "MIC", "Nahum": "NAM", "Habakkuk": "HAB", "Zephaniah": "ZEP",
+    "Haggai": "HAG", "Zechariah": "ZEC", "Malachi": "MAL", "Matthew": "MAT",
+    "Mark": "MRK", "Luke": "LUK", "John": "JHN", "Acts": "ACT",
+    "Romans": "ROM", "1 Corinthians": "1CO", "2 Corinthians": "2CO", "Galatians": "GAL",
+    "Ephesians": "EPH", "Philippians": "PHP", "Colossians": "COL", "1 Thessalonians": "1TH",
+    "2 Thessalonians": "2TH", "1 Timothy": "1TI", "2 Timothy": "2TI", "Titus": "TIT",
+    "Philemon": "PHM", "Hebrews": "HEB", "James": "JAS", "1 Peter": "1PE",
+    "2 Peter": "2PE", "1 John": "1JN", "2 John": "2JN", "3 John": "3JN",
+    "Jude": "JUD", "Revelation": "REV"
+}
+
+# API.Bible version IDs (verified against the live API catalog)
+API_BIBLE_VERSIONS = {
+    "en-nkjv": "63097d2a0a2f7db3-01",
+    "en-niv": "78a9f6124f344018-01",
+    "en-nlt": "d6e14a625393b4da-01",
+}
+
+# Bible-API.com translation mappings
+BIBLEAPI_TRANSLATIONS = {
+    "en-kjv": "kjv",
+    "en-bsb": "bsb",
+    "en-web": "web",
+    "en-asv": "asv",
+    "en-bbe": "bbe",
+    "en-darby": "darby",
+    "en-dra": "dra",
+    "en-ylt": "ylt",
+    "en-esv": "esv",
+    "en-nasb": "nasb",
+    "en-csb": "csb",
+    "en-nlt": "nlt",
+    "en-niv": "niv",
+    "en-nkjv": "nkjv",
+    "en-nrsv": "nrsv",
+    "en-rsv": "rsv",
+    "en-amp": "amp",
+    "en-msg": "msg",
+    "en-net": "net",
+    "en-erv": "erv",
+    "pt-almeida": "almeida",
+    "ro-rccv": "rccv",
+    "zh-cuv": "cuv",
+    "cs-bkr": "bkr",
+}
+
+
+# ========== HELPER FUNCTIONS ==========
+
 def get_book_by_slug(slug: str):
+    """Get book by slug"""
     slug_lower = slug.lower()
     for book in BIBLE_BOOKS:
         if book['slug'] == slug_lower:
             return book
     return None
 
+
 def get_book_by_name(name: str):
+    """Get book by name"""
     name_lower = name.lower()
     for book in BIBLE_BOOKS:
         if book['name'].lower() == name_lower:
             return book
     return None
 
-VERSION_LIST = [
-    # Popular Modern English
-    {"id": "en-kjv",        "version": "King James Version (KJV)"},
-    {"id": "en-web",        "version": "World English Bible (WEB)"},
-    {"id": "en-asv",        "version": "American Standard Version (ASV)"},
-    {"id": "en-bbe",        "version": "Bible in Basic English (BBE)"},
-    {"id": "en-darby",      "version": "Darby Bible"},
-    {"id": "en-dra",        "version": "Douay-Rheims (DRA)"},
-    {"id": "en-ylt",        "version": "Young's Literal Translation (YLT)"},
-    {"id": "en-oeb-us",     "version": "Open English Bible (OEB-US)"},
-    {"id": "en-oeb-cw",     "version": "Open English Bible (OEB-UK)"},
-    {"id": "en-webbe",      "version": "World English Bible (WEB-UK)"},
-    # Other Languages
-    {"id": "en-clementine", "version": "Clementine Latin Vulgate"},
-    {"id": "pt-almeida",    "version": "João Ferreira de Almeida (Português)"},
-    {"id": "ro-rccv",       "version": "Cornilescu (Română)"},
-    {"id": "zh-cuv",        "version": "Chinese Union Version (中文)"},
-    {"id": "cs-bkr",        "version": "Bible Kralická (Čeština)"},
-    {"id": "ta-ov",         "version": "Tamil Old Version (தமிழ்)"},
-    {"id": "ml-svp",        "version": "Malayalam SVP (മലയാളം)"},
-]
+
+def get_version_name(version_id: str) -> str:
+    """Get human-friendly version name"""
+    return next((v['version'] for v in VERSION_LIST if v['id'] == version_id), version_id)
+
+
+def get_version_source(version_id: str) -> str:
+    """Get API source for a version"""
+    return next((v.get('source', 'bible_api') for v in VERSION_LIST if v['id'] == version_id), 'bible_api')
+
 
 def clean_text(text: str) -> str:
+    """Clean verse text"""
     if not text:
         return text
     text = text.replace('…', '')
+    text = re.sub(r'\s+', ' ', text).strip()
     return text
 
+
 def dedupe_verses(raw_verses: list) -> list:
+    """Remove duplicate verses"""
     seen = set()
     out = []
     for v in raw_verses:
@@ -239,14 +262,25 @@ def dedupe_verses(raw_verses: list) -> list:
         out.append(v)
     return out
 
-def fetch_chapter_bibleapi(book_name: str, chapter: int, version_id: str = "en-kjv"):
-    translation = _bibleapi_translation(version_id)
+
+# ========== FETCH FUNCTIONS ==========
+
+def fetch_chapter_bibleapi(book_name: str, chapter: int, version_id: str = "en-kjv") -> tuple:
+    """
+    Fetch from bible-api.com (free, public domain)
+    Most reliable fallback
+    """
+    translation = BIBLEAPI_TRANSLATIONS.get(version_id, "kjv")
     ref = f"{book_name}+{chapter}"
     url = f"{BIBLE_API_BASE}/{ref}?translation={translation}"
 
     try:
         resp = requests.get(url, timeout=10)
         if resp.status_code != 200:
+            if translation != "kjv":
+                print(f"Translation {translation} unavailable for {ref}; falling back to KJV")
+                return fetch_chapter_bibleapi(book_name, chapter, "en-kjv")
+            print(f"Bible API error for {ref}: {resp.status_code}")
             return [], ""
 
         data = resp.json()
@@ -256,21 +290,243 @@ def fetch_chapter_bibleapi(book_name: str, chapter: int, version_id: str = "en-k
         for v in raw_verses:
             text = clean_text(v.get("text", "").strip())
             verses.append({
-                "verse":     str(v.get("verse", "")),
-                "reference": v.get("book_name", book_name) + " " + str(chapter) + ":" + str(v.get("verse", "")),
-                "text":      text,
+                "verse": str(v.get("verse", "")),
+                "reference": f"{book_name} {chapter}:{v.get('verse', '')}",
+                "text": text,
             })
 
         verses = dedupe_verses(verses)
         chapter_text = " ".join(v["text"] for v in verses)
+        print(f"✅ Fetched from Bible API: {book_name} {chapter} ({len(verses)} verses)")
         return verses, chapter_text
 
-    except Exception:
+    except Exception as e:
+        print(f"Bible API error: {e}")
         return [], ""
 
 
+def parse_api_bible_verses(content: str, book_name: str, chapter: int) -> list:
+    """Extract verse-level text from API.Bible's HTML chapter content."""
+    if not content:
+        return []
+
+    pattern = re.compile(
+        r'<span[^>]*data-number="(\d+)"[^>]*>(.*?)</span>(.*?)(?=<span[^>]*data-number=|$)',
+        re.S,
+    )
+
+    verses = []
+    for match in pattern.finditer(content):
+        verse_num = match.group(1)
+        verse_text = re.sub(r'<[^>]+>', ' ', match.group(3))
+        verse_text = html.unescape(verse_text)
+        verse_text = clean_text(verse_text)
+        if verse_text:
+            verses.append({
+                "verse": verse_num,
+                "reference": f"{book_name} {chapter}:{verse_num}",
+                "text": verse_text,
+            })
+
+    if not verses:
+        fallback_text = clean_text(re.sub(r'<[^>]+>', ' ', content))
+        if fallback_text:
+            verses.append({
+                "verse": "1",
+                "reference": f"{book_name} {chapter}:1",
+                "text": fallback_text,
+            })
+
+    return dedupe_verses(verses)
+
+
+def fetch_chapter_apibible(book_name: str, chapter: int, version_id: str) -> tuple:
+    """
+    Fetch chapter text from API.Bible using the current REST API format.
+    """
+    if not API_BIBLE_KEY:
+        print("API.Bible key not configured")
+        return [], ""
+
+    book_code = API_BIBLE_BOOKS.get(book_name)
+    if not book_code:
+        print(f"Book '{book_name}' not found in API.Bible mapping")
+        return [], ""
+
+    version_code = API_BIBLE_VERSIONS.get(version_id)
+    if not version_code:
+        print(f"Version '{version_id}' not found in API.Bible mapping")
+        return [], ""
+
+    try:
+        headers = {
+            "api-key": API_BIBLE_KEY,
+            "Accept": "application/json",
+        }
+
+        chapter_ref = f"{book_code}.{chapter}"
+        url = f"{API_BIBLE_BASE}/bibles/{version_code}/chapters/{chapter_ref}"
+
+        resp = requests.get(url, headers=headers, timeout=10)
+
+        if resp.status_code != 200:
+            print(f"API.Bible error: {resp.status_code} - {resp.text[:200]}")
+            return [], ""
+
+        data = resp.json()
+        chapter_data = data.get("data", {})
+        content = chapter_data.get("content", "")
+
+        if not content:
+            print(f"No chapter content found for {book_name} {chapter}")
+            return [], ""
+
+        verses = parse_api_bible_verses(content, book_name, chapter)
+        chapter_text = " ".join(v["text"] for v in verses)
+        print(f"Fetched from API.Bible: {book_name} {chapter} ({len(verses)} verses)")
+        return verses, chapter_text
+
+    except Exception as e:
+        print(f"API.Bible fetch error: {e}")
+        return [], ""
+
+
+def fetch_chapter_bibleapi_smart(book_name: str, chapter: int, version_id: str) -> tuple:
+    """
+    Smart fetcher with fallback logic.
+    API.Bible is tried first for versions mapped to it; every version falls back to Bible-API.com.
+    """
+    source = get_version_source(version_id)
+
+    if source == "api_bible":
+        verses, text = fetch_chapter_apibible(book_name, chapter, version_id)
+        if verses:
+            return verses, text
+        print(f"API.Bible failed, falling back to Bible API")
+
+    return fetch_chapter_bibleapi(book_name, chapter, version_id)
+
+
+# ========== DAILY VERSE ==========
+
+_daily_verse_cache = {"date": None, "verse": None}
+
+def get_daily_verse() -> dict:
+    """Get daily verse with caching"""
+    today_str = dt.date.today().isoformat()
+
+    if _daily_verse_cache["date"] == today_str and _daily_verse_cache["verse"]:
+        return _daily_verse_cache["verse"]
+
+    verse = None
+    try:
+        resp = requests.get(f"{BIBLE_API_BASE}/?random=verse", timeout=8)
+        if resp.status_code == 200:
+            data = resp.json()
+            text = data.get("text", "").strip()
+            reference = data.get("reference", "").strip()
+            if text and reference:
+                verse = {"text": text, "reference": reference}
+    except Exception as e:
+        print(f"Daily verse error: {e}")
+
+    if not verse:
+        fallback_list = [
+            {"text": "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.", "reference": "John 3:16"},
+            {"text": "The Lord is my shepherd; I shall not want.", "reference": "Psalm 23:1"},
+            {"text": "I can do all this through him who gives me strength.", "reference": "Philippians 4:13"},
+            {"text": "Trust in the Lord with all your heart and lean not on your own understanding.", "reference": "Proverbs 3:5"},
+        ]
+        verse = random.choice(fallback_list)
+
+    _daily_verse_cache["date"] = today_str
+    _daily_verse_cache["verse"] = verse
+    return verse
+
+
+# ========== SYNC DATA ==========
+
+def get_user_sync_file(user_id: str) -> Path:
+    safe_id = re.sub(r'[^a-zA-Z0-9_-]', '_', user_id)
+    return SYNC_DATA_DIR / f"{safe_id}.json"
+
+
+def load_user_sync_data(user_id: str) -> dict:
+    sync_file = get_user_sync_file(user_id)
+    if sync_file.exists():
+        try:
+            with open(sync_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error loading sync data: {e}")
+    return {
+        "bookmarks": [],
+        "highlights": {},
+        "progress": {},
+        "font_size": None,
+        "theme": None,
+        "last_sync": None
+    }
+
+
+def save_user_sync_data(user_id: str, data: dict) -> bool:
+    sync_file = get_user_sync_file(user_id)
+    try:
+        data["last_sync"] = dt.datetime.now().isoformat()
+        with open(sync_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2)
+        return True
+    except Exception as e:
+        print(f"Error saving sync data: {e}")
+        return False
+
+
+def merge_sync_data(local_data: dict, server_data: dict) -> dict:
+    """Merge local and server sync data"""
+    merged = {}
+    
+    # Merge bookmarks
+    local_bookmarks = local_data.get("bookmarks", [])
+    server_bookmarks = server_data.get("bookmarks", [])
+    bookmark_map = {}
+    for b in server_bookmarks + local_bookmarks:
+        ref = b.get("reference", "")
+        if ref not in bookmark_map or b.get("timestamp", "") > bookmark_map[ref].get("timestamp", ""):
+            bookmark_map[ref] = b
+    merged["bookmarks"] = list(bookmark_map.values())
+    
+    # Merge highlights
+    merged["highlights"] = {}
+    server_highlights = server_data.get("highlights", {})
+    local_highlights = local_data.get("highlights", {})
+    all_chapters = set(server_highlights.keys()) | set(local_highlights.keys())
+    for chapter in all_chapters:
+        server_verses = set(server_highlights.get(chapter, []))
+        local_verses = set(local_highlights.get(chapter, []))
+        merged["highlights"][chapter] = list(server_verses | local_verses)
+    
+    # Merge progress
+    merged["progress"] = {}
+    server_progress = server_data.get("progress", {})
+    local_progress = local_data.get("progress", {})
+    all_progress = set(server_progress.keys()) | set(local_progress.keys())
+    for key in all_progress:
+        server_val = server_progress.get(key, {})
+        local_val = local_progress.get(key, {})
+        server_ts = server_val.get("timestamp", "")
+        local_ts = local_val.get("timestamp", "")
+        merged["progress"][key] = server_val if server_ts > local_ts else local_val
+    
+    merged["font_size"] = local_data.get("font_size") or server_data.get("font_size")
+    merged["theme"] = local_data.get("theme") or server_data.get("theme")
+    
+    return merged
+
+
+# ========== AUDIO/TTS ==========
+
 def _fetch_voice_rss_chunk(text: str, voice: str = "en-us") -> bytes:
-    """Fetch a single chunk from Voice RSS API using POST request."""
+    """Fetch a single chunk from Voice RSS API"""
     data = {
         "key": VOICE_RSS_API_KEY,
         "src": text,
@@ -290,11 +546,13 @@ def _fetch_voice_rss_chunk(text: str, voice: str = "en-us") -> bytes:
             if 'audio' in content_type or response.content[:3] in [b'ID3', b'\xff\xfb']:
                 return response.content
         return None
-    except Exception:
+    except Exception as e:
+        print(f"Voice RSS error: {e}")
         return None
 
 
 def text_to_speech_voicerss(text: str, voice: str = "en-us") -> bytes:
+    """Convert text to speech with chunking"""
     MAX_CHARS = 4500
     
     def chunk_text(text: str, max_length: int = 4500) -> list:
@@ -329,79 +587,11 @@ def text_to_speech_voicerss(text: str, voice: str = "en-us") -> bytes:
     return b''.join(audio_chunks)
 
 
-def get_user_sync_file(user_id: str) -> Path:
-    safe_id = re.sub(r'[^a-zA-Z0-9_-]', '_', user_id)
-    return SYNC_DATA_DIR / f"{safe_id}.json"
-
-def load_user_sync_data(user_id: str) -> dict:
-    sync_file = get_user_sync_file(user_id)
-    if sync_file.exists():
-        try:
-            with open(sync_file, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {
-        "bookmarks": [],
-        "highlights": {},
-        "progress": {},
-        "font_size": None,
-        "theme": None,
-        "last_sync": None
-    }
-
-def save_user_sync_data(user_id: str, data: dict) -> bool:
-    sync_file = get_user_sync_file(user_id)
-    try:
-        data["last_sync"] = dt.datetime.now().isoformat()
-        with open(sync_file, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2)
-        return True
-    except Exception:
-        return False
-
-def merge_sync_data(local_data: dict, server_data: dict) -> dict:
-    merged = {}
-    
-    local_bookmarks = local_data.get("bookmarks", [])
-    server_bookmarks = server_data.get("bookmarks", [])
-    bookmark_map = {}
-    for b in server_bookmarks + local_bookmarks:
-        ref = b.get("reference", "")
-        if ref not in bookmark_map or b.get("timestamp", "") > bookmark_map[ref].get("timestamp", ""):
-            bookmark_map[ref] = b
-    merged["bookmarks"] = list(bookmark_map.values())
-    
-    merged["highlights"] = {}
-    server_highlights = server_data.get("highlights", {})
-    local_highlights = local_data.get("highlights", {})
-    all_chapters = set(server_highlights.keys()) | set(local_highlights.keys())
-    for chapter in all_chapters:
-        server_verses = set(server_highlights.get(chapter, []))
-        local_verses = set(local_highlights.get(chapter, []))
-        merged["highlights"][chapter] = list(server_verses | local_verses)
-    
-    merged["progress"] = {}
-    server_progress = server_data.get("progress", {})
-    local_progress = local_data.get("progress", {})
-    all_progress = set(server_progress.keys()) | set(local_progress.keys())
-    for key in all_progress:
-        server_val = server_progress.get(key, {})
-        local_val = local_progress.get(key, {})
-        server_ts = server_val.get("timestamp", "")
-        local_ts = local_val.get("timestamp", "")
-        merged["progress"][key] = server_val if server_ts > local_ts else local_val
-    
-    merged["font_size"] = local_data.get("font_size") or server_data.get("font_size")
-    merged["theme"] = local_data.get("theme") or server_data.get("theme")
-    
-    return merged
-
-
-# ========== ROUTES ==========
+# ========== FLASK ROUTES ==========
 
 @app.route("/api/download-audio", methods=["POST"])
 def download_audio():
+    """Download audio file"""
     data = request.get_json()
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
@@ -427,6 +617,7 @@ def download_audio():
 
 @app.route("/api/play-audio", methods=["POST"])
 def play_audio():
+    """Stream audio"""
     data = request.get_json()
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
@@ -456,8 +647,8 @@ def index():
 
 @app.route("/search", methods=["GET", "POST"])
 def search():
-    api_key = os.environ.get("API_KEY")
-    headers = {"api-key": api_key}
+    api_key = API_BIBLE_KEY or os.environ.get("API_KEY")
+    headers = {"api-key": api_key} if api_key else {}
     
     search_results = None
     search_performed = False
@@ -470,8 +661,9 @@ def search():
     
     if query:
         try:
-            search_url = f"https://rest.api.bible/v1/bibles/9879dbb7cfe39e4d-01/search?query={query}"
-            response = requests.get(search_url, headers=headers)
+            search_bible_id = API_BIBLE_VERSIONS.get("en-niv", "78a9f6124f344018-01")
+            search_url = f"{API_BIBLE_BASE}/bibles/{search_bible_id}/search"
+            response = requests.get(search_url, headers=headers, params={"query": query}, timeout=10)
             
             if response.status_code == 200:
                 data = response.json()
@@ -486,7 +678,9 @@ def search():
                         })
             else:
                 search_results = []
-        except Exception:
+                print(f"Search API error: {response.status_code}")
+        except Exception as e:
+            print(f"Search error: {e}")
             search_results = []       
         search_performed = True
 
@@ -506,6 +700,7 @@ def search():
 
 
 def _send_contact_email_resend(sender_name: str, sender_email: str, subject: str, message: str):
+    """Send email via Resend"""
     if not RESEND_API_KEY:
         return False, 'Resend API key is not configured.'
     
@@ -523,26 +718,11 @@ def _send_contact_email_resend(sender_name: str, sender_email: str, subject: str
     <p><small>Sent from MyPersonal Bible App Contact Form</small></p>
     """
     
-    plain_text = f"""
-New Contact Form Submission
-
-Name: {sender_name or '(not provided)'}
-Email: {sender_email or '(not provided)'}
-Category: {subject or '(not specified)'}
-
-Message:
-{message}
-
----
-Sent from MyPersonal Bible App Contact Form
-    """
-    
     payload = {
         "from": from_email,
         "to": [to_email],
         "subject": f"[MyPersonalBibleApp] {subject or 'New contact message'}",
         "html": email_body,
-        "text": plain_text,
     }
     
     if sender_email:
@@ -559,13 +739,11 @@ Sent from MyPersonal Bible App Contact Form
         if response.status_code in (200, 201, 202):
             return True, 'Your message was sent successfully. Thank you!'
         else:
-            error_data = response.json() if response.text else {}
-            error_msg = error_data.get('message', f'API error: {response.status_code}')
-            return False, f'Failed to send email'
+            print(f"Resend error: {response.status_code}")
+            return False, 'Failed to send email. Please try again later.'
             
-    except requests.exceptions.Timeout:
-        return False, 'Email service timeout. Please try again later.'
-    except Exception:
+    except Exception as e:
+        print(f"Email send error: {e}")
         return False, 'Failed to send email. Please try again later.'
 
 
@@ -577,13 +755,13 @@ def contact():
     user = session.get('user')
 
     if request.method == 'POST':
-        form_data['name']    = request.form.get('name', '').strip()
-        form_data['email']   = request.form.get('email', '').strip()
+        form_data['name'] = request.form.get('name', '').strip()
+        form_data['email'] = request.form.get('email', '').strip()
         form_data['subject'] = request.form.get('subject', '').strip()
         form_data['message'] = request.form.get('message', '').strip()
 
         if not form_data['email'] or not form_data['message']:
-            status_type    = 'warning'
+            status_type = 'warning'
             status_message = 'Please provide both your email address and a message.'
         else:
             success, msg = _send_contact_email_resend(
@@ -592,7 +770,7 @@ def contact():
                 subject=form_data['subject'],
                 message=form_data['message'],
             )
-            status_type    = 'success' if success else 'danger'
+            status_type = 'success' if success else 'danger'
             status_message = msg
             if success:
                 form_data = {'name': '', 'email': '', 'subject': '', 'message': ''}
@@ -616,110 +794,70 @@ def books(book_slug):
 
     selected_chapter = request.form.get("chapter")
     selected_version = request.form.get("version", "en-kjv")
-    verses       = []
+    verses = []
     chapter_text = ""
+    error_message = None
     user = session.get('user')
 
     if selected_chapter:
-        selected_chapter = int(selected_chapter)
-        verses, chapter_text = fetch_chapter_bibleapi(
-            book['name'], selected_chapter, selected_version
-        )
+        try:
+            selected_chapter = int(selected_chapter)
+            verses, chapter_text = fetch_chapter_bibleapi_smart(
+                book['name'], selected_chapter, selected_version
+            )
+
+            if not verses:
+                version_name = get_version_name(selected_version)
+                error_message = (
+                    f"Unable to load {version_name} for {book['name']} {selected_chapter}. "
+                    f"Please try another version or check your internet connection."
+                )
+        except Exception as e:
+            print(f"Chapter fetch error: {e}")
+            error_message = f"Error loading chapter: {str(e)}"
 
     return render_template(
         "books.html",
         current_year=dt.datetime.now().year,
         book=book,
         books=BIBLE_BOOKS,
-        selected_chapter=selected_chapter,
+        selected_chapter=selected_chapter if selected_chapter else None,
         selected_version=selected_version,
         chapter_text=chapter_text,
         verses=verses,
         versions=VERSION_LIST,
+        error_message=error_message,
         user=user
     )
-
-
-@app.route("/books/<book_name>", methods=["GET", "POST"])
-def books_legacy(book_name):
-    book = get_book_by_slug(book_name)
-    if book:
-        return redirect(url_for('books', book_slug=book['slug']), code=301)
-    
-    book = get_book_by_name(book_name)
-    if book:
-        return redirect(url_for('books', book_slug=book['slug']), code=301)
-    
-    clean_name = book_name.lower().replace('-', '').replace(' ', '')
-    for b in BIBLE_BOOKS:
-        if b['name'].lower().replace(' ', '') == clean_name:
-            return redirect(url_for('books', book_slug=b['slug']), code=301)
-    
-    return f"Book '{book_name}' not found", 404
 
 
 @app.route('/api/chapter/<book_name>/<int:chapter>')
 def api_chapter(book_name, chapter):
     selected_version = request.args.get('version', 'en-kjv')
-    verse_start = request.args.get('verse_start', type=int)
-    verse_end = request.args.get('verse_end', type=int)
-    format_type = request.args.get('format', 'full')
     
     book = get_book_by_slug(book_name) or get_book_by_name(book_name)
     if not book:
         return jsonify({'error': f'Book "{book_name}" not found'}), 404
     
     if chapter < 1 or chapter > book['chapters']:
-        return jsonify({'error': f'Chapter {chapter} not found in {book["name"]}. Valid chapters: 1-{book["chapters"]}'}), 404
+        return jsonify({'error': f'Chapter {chapter} not valid for {book["name"]}'}), 404
     
-    verses, chapter_text = fetch_chapter_bibleapi(book['name'], chapter, selected_version)
+    verses, chapter_text = fetch_chapter_bibleapi_smart(book['name'], chapter, selected_version)
 
     if not verses:
         return jsonify({'error': 'Chapter not found or request failed'}), 404
 
-    filtered_verses = verses
-    if verse_start is not None or verse_end is not None:
-        filtered_verses = []
-        for verse in verses:
-            verse_num = int(verse.get('verse', 0))
-            if verse_num:
-                if verse_start and verse_num < verse_start:
-                    continue
-                if verse_end and verse_num > verse_end:
-                    continue
-                filtered_verses.append(verse)
-        
-        if filtered_verses:
-            chapter_text = " ".join(v["text"] for v in filtered_verses)
-        else:
-            chapter_text = ""
-
-    response_data = {
+    return jsonify({
         'book': book['name'],
         'book_slug': book['slug'],
-        'book_full': book['name'],
         'chapter': chapter,
         'total_chapters': book['chapters'],
         'version': selected_version,
-        'version_name': next((v['version'] for v in VERSION_LIST if v['id'] == selected_version), selected_version),
+        'version_name': get_version_name(selected_version),
         'verse_count': len(verses),
-        'filtered_count': len(filtered_verses) if (verse_start or verse_end) else len(verses)
-    }
-    
-    if format_type == 'simple':
-        response_data['verses'] = filtered_verses if (verse_start or verse_end) else verses
-    else:
-        response_data.update({
-            'chapter_text': chapter_text,
-            'verses': filtered_verses if (verse_start or verse_end) else verses,
-            'has_filter': verse_start is not None or verse_end is not None,
-            'verse_range': {
-                'start': verse_start if verse_start else 1,
-                'end': verse_end if verse_end else len(verses)
-            } if (verse_start or verse_end) else None
-        })
-
-    return jsonify(response_data)
+        'chapter_text': chapter_text,
+        'verses': verses,
+    })
 
 
 @app.route('/api/books', methods=['GET'])
@@ -733,19 +871,10 @@ def api_books():
     elif testament == 'new':
         books = books[39:]
     
-    enriched_books = []
-    for book in books:
-        enriched_books.append({
-            'name': book['name'],
-            'slug': book['slug'],
-            'chapters': book['chapters'],
-            'testament': 'Old' if BIBLE_BOOKS.index(book) < 39 else 'New'
-        })
-    
     return jsonify({
-        'total': len(enriched_books),
+        'total': len(books),
         'testament': testament,
-        'books': enriched_books
+        'books': books
     })
 
 
@@ -769,18 +898,18 @@ def api_daily_verse():
 @app.route('/api/search', methods=['GET'])
 def api_search():
     query = request.args.get('q', '').strip()
-    version = request.args.get('version', 'en-kjv')
     limit = request.args.get('limit', 20, type=int)
     
     if not query:
         return jsonify({'error': 'Missing search query parameter "q"'}), 400
     
-    api_key = os.environ.get("API_KEY")
-    headers = {"api-key": api_key}
+    api_key = API_BIBLE_KEY or os.environ.get("API_KEY")
+    headers = {"api-key": api_key} if api_key else {}
     
     try:
-        search_url = f"https://rest.api.bible/v1/bibles/9879dbb7cfe39e4d-01/search?query={query}&limit={limit}"
-        response = requests.get(search_url, headers=headers, timeout=10)
+        search_bible_id = API_BIBLE_VERSIONS.get("en-niv", "78a9f6124f344018-01")
+        search_url = f"{API_BIBLE_BASE}/bibles/{search_bible_id}/search"
+        response = requests.get(search_url, headers=headers, params={"query": query, "limit": limit}, timeout=10)
         
         if response.status_code == 200:
             data = response.json()
@@ -796,14 +925,14 @@ def api_search():
             
             return jsonify({
                 'query': query,
-                'version': version,
                 'total': len(results),
                 'results': results
             })
         else:
-            return jsonify({'error': f'Search API error: {response.status_code}'}), response.status_code
+            return jsonify({'error': f'Search failed: {response.status_code}'}), response.status_code
             
-    except Exception:
+    except Exception as e:
+        print(f"Search error: {e}")
         return jsonify({'error': 'Search request failed'}), 500
 
 
@@ -815,10 +944,10 @@ def api_verse(book_name, chapter, verse):
     if not book:
         return jsonify({'error': f'Book "{book_name}" not found'}), 404
     
-    verses, _ = fetch_chapter_bibleapi(book['name'], chapter, selected_version)
+    verses, _ = fetch_chapter_bibleapi_smart(book['name'], chapter, selected_version)
     
     if not verses:
-        return jsonify({'error': 'Chapter not found or request failed'}), 404
+        return jsonify({'error': 'Chapter not found'}), 404
     
     target_verse = None
     for v in verses:
@@ -827,7 +956,7 @@ def api_verse(book_name, chapter, verse):
             break
     
     if not target_verse:
-        return jsonify({'error': f'Verse {verse} not found in {book["name"]} {chapter}'}), 404
+        return jsonify({'error': f'Verse {verse} not found'}), 404
     
     return jsonify({
         'book': book['name'],
@@ -840,11 +969,11 @@ def api_verse(book_name, chapter, verse):
     })
 
 
-# ========== GOOGLE OAUTH ROUTES ==========
+# ========== GOOGLE OAUTH ==========
 
 @app.route('/login/google')
 def google_login():
-    """Initiate Google OAuth login using requests-oauthlib."""
+    """Initiate Google OAuth"""
     google = OAuth2Session(
         GOOGLE_CLIENT_ID,
         redirect_uri=url_for('google_callback', _external=True),
@@ -863,7 +992,7 @@ def google_login():
 
 @app.route('/login/google/callback')
 def google_callback():
-    """Handle Google OAuth callback using requests-oauthlib."""
+    """Handle Google OAuth callback"""
     try:
         google = OAuth2Session(
             GOOGLE_CLIENT_ID,
@@ -890,23 +1019,23 @@ def google_callback():
         }
         session.permanent = True
         
-        print(f"✅ LOGIN SUCCESS: {user_info.get('email')}")
+        print(f"Login successful: {user_info.get('email')}")
         return redirect(url_for('index'))
         
     except Exception as e:
-        print(f"❌ LOGIN FAILED: {e}")
+        print(f"Login failed: {e}")
         session.pop('oauth_state', None)
         return redirect(url_for('index'))
 
 
 @app.route('/logout')
 def logout():
-    """Log out the current user."""
+    """Logout user"""
     session.pop('user', None)
     return redirect(url_for('index'))
 
 
-# ========== SYNC API ROUTES ==========
+# ========== SYNC API ==========
 
 @app.route('/api/sync', methods=['POST'])
 def sync_data():
@@ -950,6 +1079,7 @@ def get_user():
             'picture': user.get('picture', '')
         })
     return jsonify({'authenticated': False})
+
 
 @app.route('/install')
 def install_guide():

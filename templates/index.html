@@ -39,7 +39,7 @@
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     
     <!-- PWA / Mobile -->
-    <meta name="theme-color" content="#8d9b6a">
+    <meta name="theme-color" content="#3d2205">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
@@ -52,64 +52,78 @@
     <style>
         /* Light mode (default) variables */
         :root {
-            --bg-primary: #f5f0e6;
+            --bg-primary: #faf6ee;
             --bg-secondary: #ffffff;
-            --bg-tertiary: #f8f9fa;
-            --text-primary: #3c2f2f;
-            --text-secondary: #5d4037;
-            --text-muted: #6c757d;
-            --accent-primary: #8d9b6a;
-            --accent-secondary: #5d4037;
+            --bg-tertiary: #f2e8d0;
+            --text-primary: #1a0f00;
+            --text-secondary: #6b3f12;
+            --text-muted: #8a7256;
+            --accent-primary: #c9923a;
+            --accent-secondary: #9a6a1e;
+            --accent-text: #9a6a1e; /* WCAG-safe gold for text/filled-buttons in light mode */
             --card-bg: #ffffff;
-            --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            --border-color: rgba(141, 155, 106, 0.1);
-            --navbar-bg: rgba(255, 255, 255, 0.95);
-            --footer-bg: #5d4037;
-            --footer-text: #d7ccc8;
-            --hero-overlay: linear-gradient(rgba(101, 115, 95, 0.8), rgba(198, 216, 157, 0.8));
+            --card-shadow: 0 10px 30px rgba(26,15,0,0.08);
+            --border-color: rgba(201, 146, 58, 0.15);
+            --navbar-bg: rgba(250, 246, 238, 0.95);
+            --footer-bg: #3d2205;
+            --footer-text: #e8d9bd;
+            --hero-overlay: linear-gradient(rgba(61, 34, 5, 0.75), rgba(154, 106, 30, 0.75));
             --input-bg: #ffffff;
-            --input-border: #ced4da;
-            --btn-light-bg: #f8f9fa;
-            --btn-light-border: #dee2e6;
+            --input-border: #d8c7a1;
+            --btn-light-bg: #f2e8d0;
+            --btn-light-border: #e0d0ad;
             --section-bg: #ffffff;
-            --filter-tab-bg: rgba(141, 155, 106, 0.08);
-            --filter-tab-active-bg: #8d9b6a;
+            --filter-tab-bg: rgba(201, 146, 58, 0.08);
+            --filter-tab-active-bg: #9a6a1e;
             --filter-tab-active-text: #ffffff;
             --filter-search-bg: #ffffff;
-            --filter-search-border: rgba(141, 155, 106, 0.35);
+            --filter-search-border: rgba(201, 146, 58, 0.35);
             --filter-card-bg: #ffffff;
-            --filter-count-color: #6c757d;
+            --filter-count-color: #8a7256;
+            --btn-primary-bg: #9a6a1e;
+            --btn-primary-text: #ffffff;
+            --btn-primary-hover: #7d5518;
+            --btn-success-bg: #c9923a;
+            --btn-success-text: #1a0f00;
+            --btn-success-hover: #b17f2f;
         }
 
         /* Dark mode variables */
         [data-theme="dark"] {
-            --bg-primary: #1a1a2e;
-            --bg-secondary: #16213e;
-            --bg-tertiary: #0f3460;
-            --text-primary: #e8e8e8;
-            --text-secondary: #e94560;
-            --text-muted: #b0b0b0;
-            --accent-primary: #e94560;
-            --accent-secondary: #533483;
-            --card-bg: #16213e;
-            --card-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            --border-color: rgba(233, 69, 96, 0.2);
-            --navbar-bg: rgba(26, 26, 46, 0.95);
-            --footer-bg: #0f0f1a;
-            --footer-text: #a0a0a0;
-            --hero-overlay: linear-gradient(rgba(83, 52, 131, 0.8), rgba(233, 69, 96, 0.8));
-            --input-bg: #1a1a2e;
-            --input-border: #533483;
-            --btn-light-bg: #16213e;
-            --btn-light-border: #533483;
-            --section-bg: #1a1a2e;
-            --filter-tab-bg: rgba(233, 69, 96, 0.08);
-            --filter-tab-active-bg: #e94560;
-            --filter-tab-active-text: #ffffff;
-            --filter-search-bg: #1a1a2e;
-            --filter-search-border: rgba(233, 69, 96, 0.35);
-            --filter-card-bg: #16213e;
-            --filter-count-color: #b0b0b0;
+            --bg-primary: #1a0f00;
+            --bg-secondary: #2a1a08;
+            --bg-tertiary: #3d2205;
+            --text-primary: #f2e8d0;
+            --text-secondary: #e8b86a;
+            --text-muted: #b8a082;
+            --accent-primary: #e8b86a;
+            --accent-secondary: #6b3f12;
+            --accent-text: #e8b86a; /* unchanged from --accent-primary in dark mode */
+            --card-bg: #2a1a08;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            --border-color: rgba(232, 184, 106, 0.2);
+            --navbar-bg: rgba(26, 15, 0, 0.95);
+            --footer-bg: #0f0800;
+            --footer-text: #b8a082;
+            --hero-overlay: linear-gradient(rgba(26, 15, 0, 0.85), rgba(154, 106, 30, 0.75));
+            --input-bg: #1a0f00;
+            --input-border: #6b3f12;
+            --btn-light-bg: #2a1a08;
+            --btn-light-border: #6b3f12;
+            --section-bg: #1a0f00;
+            --filter-tab-bg: rgba(232, 184, 106, 0.1);
+            --filter-tab-active-bg: #e8b86a;
+            --filter-tab-active-text: #1a0f00;
+            --filter-search-bg: #1a0f00;
+            --filter-search-border: rgba(232, 184, 106, 0.35);
+            --filter-card-bg: #2a1a08;
+            --filter-count-color: #b8a082;
+            --btn-primary-bg: #6b3f12;
+            --btn-primary-text: #f2e8d0;
+            --btn-primary-hover: #86541c;
+            --btn-success-bg: #e8b86a;
+            --btn-success-text: #1a0f00;
+            --btn-success-hover: #dba84f;
         }
         
         /* Google Sign-In Button Styling */
@@ -129,9 +143,9 @@
         }
         
         .google-signin-btn:hover {
-            background: var(--accent-primary);
+            background: var(--accent-text);
             color: white;
-            border-color: var(--accent-primary);
+            border-color: var(--accent-text);
         }
         
         .user-profile-btn {
@@ -229,12 +243,12 @@
         }
         
         .nav-link:hover {
-            color: var(--accent-primary) !important;
+            color: var(--accent-text) !important;
         }
 
         /* APK Download nav item styling */
         .nav-link.apk-download-link {
-            color: var(--accent-primary) !important;
+            color: var(--accent-text) !important;
             font-weight: 600;
         }
         
@@ -243,7 +257,7 @@
         }
         
         .nav-link.apk-download-link i {
-            color: var(--accent-primary);
+            color: var(--accent-text);
         }
         
         .hero {
@@ -302,7 +316,7 @@
         .reference {
             font-size: 1.3rem;
             font-weight: 600;
-            color: var(--accent-primary);
+            color: var(--accent-text);
             margin-top: 30px;
         }
         
@@ -362,8 +376,44 @@
         }
         
         .btn-outline-secondary:hover {
-            background-color: var(--accent-primary);
-            border-color: var(--accent-primary);
+            background-color: var(--accent-text);
+            border-color: var(--accent-text);
+        }
+        
+        .btn-primary {
+            background-color: var(--btn-primary-bg);
+            border-color: var(--btn-primary-bg);
+            color: var(--btn-primary-text);
+        }
+        
+        .btn-primary:hover,
+        .btn-primary:focus,
+        .btn-primary:active {
+            background-color: var(--btn-primary-hover) !important;
+            border-color: var(--btn-primary-hover) !important;
+            color: var(--btn-primary-text) !important;
+        }
+        
+        .btn-primary:focus {
+            box-shadow: 0 0 0 0.25rem rgba(154, 106, 30, 0.35);
+        }
+        
+        .btn-success {
+            background-color: var(--btn-success-bg);
+            border-color: var(--btn-success-bg);
+            color: var(--btn-success-text);
+        }
+        
+        .btn-success:hover,
+        .btn-success:focus,
+        .btn-success:active {
+            background-color: var(--btn-success-hover) !important;
+            border-color: var(--btn-success-hover) !important;
+            color: var(--btn-success-text) !important;
+        }
+        
+        .btn-success:focus {
+            box-shadow: 0 0 0 0.25rem rgba(201, 146, 58, 0.35);
         }
         
         .dropdown-menu {
@@ -376,7 +426,7 @@
         }
         
         .dropdown-item:hover {
-            background-color: var(--accent-primary);
+            background-color: var(--accent-text);
             color: white;
         }
         
@@ -491,7 +541,7 @@
             
             .navbar-nav .nav-link i {
                 width: 28px;
-                color: var(--accent-primary);
+                color: var(--accent-text);
             }
             
             .navbar-nav .nav-link:hover {
@@ -518,9 +568,9 @@
         
         .theme-toggle-btn:hover,
         #helpButton:hover {
-            background: var(--accent-primary);
+            background: var(--accent-text);
             color: white;
-            border-color: var(--accent-primary);
+            border-color: var(--accent-text);
             transform: rotate(360deg);
         }
         
@@ -558,7 +608,7 @@
             box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.15);
         }
         .books-search i {
-            color: var(--accent-primary);
+            color: var(--accent-text);
             font-size: 1rem;
             flex-shrink: 0;
         }
@@ -624,7 +674,7 @@
             font-weight: 500;
         }
         .books-count strong {
-            color: var(--accent-primary);
+            color: var(--accent-text);
             font-family: 'Lora', serif;
         }
         
@@ -679,7 +729,7 @@
         
         .books-item-icon {
             font-size: 2.2rem;
-            color: var(--accent-primary);
+            color: var(--accent-text);
             margin-bottom: 4px;
             line-height: 1;
         }
@@ -922,7 +972,7 @@
         }
         
         .navigation-tips i {
-            color: var(--accent-primary);
+            color: var(--accent-text);
             width: 20px;
         }
         
@@ -935,8 +985,8 @@
         }
         
         .form-check-input:checked {
-            background-color: var(--accent-primary);
-            border-color: var(--accent-primary);
+            background-color: var(--accent-text);
+            border-color: var(--accent-text);
         }
         
         .form-check-input:focus {
@@ -1124,7 +1174,7 @@
 
         [data-theme="dark"] .highlight-note {
             background: rgba(233,69,96,0.12);
-            border-left-color: var(--accent-primary);
+            border-left-color: var(--accent-text);
         }
 
         .highlight-note .btn {
@@ -1147,7 +1197,7 @@
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
                     <h3 class="modal-title fw-bold" id="welcomeModalLabel">
-                        <i class="fas fa-bible me-2" style="color: var(--accent-primary);"></i>
+                        <i class="fas fa-bible me-2" style="color: var(--accent-text);"></i>
                         <span class="d-none d-sm-inline">Welcome to</span> MyPersonal Bible App
                     </h3>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1158,12 +1208,12 @@
                         <p class="text-muted small d-md-block">Your daily companion for reading, listening, and meditating on Scripture.</p>
                     </div>
                     <h5 class="mb-2 mb-md-3">
-                        <i class="fas fa-star me-2" style="color: var(--accent-primary);"></i>Features
+                        <i class="fas fa-star me-2" style="color: var(--accent-text);"></i>Features
                     </h5>
                     <div class="row g-2 g-md-3 mb-3 mb-md-4">
                         <div class="col-6 col-md-6">
                             <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
-                                <i class="fas fa-calendar-day d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <i class="fas fa-calendar-day d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-text); font-size: 1.5rem;"></i>
                                 <h6 class="mb-1">Daily Verse</h6>
                                 <small class="text-muted d-none d-md-block">A new inspiring verse every day.</small>
                             </div>
@@ -1177,35 +1227,35 @@
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
-                                <i class="fas fa-highlighter d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <i class="fas fa-highlighter d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-text); font-size: 1.5rem;"></i>
                                 <h6 class="mb-1">Verse Highlighting</h6>
                                 <small class="text-muted d-none d-md-block">Highlight important passages.</small>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
-                                <i class="fas fa-headphones d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <i class="fas fa-headphones d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-text); font-size: 1.5rem;"></i>
                                 <h6 class="mb-1">Audio Bible</h6>
                                 <small class="text-muted d-none d-md-block">Listen or download MP3s.</small>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
-                                <i class="fas fa-chart-line d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <i class="fas fa-chart-line d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-text); font-size: 1.5rem;"></i>
                                 <h6 class="mb-1">Reading Progress</h6>
                                 <small class="text-muted d-none d-md-block">Track your reading.</small>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="feature-item p-2 p-md-3 rounded h-100" style="background: var(--bg-tertiary);">
-                                <i class="fas fa-cloud-upload-alt d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-primary); font-size: 1.5rem;"></i>
+                                <i class="fas fa-cloud-upload-alt d-block d-md-inline mb-1 mb-md-2" style="color: var(--accent-text); font-size: 1.5rem;"></i>
                                 <h6 class="mb-1">Cloud Sync</h6>
                                 <small class="text-muted d-none d-md-block">Sync across devices.</small>
                             </div>
                         </div>
                     </div>
                     <h5 class="mb-2 mb-md-3">
-                        <i class="fas fa-compass me-2" style="color: var(--accent-primary);"></i>How to Navigate
+                        <i class="fas fa-compass me-2" style="color: var(--accent-text);"></i>How to Navigate
                     </h5>
                     <div class="navigation-tips p-2 p-md-3 rounded mb-3 mb-md-4" style="background: var(--bg-tertiary);">
                         <div class="row g-2">
@@ -1231,7 +1281,7 @@
                     </div>
                     <div id="announcementSection" class="announcement p-2 p-md-3 rounded" style="background: var(--bg-tertiary); border-left: 4px solid var(--accent-primary);">
                         <h6 class="mb-2">
-                            <i class="fas fa-gift me-2" style="color: var(--accent-primary);"></i>What's New
+                            <i class="fas fa-gift me-2" style="color: var(--accent-text);"></i>What's New
                         </h6>
                         <ul class="mb-0 ps-3 small text-muted">
                             <li class="mb-1"><strong>📱 Android APK</strong> - Download and install on your mobile device</li>
@@ -1420,7 +1470,7 @@
             <h2 class="text-center section-title mb-5">Search Scripture</h2>
             <p class="text-center text-muted mb-4">Search for verses by keyword or phrase.</p>
             <div class="search-form">
-                <form method="POST" action="{{ url_for('search') }}">
+                <form method="POST" action="{{ url_for('search') }}#search">
                     <div class="input-group input-group-lg shadow-sm col-11">
                         <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
                         <input type="text" name="query" value="{{query}}" class="form-control border-start-0" placeholder="Search by keyword, verse, or phrase..." required>
@@ -1523,7 +1573,7 @@
 
     <!-- Android App Download Banner -->
     <div class="container col-11" style="margin-bottom: 30px;">
-        <div style="background: linear-gradient(135deg, #8d9b6a, #5d4037); color: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+        <div style="background: linear-gradient(135deg, #c9923a, #3d2205); color: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
             <div class="row align-items-center">
                 <div class="col-md-7">
                     <div class="d-flex align-items-center gap-3 mb-3 mb-md-0">
