@@ -392,6 +392,14 @@
             .navbar-brand span {
                 font-size: 0.75rem !important;
             } 
+
+            .brand-text {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 120px;
+                display: block;
+            }
             
             .user-profile-btn {
                 padding: 3px 6px;
@@ -1148,7 +1156,7 @@
                     height="36" 
                     class="me-2 rounded-2"
                     style="object-fit: cover;">
-                <span>MyPersonal Bible App</span>
+                <span class="brand-text">MyPersonal Bible</span>
             </a>
             
             <!-- Mobile: Action icons OUTSIDE hamburger -->
