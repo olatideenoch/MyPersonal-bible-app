@@ -550,6 +550,45 @@
             }
         }
 
+        /* Mobile action-icon row (sign-in/avatar, streak badge, theme
+           toggle, help) - drop to its own full-width line below the
+           brand + hamburger instead of squeezing into the top-right
+           corner and overflowing. */
+        @media (max-width: 991px) {
+            .navbar > .container {
+                flex-wrap: wrap;
+            }
+
+            .navbar-brand {
+                order: 1;
+            }
+
+            .navbar-toggler {
+                order: 2;
+            }
+
+            .navbar-mobile-actions {
+                order: 3;
+                flex-basis: 100%;
+                flex-wrap: wrap;
+                row-gap: 8px;
+                margin-top: 12px;
+                margin-left: 0 !important;
+                justify-content: flex-end;
+            }
+
+            .navbar-collapse {
+                order: 4;
+            }
+
+            .navbar-mobile-actions .streak-badge-text {
+                max-width: 140px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+
         /* Desktop action buttons */
         .theme-toggle-btn,
         #helpButton {
@@ -996,7 +1035,7 @@
 
         @media (max-width: 768px) {
             .modal-dialog {
-                margin: 0.5rem;
+                margin: 0.5rem auto; /* fixed: plain "0.5rem" collapsed the horizontal auto-centering, pinning the modal to the left */
                 width: auto;
             }
             
@@ -1238,6 +1277,56 @@
             .streak-badge { padding: 5px 9px; font-size: 0.75rem; }
             .streak-popover { right: -40px; min-width: 180px; }
         }
+
+        /* Bible in a Year - awareness promo card */
+        .by-promo-card {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-left: 5px solid var(--accent-primary);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            flex-wrap: wrap;
+        }
+        .by-promo-icon {
+            flex-shrink: 0;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+        }
+        .by-promo-text { flex: 1; min-width: 220px; }
+        .by-promo-text h3 {
+            font-family: 'Lora', serif;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 1.4rem;
+        }
+        .by-promo-text p { color: var(--text-secondary); margin: 0; }
+        .by-promo-btn {
+            background: var(--btn-primary-bg);
+            color: var(--btn-primary-text);
+            border: none;
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: background 0.2s ease;
+        }
+        .by-promo-btn:hover { background: var(--btn-primary-hover); color: var(--btn-primary-text); }
+
+        @media (max-width: 576px) {
+            .by-promo-card { flex-direction: column; text-align: center; padding: 24px 20px; }
+            .by-promo-btn { width: 100%; }
+        }
 </style>
     <script data-goatcounter="https://olatideenoch.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
@@ -1383,7 +1472,7 @@
             </a>
             
             <!-- Mobile: Action icons -->
-            <div class="d-lg-none d-flex align-items-center gap-2 ms-auto">
+            <div class="navbar-mobile-actions d-lg-none d-flex align-items-center gap-2 ms-auto">
                 {% if user %}
                 <div class="dropdown">
                     <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -1534,6 +1623,21 @@
                         {% endif %}
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="bible-year-promo" class="py-4">
+        <div class="container col-11">
+            <div class="by-promo-card">
+                <div class="by-promo-icon"><i class="fas fa-calendar-check"></i></div>
+                <div class="by-promo-text">
+                    <h3>Read the Whole Bible in a Year</h3>
+                    <p>Follow a guided 365-day reading plan and track your daily progress &mdash; see how far you've come, and pick up right where you left off.</p>
+                </div>
+                <a href="{{ url_for('bible_in_a_year') }}" class="btn by-promo-btn">
+                    <i class="fas fa-arrow-right me-2"></i>Start the Plan
+                </a>
             </div>
         </div>
     </section>
