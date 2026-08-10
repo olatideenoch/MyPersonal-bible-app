@@ -349,11 +349,49 @@
             }
         }
 
-        /* Mobile navbar - keep everything on one line */
+        /* Mobile action-icon row (sign-in/avatar, streak badge, theme
+           toggle, help) - drop to its own full-width line below the
+           brand + hamburger instead of squeezing into the top-right
+           corner and overflowing. */
         @media (max-width: 991px) {
-            .navbar .container {
-                flex-wrap: nowrap;
+            .navbar > .container {
+                flex-wrap: wrap;
             }
+
+            .navbar-brand {
+                order: 1;
+            }
+
+            .navbar-toggler {
+                order: 2;
+            }
+
+            .navbar-mobile-actions {
+                order: 3;
+                flex-basis: 100%;
+                flex-wrap: wrap;
+                row-gap: 8px;
+                margin-top: 12px;
+                margin-left: 0 !important;
+                justify-content: center;
+            }
+
+            .navbar-collapse {
+                order: 4;
+            }
+
+            .navbar-mobile-actions .streak-badge-text {
+                max-width: 140px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+        /* /* Mobile navbar - keep everything on one line */
+        @media (max-width: 991px) {
+            /* .navbar .container {
+                flex-wrap: nowrap;
+            } */
             
             .navbar-brand {
                 flex: 1;
@@ -368,7 +406,7 @@
             
             .navbar-brand span {
                 font-size: 0.75rem !important;
-            }
+            } 
             
             .user-profile-btn {
                 padding: 3px 6px;
@@ -401,12 +439,12 @@
                 line-height: 1;
             }
             
-            .theme-toggle-btn, #helpButtonMobile {
+            .theme-toggle-btn {
                 width: 32px;
                 height: 32px;
             }
             
-            .theme-toggle-btn i, #helpButtonMobile i {
+            .theme-toggle-btn i {
                 font-size: 0.85rem;
             }
             
@@ -423,6 +461,10 @@
                 gap: 3px !important;
             }
         }
+
+
+
+
 
         @media (max-width: 380px) {
             .navbar-brand span {
@@ -1128,7 +1170,7 @@
             </a>
             
             <!-- Mobile: Action icons OUTSIDE hamburger -->
-            <div class="d-lg-none d-flex align-items-center gap-2 ms-auto">
+            <div class="navbar-mobile-actions d-lg-none d-flex align-items-center gap-2">
                 {% if user %}
                 <div class="dropdown">
                     <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
