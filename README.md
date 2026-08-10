@@ -10,7 +10,9 @@ A beautiful, user-friendly web application for reading, searching, and exploring
 - **🔍 Powerful Search** — Find any verse, keyword, or phrase instantly across the Bible
 - **📚 Browse by Book** — Select any of the 66 books of the Bible with chapter navigation
 - **📝 Read Full Chapters** — View complete chapters with clean, readable formatting
-- **🌍 Multiple Bible Versions** — Choose from KJV, WEB, OEB, Clementine Latin Vulgate, Portuguese Almeida, and Romanian Cornilescu
+- **🌍 1000+ Bible Versions** — Premium support for NKJV, NIV, NLT + access to ESV, NASB, CSB, and 1000+ more translations
+- **🎯 Smart Multi-API System** — Intelligently routes requests between API.Bible, Bible.com, and free fallback API for reliability
+- **🌐 Multiple Languages** — Portuguese, Chinese, Romanian, Czech, Tamil, Malayalam, Latin, Cherokee, and more
 - **🎧 Audio Playback** — Listen to chapters or selected verses with high-quality text-to-speech powered by Voice RSS
 - **⬇️ MP3 Downloads** — Download audio versions of chapters or verse selections for offline listening
 - **⚡ Quick Verse Lookup** — Instantly view specific verses or verse ranges with audio support
@@ -22,7 +24,10 @@ A beautiful, user-friendly web application for reading, searching, and exploring
 
 - **Backend**: Python 3 + Flask
 - **Frontend**: Bootstrap 5, Font Awesome, Google Fonts (Crimson Text, Lora)
-- **Bible Data**: [bible-api.com](https://bible-api.com) (Tim Morgan's free Bible API)
+- **Bible APIs** (Multi-tier):
+  - [API.Bible](https://api.bible/) - Premium versions (NKJV, NIV, NLT) + 1000+ translations
+  - [Bible.com/YouVersion](https://www.youversion.com/developer) - Extended versions (ESV, NASB, CSB) + thousands more
+  - [bible-api.com](https://bible-api.com) - Free public domain fallback (KJV, WEB, ASV, etc.)
 - **Text-to-Speech**: [Voice RSS API](https://www.voicerss.org/) for high-quality audio generation
 - **Email**: SMTP integration for contact form submissions
 - **Deployment**: Render.com with Gunicorn
@@ -59,10 +64,25 @@ pip install -r requirements.txt
 4. **Set up environment variables**
 Create a .env file in the root directory with the following variables:
 
+**Bible APIs (Optional but recommended - unlock 1000+ versions)**
+```bash
+# API.Bible - Get free key: https://api.bible/sign-up/starter
+API_BIBLE_KEY=pk_live_your_api_bible_key_here
+
+# Bible.com - Get free key: https://www.youversion.com/developer
+BIBLE_COM_KEY=your_youversion_api_token_here
+
+# Note: The app works WITHOUT these keys (uses free fallback API)
+# But WITH keys, users get access to premium versions (NKJV, NIV, NLT, ESV, NASB, CSB)
+```
+
 **Bible Search API (optional - for search functionality)**
+```bash
 API_KEY=your_bible_api_key_here
+```
 
 **Email Configuration (for contact form)**
+```bash
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
 MAIL_USERNAME=your_email@gmail.com
@@ -70,31 +90,88 @@ MAIL_PASSWORD=your_app_password_here
 MAIL_TO=recipient_email@gmail.com
 MAIL_USE_TLS=true
 MAIL_USE_SSL=false
+```
 
-**Voice RSS API Key**
+**Voice RSS API Key (for audio features)**
+```bash
 VOICE_RSS_API_KEY=your_voice_rss_api_key_here
+```
 
-5. Run the app
+**Google OAuth (for user authentication)**
+```bash
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+APP_SECRET_KEY=your_secret_key_for_sessions
+```
+
+5. **Get API Keys (Optional)** - *Unlock premium Bible versions*
+
+To access premium versions (NKJV, NIV, NLT, ESV, NASB, CSB), get free API keys:
+
+**API.Bible** (Free tier - 5,000 calls/month):
+- Visit: https://api.bible/sign-up/starter
+- Sign up and choose 3 versions
+- Copy your API key to `API_BIBLE_KEY` in `.env`
+
+**Bible.com** (Free developer tier):
+- Visit: https://www.youversion.com/developer
+- Create an application
+- Copy your token to `BIBLE_COM_KEY` in `.env`
+
+**Note**: The app works fine without these keys (uses free fallback API with 16 versions).
+
+6. Run the app
 ```bash
 python main.py
 ```
 
-6. Open in your browser
+7. Open in your browser
 ```bash
 http://127.0.0.1:5000/
 ```
+
+## 📖 Available Bible Versions
+
+### Premium Versions (API.Bible & Bible.com)
+- ⭐ **NKJV** - New King James Version
+- ⭐ **NIV** - New International Version
+- ⭐ **NLT** - New Living Translation
+- **ESV** - English Standard Version
+- **NASB** - New American Standard Bible
+- **CSB** - Christian Standard Bible
+
+### Public Domain Versions (Always Available)
+- **KJV** - King James Version
+- **WEB** - World English Bible
+- **ASV** - American Standard Version
+- **BBE** - Bible in Basic English
+- **Darby** - Darby Bible
+- **DRA** - Douay-Rheims
+- **YLT** - Young's Literal Translation
+- **OEB** - Open English Bible (US & UK)
+- **And 16+ more...**
+
+### Regional Versions
+- Portuguese (Almeida)
+- Romanian (Cornilescu)
+- Chinese (Union Version)
+- Czech (Kralická)
+- Tamil, Malayalam, Latin, and more
 ## 🌐 API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/books` | GET | List all Bible books with metadata |
-| `/api/versions` | GET | List available Bible versions |
+| `/api/versions` | GET | List available Bible versions (25+ with APIs, 16+ without) |
 | `/api/daily-verse` | GET | Get the verse of the day |
 | `/api/search` | GET | Search Bible verses by keyword |
 | `/api/chapter/<book>/<chapter>` | GET | Get full chapter data with optional filtering |
 | `/api/verse/<book>/<chapter>/<verse>` | GET | Get a single verse |
 | `/api/play-audio` | POST | Stream MP3 audio for text playback |
 | `/api/download-audio` | POST | Download MP3 audio file |
+| `/login/google` | GET | Google OAuth authentication |
+| `/api/sync` | POST/GET | Sync user bookmarks, highlights, and progress |
+| `/api/user` | GET | Get current user information |
 
 ## Query Parameters
 
@@ -226,8 +303,20 @@ Content-Type: application/json
 **`/api/version`s**
 
 {
-  "total": 6,
+  "total": 25,
   "versions": [
+    {
+      "id": "en-nkjv",
+      "version": "New King James Version (NKJV) ⭐"
+    },
+    {
+      "id": "en-niv",
+      "version": "New International Version (NIV) ⭐"
+    },
+    {
+      "id": "en-nlt",
+      "version": "New Living Translation (NLT) ⭐"
+    },
     {
       "id": "en-kjv",
       "version": "King James Version (KJV)"
@@ -272,12 +361,27 @@ Content-Type: application/json
 
 ## 🎵 Audio Features
 The app includes two audio options for each chapter or verse selection:
-- Play Button: Streams audio directly in the browser with play/pause, skip forward/backward (10 seconds), and speed controls (0.5x - 1.5x)
-- Download MP3: Generates and downloads an MP3 file for offline listening
+- **Play Button**: Streams audio directly in the browser with play/pause, skip forward/backward (10 seconds), and speed controls (0.5x - 1.5x)
+- **Download MP3**: Generates and downloads an MP3 file for offline listening
 - Audio is powered by Voice RSS API with the following specifications:
-- Voice: US English
-- Format: MP3, 44kHz, 16-bit stereo
-- Character limit: 5000 characters per request
+  - Voice: US English
+  - Format: MP3, 44kHz, 16-bit stereo
+  - Character limit: 5000 characters per request
+
+## 🔄 Smart API Routing System
+
+The app uses intelligent routing to provide the best user experience:
+
+1. **Try Primary API** - Fetches from API.Bible (for NKJV, NIV, NLT) or Bible.com (for ESV, NASB, CSB)
+2. **Fallback to Secondary API** - If primary fails, tries the backup API
+3. **Final Fallback** - Uses free bible-api.com (always available)
+
+**Result**: Users always get their verses, even if one API is down!
+
+### API Rate Limits
+- **API.Bible**: 5,000 calls/month (free tier)
+- **Bible.com**: Based on usage tier
+- **bible-api.com**: 15 requests per 30 seconds
 
 ## 🤝 Contributing
 Contributions are welcome! Feel free to:
@@ -291,13 +395,24 @@ Contributions are welcome! Feel free to:
 This project is open source and available under the MIT License.
 
 ## 🙏 Acknowledgments
-Bible text provided by bible-api.com
-- Text-to-speech powered by Voice RSS
-- Icons by Font Awesome
-- Fonts: Crimson Text and Lora from Google Fonts
-- UI framework: Bootstrap
+Bible text provided by:
+- [API.Bible](https://api.bible/) - Premium Bible versions
+- [Bible.com/YouVersion](https://www.youversion.com/) - Extensive translation library
+- [bible-api.com](https://bible-api.com/) - Free public domain versions
+- Text-to-speech powered by [Voice RSS API](https://www.voicerss.org/)
+- Icons by [Font Awesome](https://fontawesome.com/)
+- Fonts: Crimson Text and Lora from [Google Fonts](https://fonts.google.com/)
+- UI framework: [Bootstrap 5](https://getbootstrap.com/)
 
-## 📧 Contact
+## � Documentation
+
+For detailed setup and configuration of Bible APIs, see:
+- **START_HERE.md** - Quick start guide
+- **BIBLE_APIS_SETUP.md** - Complete API setup instructions
+- **QUICK_REFERENCE.md** - API versions and configuration reference
+- **IMPLEMENTATION_SUMMARY.md** - Technical implementation details
+
+## �📧 Contact
 Have questions, feedback, or interested in sponsorship?
 - Use the Contact Form on the live site
 - Email: mypersonalbibleapp@gmail.com
