@@ -42,7 +42,7 @@ VOICE_RSS_URL = "https://api.voicerss.org/"
 # Bible API configurations
 BIBLE_API_BASE = "https://bible-api.com"
 API_BIBLE_KEY = os.environ.get("API_BIBLE_KEY")
-API_BIBLE_BASE = "https://rest.api.bible/v1"
+API_BIBLE_BASE = "https://rest.api.bible/v1/bibles"
 
 # Create sync data directory if it doesn't exist
 SYNC_DATA_DIR = Path("sync_data")
@@ -122,6 +122,70 @@ BIBLE_BOOKS = [
 # Add testament information
 for i, book in enumerate(BIBLE_BOOKS):
     book['testament'] = 'Old' if i < 39 else 'New'
+
+
+# ========== BIBLE IN A YEAR PLAN ==========
+# Generated from BIBLE_BOOKS in canonical order, spread evenly across 365 days.
+# Not tied to any commercial reading plan - purely derived from this app's own
+# book/chapter data, so every reading always links to a chapter that actually
+# exists in the app.
+
+def _build_bible_in_a_year_plan(days: int = 365) -> list:
+    all_chapters = []
+    for book in BIBLE_BOOKS:
+        for ch in range(1, book["chapters"] + 1):
+            all_chapters.append({"book": book["name"], "slug": book["slug"], "chapter": ch})
+
+    total = len(all_chapters)
+    base = total // days
+    remainder = total % days
+
+    # Spread the "extra chapter" days evenly across the year instead of bunching them at the end
+    extra_days = set()
+    if remainder:
+        for j in range(remainder):
+            extra_days.add(round(j * days / remainder))
+
+    def label_groups(readings):
+        parts = []
+        for g in readings:
+            if g["start"] == g["end"]:
+                parts.append(f"{g['book']} {g['start']}")
+            else:
+                parts.append(f"{g['book']} {g['start']}-{g['end']}")
+        return "; ".join(parts)
+
+    plan = []
+    idx = 0
+    for day_num in range(1, days + 1):
+        count = max(base + (1 if (day_num - 1) in extra_days else 0), 1)
+        day_chapters = all_chapters[idx: idx + count]
+        idx += count
+
+        groups = []
+        for c in day_chapters:
+            if groups and groups[-1]["slug"] == c["slug"] and c["chapter"] == groups[-1]["end"] + 1:
+                groups[-1]["end"] = c["chapter"]
+            else:
+                groups.append({"book": c["book"], "slug": c["slug"], "start": c["chapter"], "end": c["chapter"]})
+
+        plan.append({"day": day_num, "readings": groups, "label": label_groups(groups)})
+
+    # Fold any leftover chapters (rounding edge case) into the final day
+    if idx < total:
+        for c in all_chapters[idx:]:
+            last_readings = plan[-1]["readings"]
+            if last_readings and last_readings[-1]["slug"] == c["slug"] and c["chapter"] == last_readings[-1]["end"] + 1:
+                last_readings[-1]["end"] = c["chapter"]
+            else:
+                last_readings.append({"book": c["book"], "slug": c["slug"], "start": c["chapter"], "end": c["chapter"]})
+        plan[-1]["label"] = label_groups(plan[-1]["readings"])
+
+    return plan
+
+
+BIBLE_YEAR_PLAN = _build_bible_in_a_year_plan(365)
+BIBLE_YEAR_TOTAL_DAYS = len(BIBLE_YEAR_PLAN)
 
 
 # ========== VERSION LIST & MAPPINGS ==========
@@ -463,6 +527,8 @@ def load_user_sync_data(user_id: str) -> dict:
         "bookmarks": [],
         "highlights": {},
         "progress": {},
+        "readingLog": [],
+        "bibleYear": {"start_date": None, "completed_days": []},
         "font_size": None,
         "theme": None,
         "last_sync": None
@@ -505,6 +571,23 @@ def merge_sync_data(local_data: dict, server_data: dict) -> dict:
         local_verses = set(local_highlights.get(chapter, []))
         merged["highlights"][chapter] = list(server_verses | local_verses)
     
+    # Merge reading log (union of dates read, deduped and sorted)
+    server_log = set(server_data.get("readingLog", []))
+    local_log = set(local_data.get("readingLog", []))
+    merged["readingLog"] = sorted(server_log | local_log)
+    
+    # Merge Bible-in-a-Year progress (union completed days, keep the earliest start date)
+    server_by = server_data.get("bibleYear") or {}
+    local_by = local_data.get("bibleYear") or {}
+    merged_completed = set(server_by.get("completed_days", [])) | set(local_by.get("completed_days", []))
+    server_start = server_by.get("start_date")
+    local_start = local_by.get("start_date")
+    if server_start and local_start:
+        merged_start = min(server_start, local_start)
+    else:
+        merged_start = server_start or local_start
+    merged["bibleYear"] = {"start_date": merged_start, "completed_days": sorted(merged_completed)}
+    
     # Merge progress
     merged["progress"] = {}
     server_progress = server_data.get("progress", {})
@@ -521,6 +604,95 @@ def merge_sync_data(local_data: dict, server_data: dict) -> dict:
     merged["theme"] = local_data.get("theme") or server_data.get("theme")
     
     return merged
+
+
+def compute_streak(reading_log: list) -> dict:
+    """Given a list of ISO date strings ('YYYY-MM-DD') the user read on,
+    compute their current streak, longest streak, and last-read date."""
+    if not reading_log:
+        return {"current_streak": 0, "longest_streak": 0, "last_read": None, "total_days_read": 0}
+    
+    try:
+        dates = sorted({dt.date.fromisoformat(d) for d in reading_log})
+    except ValueError:
+        return {"current_streak": 0, "longest_streak": 0, "last_read": None, "total_days_read": 0}
+    
+    today = dt.date.today()
+    longest_streak = 1
+    run = 1
+    for i in range(1, len(dates)):
+        if (dates[i] - dates[i - 1]).days == 1:
+            run += 1
+        else:
+            run = 1
+        longest_streak = max(longest_streak, run)
+    
+    last_read = dates[-1]
+    gap_from_today = (today - last_read).days
+    
+    if gap_from_today > 1:
+        # Streak is broken (missed at least one full day)
+        current_streak = 0
+    else:
+        # Walk backwards from the most recent read day counting consecutive days
+        current_streak = 1
+        for i in range(len(dates) - 1, 0, -1):
+            if (dates[i] - dates[i - 1]).days == 1:
+                current_streak += 1
+            else:
+                break
+    
+    return {
+        "current_streak": current_streak,
+        "longest_streak": longest_streak,
+        "last_read": last_read.isoformat(),
+        "total_days_read": len(dates)
+    }
+
+
+def compute_bible_year_progress(bible_year: dict) -> dict:
+    """Given a user's {start_date, completed_days} for the Bible-in-a-Year plan,
+    compute completion stats and whether they're on track, ahead, or behind."""
+    bible_year = bible_year or {}
+    completed_days = sorted(set(bible_year.get("completed_days", [])))
+    start_date_str = bible_year.get("start_date")
+    total_days = BIBLE_YEAR_TOTAL_DAYS
+    completed_count = len(completed_days)
+
+    result = {
+        "start_date": start_date_str,
+        "completed_days": completed_days,
+        "completed_count": completed_count,
+        "total_days": total_days,
+        "percent_complete": round((completed_count / total_days) * 100, 1) if total_days else 0,
+        "expected_day": None,
+        "days_ahead_behind": None,
+        "status": "not_started"
+    }
+
+    if not start_date_str:
+        return result
+
+    try:
+        start_date = dt.date.fromisoformat(start_date_str)
+    except ValueError:
+        return result
+
+    today = dt.date.today()
+    elapsed = (today - start_date).days + 1
+    expected_day = min(max(elapsed, 1), total_days)
+    result["expected_day"] = expected_day
+
+    diff = completed_count - expected_day
+    result["days_ahead_behind"] = diff
+    if completed_count >= total_days:
+        result["status"] = "completed"
+    elif diff >= 0:
+        result["status"] = "on_track"
+    else:
+        result["status"] = "behind"
+
+    return result
 
 
 # ========== AUDIO/TTS ==========
@@ -792,8 +964,12 @@ def books(book_slug):
     if not book:
         return f"Book '{book_slug}' not found", 404
 
-    selected_chapter = request.form.get("chapter")
-    selected_version = request.form.get("version", "en-kjv")
+    # Chapter/version can arrive either via the in-page POST form (existing
+    # dropdown/prev-next nav) or as GET query params, so a URL like
+    # /books/genesis?chapter=1 is directly deep-linkable (used by the
+    # Bible in a Year day list).
+    selected_chapter = request.form.get("chapter") or request.args.get("chapter")
+    selected_version = request.form.get("version") or request.args.get("version", "en-kjv")
     verses = []
     chapter_text = ""
     error_message = None
@@ -1064,8 +1240,102 @@ def get_sync_data():
     
     user_id = session['user']['id']
     data = load_user_sync_data(user_id)
+    data['streak'] = compute_streak(data.get('readingLog', []))
+    data['bibleYearProgress'] = compute_bible_year_progress(data.get('bibleYear', {}))
     
     return jsonify(data)
+
+
+@app.route('/api/log-reading', methods=['POST'])
+def log_reading():
+    """Record that the user read a chapter today, for streak tracking.
+    Lightweight and automatic (called on chapter load) — separate from
+    the full bookmarks/highlights sync so it doesn't need a manual Sync Now."""
+    if 'user' not in session:
+        return jsonify({'authenticated': False}), 401
+    
+    user_id = session['user']['id']
+    today_str = dt.date.today().isoformat()
+    
+    data = load_user_sync_data(user_id)
+    reading_log = set(data.get('readingLog', []))
+    reading_log.add(today_str)
+    data['readingLog'] = sorted(reading_log)
+    
+    if not save_user_sync_data(user_id, data):
+        return jsonify({'error': 'Failed to save reading log'}), 500
+    
+    streak = compute_streak(data['readingLog'])
+    return jsonify({'success': True, 'streak': streak})
+
+
+@app.route('/api/bible-year/plan', methods=['GET'])
+def bible_year_plan():
+    """Public - the static 365-day reading plan. No auth needed since it's the same for everyone."""
+    return jsonify({"days": BIBLE_YEAR_TOTAL_DAYS, "plan": BIBLE_YEAR_PLAN})
+
+
+@app.route('/api/bible-year/progress', methods=['GET'])
+def bible_year_progress():
+    if 'user' not in session:
+        return jsonify({'authenticated': False}), 401
+    
+    user_id = session['user']['id']
+    data = load_user_sync_data(user_id)
+    progress = compute_bible_year_progress(data.get('bibleYear', {}))
+    return jsonify({'authenticated': True, 'progress': progress})
+
+
+@app.route('/api/bible-year/start', methods=['POST'])
+def bible_year_start():
+    """Begin (or restart) the Bible-in-a-Year plan from today, clearing any prior progress."""
+    if 'user' not in session:
+        return jsonify({'authenticated': False}), 401
+    
+    user_id = session['user']['id']
+    data = load_user_sync_data(user_id)
+    data['bibleYear'] = {"start_date": dt.date.today().isoformat(), "completed_days": []}
+    
+    if not save_user_sync_data(user_id, data):
+        return jsonify({'error': 'Failed to save'}), 500
+    
+    progress = compute_bible_year_progress(data['bibleYear'])
+    return jsonify({'success': True, 'progress': progress})
+
+
+@app.route('/api/bible-year/mark', methods=['POST'])
+def bible_year_mark():
+    """Mark a plan day as read (or unread). Body: {"day": 1, "completed": true}"""
+    if 'user' not in session:
+        return jsonify({'authenticated': False}), 401
+    
+    body = request.get_json() or {}
+    day = body.get('day')
+    completed = body.get('completed', True)
+    
+    if not isinstance(day, int) or day < 1 or day > BIBLE_YEAR_TOTAL_DAYS:
+        return jsonify({'error': f'day must be an integer between 1 and {BIBLE_YEAR_TOTAL_DAYS}'}), 400
+    
+    user_id = session['user']['id']
+    data = load_user_sync_data(user_id)
+    bible_year = data.get('bibleYear') or {"start_date": None, "completed_days": []}
+    
+    if not bible_year.get('start_date'):
+        bible_year['start_date'] = dt.date.today().isoformat()
+    
+    completed_days = set(bible_year.get('completed_days', []))
+    if completed:
+        completed_days.add(day)
+    else:
+        completed_days.discard(day)
+    bible_year['completed_days'] = sorted(completed_days)
+    data['bibleYear'] = bible_year
+    
+    if not save_user_sync_data(user_id, data):
+        return jsonify({'error': 'Failed to save'}), 500
+    
+    progress = compute_bible_year_progress(bible_year)
+    return jsonify({'success': True, 'progress': progress})
 
 
 @app.route('/api/user', methods=['GET'])
@@ -1085,6 +1355,16 @@ def get_user():
 def install_guide():
     user = session.get('user')
     return render_template('install.html', user=user, current_year=dt.datetime.now().year)
+
+
+@app.route('/bible-in-a-year')
+def bible_in_a_year():
+    """Renders the Bible in a Year tracker page. The 365-day plan and the
+    signed-in user's progress are fetched client-side via
+    /api/bible-year/plan and /api/bible-year/progress, matching how sync
+    data is already fetched client-side elsewhere in the app."""
+    user = session.get('user')
+    return render_template('bible_in_a_year.html', user=user, current_year=dt.datetime.now().year)
 
 
 @app.route('/robots.txt')
