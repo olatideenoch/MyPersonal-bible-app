@@ -1311,6 +1311,8 @@
                                     <option value="{{ ch }}" {% if selected_chapter == ch %}selected{% endif %}>{{ ch }}</option>
                                 {% endfor %}
                             </select>
+                            <input type="hidden" name="version" value="{{ selected_version }}">
+                            <input type="hidden" name="secondary_version" value="{{ secondary_version }}">
                             <button class="btn btn-success" type="submit">Load Chapter</button>
                         </div>
                     </form>
@@ -1326,26 +1328,42 @@
                                         <option value="{{ vs }}">{{ vs }}</option>
                                     {% endfor %}
                                 </select>
+                                <input type="hidden" name="chapter" value="{{ selected_chapter }}">
+                                <input type="hidden" name="version" value="{{ selected_version }}">
+                                <input type="hidden" name="secondary_version" value="{{ secondary_version }}">
                                 <button class="btn btn-primary" type="submit">Go</button>
                             </div>
-                            <input type="hidden" name="chapter" value="{{ selected_chapter }}">
                         </form>
                     {% endif %}
                     
                     <!-- Version Selection Form -->
                     {% if selected_chapter %}
                         <form method="POST" class="mb-4">
-                            <div class="input-group">
-                                <label class="input-group-text">Version</label>
-                                <select class="form-select" name="version">
-                                    {% for version in versions %}
-                                        <option value="{{ version.id }}" {% if version.id == selected_version %}selected{% endif %}>
-                                            {{ version.version }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                                <input type="hidden" name="chapter" value="{{ selected_chapter }}">
-                                <button class="btn btn-primary" type="submit">Change Version</button>
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-5">
+                                    <label class="form-label" for="primaryVersionSelect">Primary Version</label>
+                                    <select class="form-select" id="primaryVersionSelect" name="version">
+                                        {% for version in versions %}
+                                            <option value="{{ version.id }}" {% if version.id == selected_version %}selected{% endif %}>
+                                                {{ version.version }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label" for="secondaryVersionSelect">Secondary Version</label>
+                                    <select class="form-select" id="secondaryVersionSelect" name="secondary_version">
+                                        {% for version in versions %}
+                                            <option value="{{ version.id }}" {% if version.id == secondary_version %}selected{% endif %}>
+                                                {{ version.version }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="hidden" name="chapter" value="{{ selected_chapter }}">
+                                    <button class="btn btn-primary w-100" type="submit">Apply</button>
+                                </div>
                             </div>
                         </form>
                     {% endif %}
@@ -1470,6 +1488,7 @@
                     <form id="chapterNavForm" method="POST" action="{{ url_for('books', book_slug=book.slug) }}" style="display:none;">
                         <input type="hidden" name="chapter" id="chapterNavInput" value="{{ selected_chapter }}">
                         <input type="hidden" name="version" value="{{ selected_version }}">
+                        <input type="hidden" name="secondary_version" value="{{ secondary_version }}">
                     </form>
                 </div>
             {% endif %}
