@@ -190,12 +190,8 @@ VERSION_LIST = [
     {"id": "en-kjv", "version": "King James Version (KJV)", "source": "bible_api", "popularity": 1},
     {"id": "en-niv", "version": "New International Version (NIV)", "source": "api_bible", "popularity": 2},
     {"id": "en-nkjv", "version": "New King James Version (NKJV)", "source": "api_bible", "popularity": 3},
-<<<<<<< HEAD
     {"id": "en-amp", "version": "Amplified Bible (AMP)", "source": "api_bible_secondary", "popularity": 4},
     # {"id": "en-esv", "version": "English Standard Version (ESV)", "source": "bible_api", "popularity": 4},
-=======
-    {"id": "en-esv", "version": "English Standard Version (ESV)", "source": "bible_api", "popularity": 4},
->>>>>>> d21cbf841cbcd21bc64539875dc8cacdafb31f72
     {"id": "en-nasb", "version": "New American Standard Bible (NASB)", "source": "api_bible_secondary", "popularity": 5},
     {"id": "en-csb", "version": "Christian Standard Bible (CSB)", "source": "api_bible_secondary", "popularity": 6},
     {"id": "en-nlt", "version": "New Living Translation (NLT)", "source": "api_bible", "popularity": 7},
@@ -207,20 +203,11 @@ VERSION_LIST = [
     {"id": "en-bbe", "version": "Bible in Basic English (BBE)", "source": "bible_api", "popularity": 13},
     {"id": "en-darby", "version": "Darby Bible", "source": "bible_api", "popularity": 14},
     {"id": "en-dra", "version": "Douay-Rheims (DRA)", "source": "bible_api", "popularity": 15},
-<<<<<<< HEAD
     # {"id": "en-ylt", "version": "Young's Literal Translation (YLT)", "source": "bible_api", "popularity": 16},
     # {"id": "en-msg", "version": "The Message (MSG)", "source": "bible_api", "popularity": 18},
     # {"id": "en-net", "version": "NET Bible (NET)", "source": "bible_api", "popularity": 19},
     # {"id": "en-erv", "version": "Easy-to-Read Version (ERV)", "source": "bible_api", "popularity": 20},
     # {"id": "pt-almeida", "version": "João Ferreira de Almeida (Português)", "source": "bible_api", "popularity": 21},
-=======
-    {"id": "en-ylt", "version": "Young's Literal Translation (YLT)", "source": "bible_api", "popularity": 16},
-    {"id": "en-amp", "version": "Amplified Bible (AMP)", "source": "api_bible_secondary", "popularity": 17},
-    {"id": "en-msg", "version": "The Message (MSG)", "source": "bible_api", "popularity": 18},
-    {"id": "en-net", "version": "NET Bible (NET)", "source": "bible_api", "popularity": 19},
-    {"id": "en-erv", "version": "Easy-to-Read Version (ERV)", "source": "bible_api", "popularity": 20},
-    {"id": "pt-almeida", "version": "João Ferreira de Almeida (Português)", "source": "bible_api", "popularity": 21},
->>>>>>> d21cbf841cbcd21bc64539875dc8cacdafb31f72
     {"id": "ro-rccv", "version": "Cornilescu (Română)", "source": "bible_api", "popularity": 22},
     # {"id": "zh-cuv", "version": "Chinese Union Version (中文)", "source": "bible_api", "popularity": 23},
     # {"id": "cs-bkr", "version": "Bible Kralická (Čeština)", "source": "bible_api", "popularity": 24},
