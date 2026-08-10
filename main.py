@@ -42,7 +42,9 @@ VOICE_RSS_URL = "https://api.voicerss.org/"
 # Bible API configurations
 BIBLE_API_BASE = "https://bible-api.com"
 API_BIBLE_KEY = os.environ.get("API_BIBLE_KEY")
-API_BIBLE_BASE = "https://rest.api.bible/v1/bibles"
+API_BIBLE_BASE = "https://rest.api.bible/v1"
+API_BIBLE_SECONDARY_KEY = os.environ.get("API_BIBLE_SECONDARY_KEY")
+API_BIBLE_SECONDARY_BASE = "https://rest.api.bible/v1"
 
 # Create sync data directory if it doesn't exist
 SYNC_DATA_DIR = Path("sync_data")
@@ -124,12 +126,6 @@ for i, book in enumerate(BIBLE_BOOKS):
     book['testament'] = 'Old' if i < 39 else 'New'
 
 
-# ========== BIBLE IN A YEAR PLAN ==========
-# Generated from BIBLE_BOOKS in canonical order, spread evenly across 365 days.
-# Not tied to any commercial reading plan - purely derived from this app's own
-# book/chapter data, so every reading always links to a chapter that actually
-# exists in the app.
-
 def _build_bible_in_a_year_plan(days: int = 365) -> list:
     all_chapters = []
     for book in BIBLE_BOOKS:
@@ -195,8 +191,8 @@ VERSION_LIST = [
     {"id": "en-niv", "version": "New International Version (NIV)", "source": "api_bible", "popularity": 2},
     {"id": "en-nkjv", "version": "New King James Version (NKJV)", "source": "api_bible", "popularity": 3},
     {"id": "en-esv", "version": "English Standard Version (ESV)", "source": "bible_api", "popularity": 4},
-    {"id": "en-nasb", "version": "New American Standard Bible (NASB)", "source": "bible_api", "popularity": 5},
-    {"id": "en-csb", "version": "Christian Standard Bible (CSB)", "source": "bible_api", "popularity": 6},
+    {"id": "en-nasb", "version": "New American Standard Bible (NASB)", "source": "api_bible_secondary", "popularity": 5},
+    {"id": "en-csb", "version": "Christian Standard Bible (CSB)", "source": "api_bible_secondary", "popularity": 6},
     {"id": "en-nlt", "version": "New Living Translation (NLT)", "source": "api_bible", "popularity": 7},
     {"id": "en-bsb", "version": "Berean Standard Bible (BSB)", "source": "bible_api", "popularity": 8},
     {"id": "en-web", "version": "World English Bible (WEB)", "source": "bible_api", "popularity": 9},
@@ -207,7 +203,7 @@ VERSION_LIST = [
     {"id": "en-darby", "version": "Darby Bible", "source": "bible_api", "popularity": 14},
     {"id": "en-dra", "version": "Douay-Rheims (DRA)", "source": "bible_api", "popularity": 15},
     {"id": "en-ylt", "version": "Young's Literal Translation (YLT)", "source": "bible_api", "popularity": 16},
-    {"id": "en-amp", "version": "Amplified Bible (AMP)", "source": "bible_api", "popularity": 17},
+    {"id": "en-amp", "version": "Amplified Bible (AMP)", "source": "api_bible_secondary", "popularity": 17},
     {"id": "en-msg", "version": "The Message (MSG)", "source": "bible_api", "popularity": 18},
     {"id": "en-net", "version": "NET Bible (NET)", "source": "bible_api", "popularity": 19},
     {"id": "en-erv", "version": "Easy-to-Read Version (ERV)", "source": "bible_api", "popularity": 20},
@@ -244,6 +240,12 @@ API_BIBLE_VERSIONS = {
     "en-nkjv": "63097d2a0a2f7db3-01",
     "en-niv": "78a9f6124f344018-01",
     "en-nlt": "d6e14a625393b4da-01",
+}
+
+API_BIBLE_VERSIONS_SECONDARY = {
+    "en-csb": "a556c5305ee15c3f-01",
+    "en-amp": "a81b73293d3080c9-01",
+    "en-nasb": "a761ca71e0b3ddcf-01",
 }
 
 # Bible-API.com translation mappings
@@ -417,19 +419,19 @@ def fetch_chapter_apibible(book_name: str, chapter: int, version_id: str) -> tup
         print(f"Book '{book_name}' not found in API.Bible mapping")
         return [], ""
 
-    version_code = API_BIBLE_VERSIONS.get(version_id)
+    version_code, api_key, api_base = get_api_bible_credentials(version_id)
     if not version_code:
         print(f"Version '{version_id}' not found in API.Bible mapping")
         return [], ""
 
     try:
         headers = {
-            "api-key": API_BIBLE_KEY,
+            "api-key": api_key,
             "Accept": "application/json",
         }
 
         chapter_ref = f"{book_code}.{chapter}"
-        url = f"{API_BIBLE_BASE}/bibles/{version_code}/chapters/{chapter_ref}"
+        url = f"{api_base}/bibles/{version_code}/chapters/{chapter_ref}"
 
         resp = requests.get(url, headers=headers, timeout=10)
 
@@ -454,6 +456,30 @@ def fetch_chapter_apibible(book_name: str, chapter: int, version_id: str) -> tup
         print(f"API.Bible fetch error: {e}")
         return [], ""
 
+def get_api_bible_credentials(version_id):
+    """
+    Returns:
+    version_code,
+    api_key,
+    api_base
+    """
+
+    if version_id in API_BIBLE_VERSIONS:
+        return (
+            API_BIBLE_VERSIONS[version_id],
+            API_BIBLE_KEY,
+            API_BIBLE_BASE
+        )
+
+    if version_id in API_BIBLE_VERSIONS_SECONDARY:
+        return (
+            API_BIBLE_VERSIONS_SECONDARY[version_id],
+            API_BIBLE_SECONDARY_KEY,
+            API_BIBLE_SECONDARY_BASE
+        )
+
+    return None, None, None
+
 
 def fetch_chapter_bibleapi_smart(book_name: str, chapter: int, version_id: str) -> tuple:
     """
@@ -462,7 +488,7 @@ def fetch_chapter_bibleapi_smart(book_name: str, chapter: int, version_id: str) 
     """
     source = get_version_source(version_id)
 
-    if source == "api_bible":
+    if source in ("api_bible", "api_bible_secondary"):
         verses, text = fetch_chapter_apibible(book_name, chapter, version_id)
         if verses:
             return verses, text
