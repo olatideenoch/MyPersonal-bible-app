@@ -550,42 +550,27 @@
             }
         }
 
-        /* Mobile action-icon row (sign-in/avatar, streak badge, theme
-           toggle, help) - drop to its own full-width line below the
-           brand + hamburger instead of squeezing into the top-right
-           corner and overflowing. */
         @media (max-width: 991px) {
-            .navbar > .container {
-                flex-wrap: wrap;
+            .navbar .container {
+                display: flex;
+                align-items: center;
             }
 
             .navbar-brand {
-                order: 1;
-            }
-
-            .navbar-toggler {
-                order: 2;
+                flex: 1;
+                min-width: 0;
             }
 
             .navbar-mobile-actions {
-                order: 3;
-                flex-basis: 100%;
-                flex-wrap: wrap;
-                row-gap: 8px;
-                margin-top: 12px;
-                margin-left: 0 !important;
-                justify-content: center;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                margin-right: 8px;
             }
 
-            .navbar-collapse {
-                order: 4;
-            }
-
-            .navbar-mobile-actions .streak-badge-text {
-                max-width: 140px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+            .navbar-toggler {
+                margin-left: 0;
+                flex-shrink: 0;
             }
         }
 

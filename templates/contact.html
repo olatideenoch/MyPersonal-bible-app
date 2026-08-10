@@ -404,7 +404,7 @@
            toggle, help) - drop to its own full-width line below the
            brand + hamburger instead of squeezing into the top-right
            corner and overflowing. */
-        @media (max-width: 991px) {
+        /* @media (max-width: 991px) {
             .navbar > .container {
                 flex-wrap: wrap;
             }
@@ -436,6 +436,30 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+            }
+        } */
+
+        @media (max-width: 991px) {
+            .navbar .container {
+                display: flex;
+                align-items: center;
+            }
+
+            .navbar-brand {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .navbar-mobile-actions {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                margin-right: 8px;
+            }
+
+            .navbar-toggler {
+                margin-left: 0;
+                flex-shrink: 0;
             }
         }
         /* /* Mobile navbar - keep everything on one line */
