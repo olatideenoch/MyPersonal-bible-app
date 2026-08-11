@@ -1,6 +1,7 @@
 from flask import Flask, render_template, url_for, redirect, request, jsonify, send_file, session, Response
 import requests
 import datetime as dt
+import calendar
 import random
 import os
 import re
@@ -12,6 +13,7 @@ from datetime import timedelta
 from typing import List
 from pathlib import Path
 from requests_oauthlib import OAuth2Session
+import pandas as pd
 
 from dotenv import load_dotenv
 
@@ -721,6 +723,114 @@ def compute_bible_year_progress(bible_year: dict) -> dict:
     return result
 
 
+# ========== PROFILE ANALYTICS ==========
+
+def compute_profile_analytics(data: dict) -> dict:
+    """Build a per-year activity dashboard from a user's sync data using pandas.
+    Looks at readingLog (dates the user opened a chapter) plus bookmarks/highlights
+    to produce: an overall summary, and for every calendar year that has activity,
+    a monthly breakdown, a day-of-week breakdown, the longest streak within that
+    year, and the count of bookmarks added that year."""
+    reading_log = data.get('readingLog', []) or []
+    bookmarks = data.get('bookmarks', []) or []
+    highlights = data.get('highlights', {}) or {}
+    bible_year = data.get('bibleYear', {}) or {}
+
+    result = {
+        'years': [],
+        'per_year': {},
+        'overall': {
+            'total_days_read': 0,
+            'current_streak': 0,
+            'longest_streak': 0,
+            'first_read': None,
+            'last_read': None,
+            'total_bookmarks': len(bookmarks),
+            'total_highlighted_verses': sum(len(v) for v in highlights.values()),
+            'years_active': 0,
+        },
+        'bible_year': compute_bible_year_progress(bible_year),
+    }
+
+    try:
+        unique_dates = sorted({dt.date.fromisoformat(d) for d in reading_log})
+    except ValueError:
+        unique_dates = []
+
+    if not unique_dates:
+        return result
+
+    # Reading-log activity, indexed with pandas for year/month/weekday grouping
+    df = pd.DataFrame({'date': pd.to_datetime(unique_dates)})
+    df['year'] = df['date'].dt.year
+    df['month'] = df['date'].dt.month
+    df['weekday'] = df['date'].dt.weekday  # Monday = 0
+
+    # Bookmarks-per-year, when timestamps are available
+    bm_year_counts = {}
+    if bookmarks:
+        bm_df = pd.DataFrame(bookmarks)
+        if 'timestamp' in bm_df.columns:
+            bm_df['ts'] = pd.to_datetime(bm_df['timestamp'], errors='coerce')
+            bm_df = bm_df.dropna(subset=['ts'])
+            bm_year_counts = bm_df['ts'].dt.year.value_counts().to_dict()
+
+    years = sorted(df['year'].unique().tolist(), reverse=True)
+    result['years'] = [int(y) for y in years]
+
+    for y in years:
+        y_int = int(y)
+        y_df = df[df['year'] == y]
+
+        monthly_counts = y_df.groupby('month').size()
+        monthly = [int(monthly_counts.get(m, 0)) for m in range(1, 13)]
+
+        weekday_counts = y_df.groupby('weekday').size()
+        weekday = [int(weekday_counts.get(d, 0)) for d in range(0, 7)]
+
+        y_dates = sorted(y_df['date'].dt.date.tolist())
+        longest_in_year = 0
+        if y_dates:
+            longest_in_year = 1
+            run = 1
+            for i in range(1, len(y_dates)):
+                if (y_dates[i] - y_dates[i - 1]).days == 1:
+                    run += 1
+                else:
+                    run = 1
+                longest_in_year = max(longest_in_year, run)
+
+        days_in_year = 366 if calendar.isleap(y_int) else 365
+        days_read = int(len(y_df))
+        best_month = None
+        if any(monthly):
+            best_month = monthly.index(max(monthly)) + 1
+
+        result['per_year'][str(y_int)] = {
+            'days_read': days_read,
+            'monthly': monthly,
+            'weekday': weekday,
+            'longest_streak_in_year': longest_in_year,
+            'bookmarks_added': int(bm_year_counts.get(y_int, 0)),
+            'best_month': best_month,
+            'active_percent': round((days_read / days_in_year) * 100, 1),
+        }
+
+    streak = compute_streak(reading_log)
+    result['overall'] = {
+        'total_days_read': streak['total_days_read'],
+        'current_streak': streak['current_streak'],
+        'longest_streak': streak['longest_streak'],
+        'first_read': unique_dates[0].isoformat(),
+        'last_read': streak['last_read'],
+        'total_bookmarks': len(bookmarks),
+        'total_highlighted_verses': sum(len(v) for v in highlights.values()),
+        'years_active': len(years),
+    }
+
+    return result
+
+
 # ========== AUDIO/TTS ==========
 
 def _fetch_voice_rss_chunk(text: str, voice: str = "en-us") -> bytes:
@@ -1362,6 +1472,26 @@ def bible_year_mark():
     
     progress = compute_bible_year_progress(bible_year)
     return jsonify({'success': True, 'progress': progress})
+
+
+@app.route('/profile')
+def user_profile():
+    """Renders the user's profile / activity dashboard. Analytics are fetched
+    client-side from /api/profile/analytics, matching how sync and Bible-in-a-Year
+    data are already fetched client-side elsewhere in the app."""
+    user = session.get('user')
+    return render_template('user-profile.html', user=user, current_year=dt.datetime.now().year)
+
+
+@app.route('/api/profile/analytics', methods=['GET'])
+def profile_analytics():
+    if 'user' not in session:
+        return jsonify({'authenticated': False}), 401
+
+    user_id = session['user']['id']
+    data = load_user_sync_data(user_id)
+    analytics = compute_profile_analytics(data)
+    return jsonify({'authenticated': True, 'analytics': analytics})
 
 
 @app.route('/api/user', methods=['GET'])

@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Prevent theme flash on page load - MUST be first -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View your MyPersonal Bible reading activity, streaks, and year-by-year stats in your personal profile dashboard.">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="author" content="MyPersonal Bible">
+    <link rel="canonical" href="{{ request.url }}">
+
+    <!-- Favicon & App Icons -->
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+
+    <!-- PWA / Mobile -->
+    <meta name="theme-color" content="#3d2205">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <title>My Profile - MyPersonal Bible</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&display=swap" rel="stylesheet">
+<style>
+        /* Light mode (default) variables */
+        :root {
+            --bg-primary: #faf6ee;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f2e8d0;
+            --text-primary: #1a0f00;
+            --text-secondary: #6b3f12;
+            --text-muted: #8a7256;
+            --accent-primary: #c9923a;
+            --accent-secondary: #9a6a1e;
+            --accent-text: #9a6a1e;
+            --card-bg: #ffffff;
+            --card-shadow: 0 10px 30px rgba(26,15,0,0.08);
+            --border-color: rgba(201, 146, 58, 0.15);
+            --navbar-bg: rgba(250, 246, 238, 0.95);
+            --footer-bg: #3d2205;
+            --footer-text: #e8d9bd;
+            --hero-overlay: linear-gradient(rgba(61, 34, 5, 0.75), rgba(154, 106, 30, 0.75));
+            --input-bg: #ffffff;
+            --input-border: #d8c7a1;
+            --btn-primary-bg: #9a6a1e;
+            --btn-primary-text: #ffffff;
+            --btn-primary-hover: #7d5518;
+            --chart-grid: rgba(26, 15, 0, 0.08);
+        }
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --bg-primary: #1a0f00;
+            --bg-secondary: #2a1a08;
+            --bg-tertiary: #3d2205;
+            --text-primary: #f2e8d0;
+            --text-secondary: #e8b86a;
+            --text-muted: #b8a082;
+            --accent-primary: #e8b86a;
+            --accent-secondary: #6b3f12;
+            --accent-text: #e8b86a;
+            --card-bg: #2a1a08;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            --border-color: rgba(232, 184, 106, 0.2);
+            --navbar-bg: rgba(26, 15, 0, 0.95);
+            --footer-bg: #0f0800;
+            --footer-text: #b8a082;
+            --hero-overlay: linear-gradient(rgba(26, 15, 0, 0.85), rgba(154, 106, 30, 0.75));
+            --input-bg: #1a0f00;
+            --input-border: #6b3f12;
+            --btn-primary-bg: #6b3f12;
+            --btn-primary-text: #f2e8d0;
+            --btn-primary-hover: #86541c;
+            --chart-grid: rgba(232, 184, 106, 0.12);
+        }
+
+        * {
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.2s ease;
+        }
+
+        body {
+            font-family: 'Crimson Text', serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* ===== Navbar (shared pattern with index.html / bible_in_a_year.html) ===== */
+        .navbar {
+            background-color: var(--navbar-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--card-shadow);
+        }
+        .navbar-brand {
+            font-family: 'Lora', serif;
+            font-size: 1.8rem;
+            color: var(--text-secondary) !important;
+        }
+        .navbar-brand img {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+        .navbar-brand:hover img { transform: scale(1.05); }
+        [data-theme="dark"] .navbar-brand img { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
+        .nav-link { color: var(--text-primary) !important; }
+        .nav-link:hover { color: var(--accent-text) !important; }
+        .nav-link.apk-download-link { color: var(--accent-text) !important; font-weight: 600; }
+        .nav-link.apk-download-link:hover { color: var(--text-secondary) !important; }
+        .nav-link.apk-download-link i { color: var(--accent-text); }
+        .nav-link.active { color: var(--accent-text) !important; font-weight: 600; }
+
+        .google-signin-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            text-decoration: none;
+        }
+        .google-signin-btn:hover { background: var(--accent-text); color: white; border-color: var(--accent-text); }
+
+        .user-profile-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 30px;
+            padding: 5px 12px 5px 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .user-profile-btn:hover { background: var(--bg-tertiary); }
+        .user-profile-btn img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-primary); }
+
+        .dropdown-menu { background-color: var(--card-bg); border-color: var(--border-color); }
+        .dropdown-item { color: var(--text-primary); }
+        .dropdown-item:hover { background-color: var(--accent-text); color: white; }
+        .dropdown-divider { border-color: var(--border-color); }
+
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle-btn:hover { background: var(--accent-text); color: white; border-color: var(--accent-text); transform: rotate(360deg); }
+
+        .navbar-toggler { border-color: var(--border-color) !important; }
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2860, 47, 47, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+        }
+        [data-theme="dark"] .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+        }
+
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                background: var(--navbar-bg);
+                padding: 1rem;
+                border-radius: 0 0 15px 15px;
+                margin-top: 10px;
+                box-shadow: var(--card-shadow);
+                border: 1px solid var(--border-color);
+                border-top: none;
+                width: 100%;
+            }
+            .navbar-nav .nav-item { border-bottom: 1px solid var(--border-color); }
+            .navbar-nav .nav-item:last-child { border-bottom: none; }
+            .navbar-nav .nav-link { padding: 12px 15px !important; font-size: 1.1rem; display: flex; align-items: center; width: 100%; }
+            .navbar-nav .nav-link i { width: 28px; color: var(--accent-text); }
+            .navbar-nav .nav-link:hover { background: var(--bg-tertiary); border-radius: 8px; }
+        }
+
+        .sync-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            z-index: 2000;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp { from { bottom: -50px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
+
+        footer { background: var(--footer-bg); color: var(--footer-text); padding: 50px 0 30px; margin-top: 100px; }
+        footer a { color: var(--footer-text); text-decoration: none; }
+
+        /* ===== Page header banner (matches other inner pages) ===== */
+        .page-header {
+            background: var(--hero-overlay), url('{{ url_for('static', filename='img/bg-1.jpg') }}') no-repeat center/cover;
+            color: white;
+            padding: 100px 0 60px;
+            text-align: center;
+        }
+        .page-header h1 { font-family: 'Lora', serif; font-size: 3.5rem; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        @media (max-width: 768px) { .page-header h1 { font-size: 2.5rem; } }
+        @media (max-width: 480px) { .page-header h1 { font-size: 2rem; } }
+
+        .signin-prompt {
+            max-width: 480px;
+            margin: 40px auto;
+            text-align: center;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 50px 30px;
+            box-shadow: var(--card-shadow);
+        }
+        .signin-prompt i.fa-lock { font-size: 2.5rem; color: var(--accent-text); }
+        .signin-prompt h3 { font-family: 'Lora', serif; color: var(--text-primary); margin: 14px 0 10px; }
+        .signin-prompt p { color: var(--text-secondary); margin-bottom: 26px; }
+
+        /* ===== Profile summary strip ===== */
+        .profile-identity {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+        .profile-identity img {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent-primary);
+        }
+        .profile-identity .fa-user-circle { font-size: 64px; color: var(--accent-text); }
+        .profile-identity h2 { font-family: 'Lora', serif; margin: 0; font-size: 1.5rem; color: var(--text-primary); }
+        .profile-identity p { margin: 2px 0 0; color: var(--text-muted); }
+
+        /* ===== Stat cards ===== */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+        }
+        .stat-card i { font-size: 1.4rem; color: var(--accent-text); margin-bottom: 8px; }
+        .stat-card .stat-value { font-family: 'Lora', serif; font-size: 1.8rem; font-weight: 600; color: var(--text-primary); line-height: 1.2; }
+        .stat-card .stat-label { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+
+        /* ===== Year tabs ===== */
+        .year-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        .year-tab {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 30px;
+            padding: 8px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .year-tab:hover { background: var(--accent-text); color: white; border-color: var(--accent-text); }
+        .year-tab.active { background: var(--accent-secondary); color: white; border-color: var(--accent-secondary); }
+
+        /* ===== Dashboard cards ===== */
+        .dash-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 26px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 28px;
+        }
+        .dash-card h3 {
+            font-family: 'Lora', serif;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            margin: 0 0 18px;
+        }
+        .dash-card h3 i { color: var(--accent-text); margin-right: 8px; }
+        .dash-row { display: flex; flex-wrap: wrap; gap: 28px; }
+        .dash-col { flex: 1 1 380px; min-width: 0; }
+
+        .year-glance { display: flex; flex-wrap: wrap; gap: 22px; margin-bottom: 4px; }
+        .year-glance-item { min-width: 130px; }
+        .year-glance-item .val { font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 600; color: var(--accent-text); }
+        .year-glance-item .lbl { color: var(--text-muted); font-size: 0.85rem; }
+
+        .by-progress-track {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            height: 14px;
+            overflow: hidden;
+        }
+        .by-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
+            border-radius: 10px;
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+        .by-progress-meta { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.9rem; color: var(--text-secondary); }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 2.2rem; color: var(--accent-text); margin-bottom: 12px; display: block; }
+        .empty-state a.btn-primary {
+            display: inline-block;
+            margin-top: 14px;
+            background: var(--btn-primary-bg);
+            color: var(--btn-primary-text);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .empty-state a.btn-primary:hover { background: var(--btn-primary-hover); }
+
+        canvas { max-width: 100%; }
+</style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='img/app-icon.jpg') }}"
+                    alt="MyPersonal Bible"
+                    width="36"
+                    height="36"
+                    class="me-2 rounded-2"
+                    style="object-fit: cover;">
+                <span>MyPersonal Bible App</span>
+            </a>
+
+            <!-- Mobile: Action icons -->
+            <div class="navbar-mobile-actions d-lg-none d-flex align-items-center gap-2">
+                {% if user %}
+                <div class="dropdown">
+                    <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% if user.picture %}
+                        <img src="{{ user.picture }}" alt="{{ user.name }}">
+                        {% else %}
+                        <i class="fas fa-user-circle"></i>
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
+                    </ul>
+                </div>
+                {% else %}
+                <a href="{{ url_for('google_login') }}" class="google-signin-btn">
+                    <i class="fab fa-google"></i>
+                    <span style="font-size: 0.8rem;">Sign In</span>
+                </a>
+                {% endif %}
+
+                <button class="theme-toggle-btn" id="themeToggleMobile" title="Toggle dark mode">
+                    <i class="fas fa-moon" id="themeIconMobile"></i>
+                </button>
+
+                <button class="theme-toggle-btn" id="helpButtonMobile" title="Show app features & help">
+                    <i class="fas fa-question"></i>
+                </button>
+            </div>
+
+            <!-- Hamburger button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#daily">
+                            <i class="fas fa-calendar-day d-lg-none me-2"></i>Daily Verse
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#search">
+                            <i class="fas fa-search d-lg-none me-2"></i>Search
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}#books">
+                            <i class="fas fa-book d-lg-none me-2"></i>Books
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('bible_in_a_year') }}">
+                            <i class="fas fa-calendar-check d-lg-none me-2"></i>Bible in a Year
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('user_profile') }}">
+                            <i class="fas fa-chart-line d-lg-none me-2"></i>My Profile
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('contact') }}">
+                            <i class="fas fa-envelope d-lg-none me-2"></i>Contact
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link apk-download-link" href="{{ url_for('install_guide') }}">
+                            <i class="fas fa-download me-2"></i>Download APK
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Desktop: Action icons AFTER nav links -->
+                <div class="d-none d-lg-flex align-items-center gap-2 ms-3">
+                    {% if user %}
+                    <div class="dropdown">
+                        <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            {% if user.picture %}
+                            <img src="{{ user.picture }}" alt="{{ user.name }}">
+                            {% else %}
+                            <i class="fas fa-user-circle"></i>
+                            {% endif %}
+                            <span class="ms-1">{{ user.name.split(' ')[0] }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <a href="{{ url_for('google_login') }}" class="google-signin-btn">
+                        <i class="fab fa-google"></i>
+                        <span style="font-size: 0.8rem;">Sign In</span>
+                    </a>
+                    {% endif %}
+
+                    <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                    </button>
+
+                    <button class="theme-toggle-btn" id="helpButton" title="Show app features & help">
+                        <i class="fas fa-question"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1>My Profile</h1>
+            <p class="mt-3 lead">Your reading activity, streaks, and progress at a glance</p>
+        </div>
+    </section>
+
+    <div class="container" style="padding: 40px 0 80px;">
+
+        {% if not user %}
+        <div class="signin-prompt">
+            <i class="fas fa-lock mb-2"></i>
+            <h3>Sign in to see your profile</h3>
+            <p>Your activity dashboard is built from data synced to your account.</p>
+            <a href="{{ url_for('google_login') }}" class="google-signin-btn" style="display:inline-flex; position: static; padding: 10px 20px;">
+                <i class="fab fa-google"></i>
+                <span style="font-size: 0.85rem;">Sign in with Google</span>
+            </a>
+        </div>
+        {% else %}
+        <div id="pfLoading" class="text-center py-5">
+            <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--accent-text);"></i>
+            <p class="mt-3">Loading your activity...</p>
+        </div>
+
+        <div id="pfContent" style="display:none;">
+
+            <!-- Identity -->
+            <div class="profile-identity">
+                {% if user.picture %}
+                <img src="{{ user.picture }}" alt="{{ user.name }}">
+                {% else %}
+                <i class="fas fa-user-circle"></i>
+                {% endif %}
+                <div>
+                    <h2>{{ user.name }}</h2>
+                    <p>{{ user.email }}</p>
+                </div>
+            </div>
+
+            <!-- Overall stat cards -->
+            <div class="stat-grid" id="pfStatGrid"></div>
+
+            <!-- Empty state when there's no activity yet -->
+            <div id="pfEmptyState" class="dash-card empty-state" style="display:none;">
+                <i class="fas fa-book-open"></i>
+                <h3 class="mb-1" style="font-size:1.15rem;">No reading activity yet</h3>
+                <p class="mb-0">Read a chapter or two and come back &mdash; your yearly activity dashboard will build itself.</p>
+                <a href="{{ url_for('index') }}#books" class="btn-primary">Start Reading</a>
+            </div>
+
+            <div id="pfYearSection" style="display:none;">
+                <!-- Year selector -->
+                <div class="year-tabs" id="pfYearTabs"></div>
+
+                <!-- This year at a glance -->
+                <div class="dash-card">
+                    <h3><i class="fas fa-chart-pie"></i><span id="pfGlanceTitle">Year at a Glance</span></h3>
+                    <div class="year-glance" id="pfYearGlance"></div>
+                </div>
+
+                <!-- Charts -->
+                <div class="dash-row">
+                    <div class="dash-col dash-card">
+                        <h3><i class="fas fa-chart-column"></i>Monthly Activity</h3>
+                        <canvas id="pfMonthlyChart" height="220"></canvas>
+                    </div>
+                    <div class="dash-col dash-card">
+                        <h3><i class="fas fa-calendar-week"></i>Days of the Week</h3>
+                        <canvas id="pfWeekdayChart" height="220"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bible in a Year progress -->
+            <div class="dash-card" id="pfBibleYearCard" style="display:none;">
+                <h3><i class="fas fa-calendar-check"></i>Bible in a Year</h3>
+                <div id="pfBibleYearStatus" class="mb-2" style="color: var(--text-secondary); font-weight: 600;"></div>
+                <div class="by-progress-track">
+                    <div class="by-progress-fill" id="pfBibleYearFill"></div>
+                </div>
+                <div class="by-progress-meta">
+                    <span id="pfBibleYearText">0 / 365 days</span>
+                    <span id="pfBibleYearPercent">0%</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+<footer>
+        <div class="container text-center">
+            <p class="mt-3">&copy; {{ current_year }} MyPersonal Bible App • Made with reverence for the Holy Scriptures</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+    <script>
+        const USER_AUTHENTICATED = {{ 'true' if user else 'false' }};
+
+        // ========== THEME TOGGLE + HELP BUTTON (same behavior as other pages) ==========
+        (function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const themeToggleMobile = document.getElementById('themeToggleMobile');
+            const themeIcon = document.getElementById('themeIcon');
+            const themeIconMobile = document.getElementById('themeIconMobile');
+            const htmlElement = document.documentElement;
+
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            if (savedTheme) {
+                htmlElement.setAttribute('data-theme', savedTheme);
+                updateThemeUI(savedTheme);
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const themeToApply = prefersDark ? 'dark' : 'light';
+                htmlElement.setAttribute('data-theme', themeToApply);
+                updateThemeUI(themeToApply);
+            }
+
+            function toggleTheme() {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('bibleAppTheme', newTheme);
+                updateThemeUI(newTheme);
+                if (window.pfRedrawCharts) window.pfRedrawCharts();
+            }
+
+            function updateThemeUI(theme) {
+                if (themeIcon) {
+                    themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                    if (themeToggle) themeToggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+                }
+                if (themeIconMobile) {
+                    themeIconMobile.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                }
+            }
+
+            if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+            if (themeToggleMobile) themeToggleMobile.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleTheme();
+            });
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('bibleAppTheme')) {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    htmlElement.setAttribute('data-theme', newTheme);
+                    updateThemeUI(newTheme);
+                }
+            });
+
+            const helpButton = document.getElementById('helpButton');
+            const helpButtonMobile = document.getElementById('helpButtonMobile');
+            function goToHome(e) {
+                if (e) e.preventDefault();
+                window.location.href = "{{ url_for('index') }}";
+            }
+            if (helpButton) helpButton.addEventListener('click', goToHome);
+            if (helpButtonMobile) helpButtonMobile.addEventListener('click', goToHome);
+        })();
+
+        // ========== SYNC (kept for the header "Sync Now" menu item) ==========
+        function showSyncToast(msg, type = 'info') {
+            const t = document.createElement('div');
+            t.className = 'sync-toast';
+            t.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'sync-alt'} me-2"></i>${msg}`;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        function getAllReadingProgress() {
+            const p = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('reading_progress_')) {
+                    try { p[k] = JSON.parse(localStorage.getItem(k)); } catch (e) {}
+                }
+            }
+            return p;
+        }
+
+        async function syncNow() {
+            if (!USER_AUTHENTICATED) {
+                showSyncToast('Please sign in to sync your data', 'warning');
+                return;
+            }
+            showSyncToast('Syncing your data...');
+            try {
+                const ld = {
+                    bookmarks: JSON.parse(localStorage.getItem('bibleBookmarks') || '[]'),
+                    highlights: JSON.parse(localStorage.getItem('bibleHighlights') || '{}'),
+                    progress: getAllReadingProgress(),
+                    font_size: localStorage.getItem('bibleFontSize'),
+                    theme: localStorage.getItem('bibleAppTheme')
+                };
+                const r = await fetch('/api/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ld)
+                });
+                if (r.ok) {
+                    const sr = await fetch('/api/sync');
+                    const sd = await sr.json();
+                    if (sd.bookmarks) localStorage.setItem('bibleBookmarks', JSON.stringify(sd.bookmarks));
+                    if (sd.highlights) localStorage.setItem('bibleHighlights', JSON.stringify(sd.highlights));
+                    if (sd.font_size) localStorage.setItem('bibleFontSize', sd.font_size);
+                    if (sd.theme) localStorage.setItem('bibleAppTheme', sd.theme);
+                    showSyncToast('Sync completed!', 'success');
+                    if (window.pfLoadAnalytics) window.pfLoadAnalytics();
+                } else {
+                    showSyncToast('Sync failed.', 'danger');
+                }
+            } catch (e) {
+                showSyncToast('Sync failed.', 'danger');
+            }
+        }
+
+        // ========== PROFILE ANALYTICS DASHBOARD ==========
+        {% if user %}
+        (function initProfile() {
+            const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const WEEKDAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+            let analytics = null;
+            let selectedYear = null;
+            let monthlyChart = null;
+            let weekdayChart = null;
+
+            const loadingEl = document.getElementById('pfLoading');
+            const contentEl = document.getElementById('pfContent');
+            const statGridEl = document.getElementById('pfStatGrid');
+            const emptyStateEl = document.getElementById('pfEmptyState');
+            const yearSectionEl = document.getElementById('pfYearSection');
+            const yearTabsEl = document.getElementById('pfYearTabs');
+            const glanceTitleEl = document.getElementById('pfGlanceTitle');
+            const glanceEl = document.getElementById('pfYearGlance');
+            const byCardEl = document.getElementById('pfBibleYearCard');
+            const byStatusEl = document.getElementById('pfBibleYearStatus');
+            const byFillEl = document.getElementById('pfBibleYearFill');
+            const byTextEl = document.getElementById('pfBibleYearText');
+            const byPercentEl = document.getElementById('pfBibleYearPercent');
+
+            function cssVar(name) {
+                return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+            }
+
+            function renderStatGrid() {
+                const o = analytics.overall;
+                const stats = [
+                    { icon: 'fa-fire', value: o.current_streak, label: 'Current Streak' },
+                    { icon: 'fa-trophy', value: o.longest_streak, label: 'Longest Streak' },
+                    { icon: 'fa-calendar-days', value: o.total_days_read, label: 'Total Days Read' },
+                    { icon: 'fa-bookmark', value: o.total_bookmarks, label: 'Bookmarks' },
+                    { icon: 'fa-highlighter', value: o.total_highlighted_verses, label: 'Verses Highlighted' },
+                    { icon: 'fa-layer-group', value: o.years_active, label: 'Years Active' }
+                ];
+                statGridEl.innerHTML = stats.map(s =>
+                    '<div class="stat-card">' +
+                        '<i class="fas ' + s.icon + '"></i>' +
+                        '<div class="stat-value">' + s.value + '</div>' +
+                        '<div class="stat-label">' + s.label + '</div>' +
+                    '</div>'
+                ).join('');
+            }
+
+            function renderYearTabs() {
+                yearTabsEl.innerHTML = analytics.years.map(y =>
+                    '<button class="year-tab' + (y === selectedYear ? ' active' : '') + '" data-year="' + y + '">' + y + '</button>'
+                ).join('');
+                yearTabsEl.querySelectorAll('.year-tab').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        selectedYear = parseInt(btn.dataset.year, 10);
+                        renderYearTabs();
+                        renderYear();
+                    });
+                });
+            }
+
+            function ordinalMonth(m) {
+                return m ? MONTH_NAMES[m - 1] : '&mdash;';
+            }
+
+            function renderYear() {
+                const y = analytics.per_year[String(selectedYear)];
+                if (!y) return;
+
+                glanceTitleEl.textContent = selectedYear + ' at a Glance';
+                glanceEl.innerHTML =
+                    '<div class="year-glance-item"><div class="val">' + y.days_read + '</div><div class="lbl">Days Read</div></div>' +
+                    '<div class="year-glance-item"><div class="val">' + y.active_percent + '%</div><div class="lbl">Of the Year Active</div></div>' +
+                    '<div class="year-glance-item"><div class="val">' + y.longest_streak_in_year + '</div><div class="lbl">Longest Streak</div></div>' +
+                    '<div class="year-glance-item"><div class="val">' + ordinalMonth(y.best_month) + '</div><div class="lbl">Best Month</div></div>' +
+                    '<div class="year-glance-item"><div class="val">' + y.bookmarks_added + '</div><div class="lbl">Bookmarks Added</div></div>';
+
+                drawCharts(y);
+            }
+
+            function drawCharts(y) {
+                const accent = cssVar('--accent-primary') || '#c9923a';
+                const accentDark = cssVar('--accent-secondary') || '#9a6a1e';
+                const gridColor = cssVar('--chart-grid') || 'rgba(0,0,0,0.08)';
+                const textColor = cssVar('--text-muted') || '#8a7256';
+
+                const monthlyCtx = document.getElementById('pfMonthlyChart').getContext('2d');
+                if (monthlyChart) monthlyChart.destroy();
+                monthlyChart = new Chart(monthlyCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: MONTH_NAMES,
+                        datasets: [{
+                            label: 'Days read',
+                            data: y.monthly,
+                            backgroundColor: accent,
+                            borderRadius: 6,
+                            maxBarThickness: 34
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: textColor } },
+                            y: { beginAtZero: true, precision: 0, grid: { color: gridColor }, ticks: { color: textColor, precision: 0 } }
+                        }
+                    }
+                });
+
+                const weekdayCtx = document.getElementById('pfWeekdayChart').getContext('2d');
+                if (weekdayChart) weekdayChart.destroy();
+                weekdayChart = new Chart(weekdayCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: WEEKDAY_NAMES,
+                        datasets: [{
+                            label: 'Days read',
+                            data: y.weekday,
+                            backgroundColor: accentDark,
+                            borderRadius: 6,
+                            maxBarThickness: 34
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: textColor } },
+                            y: { beginAtZero: true, precision: 0, grid: { color: gridColor }, ticks: { color: textColor, precision: 0 } }
+                        }
+                    }
+                });
+            }
+
+            window.pfRedrawCharts = function() {
+                if (selectedYear && analytics) {
+                    const y = analytics.per_year[String(selectedYear)];
+                    if (y) drawCharts(y);
+                }
+            };
+
+            function renderBibleYear() {
+                const by = analytics.bible_year;
+                if (!by || !by.start_date) {
+                    byCardEl.style.display = 'none';
+                    return;
+                }
+                byCardEl.style.display = 'block';
+                const statusMap = {
+                    not_started: 'Ready when you are &mdash; start the plan from the Bible in a Year page.',
+                    completed: '&#127881; Plan complete &mdash; you have read the whole Bible!',
+                    on_track: '&#128994; On track &mdash; today is day ' + by.expected_day + '.',
+                    behind: '&#128993; ' + Math.abs(by.days_ahead_behind) + ' day(s) behind &mdash; today is day ' + by.expected_day + '.'
+                };
+                byStatusEl.innerHTML = statusMap[by.status] || '';
+                byFillEl.style.width = by.percent_complete + '%';
+                byTextEl.textContent = by.completed_count + ' / ' + by.total_days + ' days';
+                byPercentEl.textContent = by.percent_complete + '%';
+            }
+
+            window.pfLoadAnalytics = async function() {
+                try {
+                    const res = await fetch('/api/profile/analytics');
+                    const data = await res.json();
+                    analytics = data.analytics;
+
+                    loadingEl.style.display = 'none';
+                    contentEl.style.display = 'block';
+
+                    renderStatGrid();
+                    renderBibleYear();
+
+                    if (analytics.years && analytics.years.length) {
+                        emptyStateEl.style.display = 'none';
+                        yearSectionEl.style.display = 'block';
+                        selectedYear = analytics.years[0];
+                        renderYearTabs();
+                        renderYear();
+                    } else {
+                        emptyStateEl.style.display = 'block';
+                        yearSectionEl.style.display = 'none';
+                    }
+                } catch (e) {
+                    console.error('Failed to load profile analytics', e);
+                    loadingEl.innerHTML = '<p class="text-danger">Could not load your profile. Please refresh the page.</p>';
+                }
+            };
+
+            window.pfLoadAnalytics();
+        })();
+        {% endif %}
+    </script>
+</body>
+</html>

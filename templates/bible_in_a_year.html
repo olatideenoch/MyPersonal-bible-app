@@ -765,12 +765,32 @@
             opacity: 0.7;
         }
 
-        /* Mobile navbar - keep everything on one line */
         @media (max-width: 991px) {
             .navbar .container {
-                flex-wrap: nowrap;
+                display: flex;
+                align-items: center;
             }
-            
+
+            .navbar-brand {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .navbar-mobile-actions {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                margin-right: 8px;
+            }
+
+            .navbar-toggler {
+                margin-left: 0;
+                flex-shrink: 0;
+            }
+        }
+
+        /* Mobile navbar - keep everything on one line */
+        @media (max-width: 991px) {
             .navbar-brand {
                 flex: 1;
                 margin-right: 4px;
@@ -1341,7 +1361,7 @@
             </a>
             
             <!-- Mobile: Action icons -->
-            <div class="d-lg-none d-flex align-items-center gap-2 ms-auto">
+            <div class="navbar-mobile-actions d-lg-none d-flex align-items-center gap-2">
                 {% if user %}
                 <div class="dropdown">
                     <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
