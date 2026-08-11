@@ -1171,7 +1171,7 @@
                         {% endif %}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
+                        <li><span class="dropdown-item-text user-email small">{{ user.email }}</span></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="{{ url_for('user_profile') }}"><i class="fas fa-user me-2"></i>View Profile</a></li>
                         <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
@@ -1232,7 +1232,7 @@
                             <span class="ms-1">{{ user.name.split(' ')[0] }}</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
+                            <li><span class="dropdown-item-text user-email small">{{ user.email }}</span></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('user_profile') }}"><i class="fas fa-user me-2"></i>View Profile</a></li>                            
                             <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
