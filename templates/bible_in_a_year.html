@@ -765,6 +765,46 @@
             opacity: 0.7;
         }
 
+        /* Mobile menu - hamburger drops full width */
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                background: var(--navbar-bg);
+                padding: 1rem;
+                border-radius: 0 0 15px 15px;
+                margin-top: 10px;
+                box-shadow: var(--card-shadow);
+                border: 1px solid var(--border-color);
+                border-top: none;
+                width: 100%;
+            }
+            
+            .navbar-nav .nav-item {
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .navbar-nav .nav-item:last-child {
+                border-bottom: none;
+            }
+            
+            .navbar-nav .nav-link {
+                padding: 12px 15px !important;
+                font-size: 1.1rem;
+                display: flex;
+                align-items: center;
+                width: 100%;
+            }
+            
+            .navbar-nav .nav-link i {
+                width: 28px;
+                color: var(--accent-text);
+            }
+            
+            .navbar-nav .nav-link:hover {
+                background: var(--bg-tertiary);
+                border-radius: 8px;
+            }
+        }
+
         @media (max-width: 991px) {
             .navbar .container {
                 display: flex;
@@ -804,6 +844,14 @@
             
             .navbar-brand span {
                 font-size: 0.75rem !important;
+            }
+            
+            .brand-text {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 120px;
+                display: block;
             }
             
             .user-profile-btn {
@@ -1374,6 +1422,7 @@
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
                         <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('user_profile') }}"><i class="fas fa-user me-2"></i>View Profile</a></li>
                         <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
@@ -1450,6 +1499,7 @@
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
                             <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('user_profile') }}"><i class="fas fa-user me-2"></i>View Profile</a></li>
                             <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>

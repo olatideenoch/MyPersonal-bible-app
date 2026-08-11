@@ -244,122 +244,6 @@
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
         }
 
-        /* Mobile menu - hamburger drops full width
-        @media (max-width: 991px) {
-            .navbar-collapse {
-                background: var(--navbar-bg);
-                padding: 1rem;
-                border-radius: 0 0 15px 15px;
-                margin-top: 10px;
-                box-shadow: var(--card-shadow);
-                border: 1px solid var(--border-color);
-                border-top: none;
-                width: 100%;
-            }
-            
-            .navbar-nav .nav-item {
-                border-bottom: 1px solid var(--border-color);
-            }
-            
-            .navbar-nav .nav-item:last-child {
-                border-bottom: none;
-            }
-            
-            .navbar-nav .nav-link {
-                padding: 12px 15px !important;
-                font-size: 1.1rem;
-                display: flex;
-                align-items: center;
-                width: 100%;
-            }
-            
-            .navbar-nav .nav-link i {
-                width: 28px;
-                color: var(--accent-text);
-            }
-            
-            .navbar-nav .nav-link:hover {
-                background: var(--bg-tertiary);
-                border-radius: 8px;
-            }
-        }
-
-        Mobile navbar - keep everything on one line */
-        /* @media (max-width: 991px) {
-            .navbar .container {
-                flex-wrap: nowrap;
-            }
-            
-            .navbar-brand {
-                flex: 1;
-                margin-right: 4px;
-                font-size: 0.85rem !important;
-            }
-            
-            .navbar-brand img {
-                width: 28px !important;
-                height: 28px !important;
-            }
-            
-            .navbar-brand span {
-                font-size: 0.75rem !important;
-            }
-            
-            .user-profile-btn {
-                padding: 3px 6px;
-            }
-            
-            .user-profile-btn img {
-                width: 24px;
-                height: 24px;
-            }
-            
-            .google-signin-btn {
-                padding: 2px 5px;
-                font-size: 0.65rem;
-                line-height: 1.1;
-                text-align: center;
-                max-width: 42px;
-                flex-direction: column;
-                gap: 1px;
-                border-radius: 8px;
-                justify-content: center;
-                align-items: center;
-            }
-            
-            .google-signin-btn i {
-                font-size: 0.8rem;
-            }
-            
-            .google-signin-btn span {
-                font-size: 0.55rem !important;
-                line-height: 1;
-            }
-            
-            .theme-toggle-btn {
-                width: 32px;
-                height: 32px;
-            }
-            
-            .theme-toggle-btn i {
-                font-size: 0.85rem;
-            }
-            
-            .navbar-toggler {
-                padding: 4px 8px;
-            }
-            
-            .navbar-toggler-icon {
-                width: 20px;
-                height: 20px;
-            }
-            
-            .gap-2 {
-                gap: 3px !important;
-            }
-        } */
-
-
         /* Mobile menu - hamburger drops full width */
         @media (max-width: 991px) {
             .navbar-collapse {
@@ -400,44 +284,6 @@
             }
         }
 
-        /* Mobile action-icon row (sign-in/avatar, streak badge, theme
-           toggle, help) - drop to its own full-width line below the
-           brand + hamburger instead of squeezing into the top-right
-           corner and overflowing. */
-        /* @media (max-width: 991px) {
-            .navbar > .container {
-                flex-wrap: wrap;
-            }
-
-            .navbar-brand {
-                order: 1;
-            }
-
-            .navbar-toggler {
-                order: 2;
-            }
-
-            .navbar-mobile-actions {
-                order: 3;
-                flex-basis: 100%;
-                flex-wrap: wrap;
-                row-gap: 8px;
-                margin-top: 12px;
-                margin-left: 0 !important;
-                justify-content: center;
-            }
-
-            .navbar-collapse {
-                order: 4;
-            }
-
-            .navbar-mobile-actions .streak-badge-text {
-                max-width: 140px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-        } */
 
         @media (max-width: 991px) {
             .navbar .container {
@@ -1019,6 +865,7 @@
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
                         <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('user_profile') }}"><i class="fas fa-user me-2"></i>View Profile</a></li>
                         <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
@@ -1070,6 +917,7 @@
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
                             <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('user_profile') }}"><i class="fas fa-user me-2"></i>View Profile</a></li>
                             <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
