@@ -49,8 +49,12 @@ API_BIBLE_SECONDARY_KEY = os.environ.get("API_BIBLE_SECONDARY_KEY")
 API_BIBLE_SECONDARY_BASE = "https://rest.api.bible/v1"
 
 # Create sync data directory if it doesn't exist
-SYNC_DATA_DIR = Path("sync_data")
-SYNC_DATA_DIR.mkdir(exist_ok=True)
+# Create sync data directory if it doesn't exist. Points at a Render Persistent
+# Disk mount path in production (set SYNC_DATA_DIR in the Render dashboard, e.g.
+# /var/data/sync_data) so this survives redeploys/restarts. Falls back to a local
+# "sync_data" folder for local dev, which is fine since local dev doesn't redeploy.
+SYNC_DATA_DIR = Path(os.environ.get("SYNC_DATA_DIR", "sync_data"))
+SYNC_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # ========== BIBLE DATA STRUCTURE ==========
 

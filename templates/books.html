@@ -1234,7 +1234,7 @@
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('user_profile') }}"><i class="fas fa-user me-2"></i>View Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('user_profile') }}"><i class="fas fa-user me-2"></i>View Profile</a></li>                            
                             <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
@@ -1674,7 +1674,13 @@
                         streak = addTodayToLocalLog();
                     } else {
                         const data = await res.json();
-                        streak = (data && data.streak) ? data.streak : addTodayToLocalLog();
+                        // Mirror today's date locally even on the success path, the
+                        // same way bookmarks/highlights are mirrored - so if the
+                        // server's copy is ever lost (e.g. a redeploy on a host
+                        // without persistent storage), the next Sync Now can
+                        // restore it from the browser instead of losing it for good.
+                        addTodayToLocalLog();
+                        streak = (data && data.streak) ? data.streak : computeStreakFromLog(getLocalReadingLog());
                     }
                 } catch (e) {
                     streak = addTodayToLocalLog();
@@ -1731,6 +1737,7 @@
                     bookmarks: JSON.parse(localStorage.getItem('bibleBookmarks') || '[]'),
                     highlights: JSON.parse(localStorage.getItem('bibleHighlights') || '{}'),
                     progress: getAllReadingProgress(),
+                    readingLog: JSON.parse(localStorage.getItem(STREAK_LOG_KEY) || '[]'),
                     font_size: localStorage.getItem('bibleFontSize'),
                     theme: localStorage.getItem('bibleAppTheme')
                 };
@@ -1756,6 +1763,10 @@
                     }
                     if (serverData.highlights) {
                         localStorage.setItem('bibleHighlights', JSON.stringify(serverData.highlights));
+                    }
+                    if (serverData.readingLog) {
+                        localStorage.setItem(STREAK_LOG_KEY, JSON.stringify(serverData.readingLog));
+                        renderStreakBadge(computeStreakFromLog(serverData.readingLog));
                     }
                     if (serverData.font_size) {
                         localStorage.setItem('bibleFontSize', serverData.font_size);

@@ -284,7 +284,6 @@
             }
         }
 
-
         @media (max-width: 991px) {
             .navbar .container {
                 display: flex;
@@ -1159,6 +1158,7 @@
                     bookmarks: JSON.parse(localStorage.getItem('bibleBookmarks') || '[]'),
                     highlights: JSON.parse(localStorage.getItem('bibleHighlights') || '{}'),
                     progress: getAllReadingProgress(),
+                    readingLog: JSON.parse(localStorage.getItem('bibleReadingLog') || '[]'),
                     font_size: localStorage.getItem('bibleFontSize'),
                     theme: localStorage.getItem('bibleAppTheme')
                 };
@@ -1172,6 +1172,7 @@
                     const sd = await sr.json();
                     if (sd.bookmarks) localStorage.setItem('bibleBookmarks', JSON.stringify(sd.bookmarks));
                     if (sd.highlights) localStorage.setItem('bibleHighlights', JSON.stringify(sd.highlights));
+                    if (sd.readingLog) localStorage.setItem('bibleReadingLog', JSON.stringify(sd.readingLog));
                     if (sd.font_size) localStorage.setItem('bibleFontSize', sd.font_size);
                     if (sd.theme) localStorage.setItem('bibleAppTheme', sd.theme);
                     showSyncToast('Sync completed!', 'success');
