@@ -2370,6 +2370,30 @@
                 </div>
                 <div class="row g-4">${cards}</div>
             `;
+            let copyrightHtml = '';
+
+            if (selectedVersion === 'nasb' || selectedVersion === 'amp') {
+                copyrightHtml = `
+                    <div class="copyright-notice mt-3">
+                        <small>
+                            Scripture quotations taken from
+                            ${selectedVersion === 'nasb'
+                                ? '(NASB®) New American Standard Bible® , Copyright © 2020' 
+                                : 'Amplified® Bible (AMP)'},
+                            Copyright © The Lockman Foundation.
+                            Used by permission. All rights reserved.
+                            <a href="https://www.lockman.org/" target="_blank" rel="noopener noreferrer">
+                                www.Lockman.org
+                            </a>
+                        </small>
+                    </div>
+                `;
+            }
+            qlResults.innerHTML = `
+                ...
+                <div class="row g-4">${cards}</div>
+                ${copyrightHtml}
+            `;
             audioProgressBar = document.getElementById('qlAudioProgressBar');
             audioCurrentTimeSpan = document.getElementById('qlAudioCurrentTime');
             audioDurationSpan = document.getElementById('qlAudioDuration');

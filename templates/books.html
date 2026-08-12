@@ -1024,6 +1024,19 @@
             align-items: center;
         }
 
+        .copyright-notice {
+            margin-top: 20px;
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .copyright-notice a {
+            color: var(--accent-text);
+        }
+
         @media (max-width: 768px) { .audio-controls-container { padding: 15px; } .audio-main-controls { gap: 10px; } .audio-play-btn { padding: 10px 20px; font-size: 1rem; } .audio-time-display { min-width: 80px; font-size: 0.85rem; } }
         @media (max-width: 576px) { .audio-play-section { width: 100%; justify-content: center; } .audio-play-btn { padding: 10px 25px; width: auto; } .audio-menu-section { margin-top: 10px; justify-content: center; } .skip-buttons { display: flex; gap: 5px; } }
 
@@ -1488,6 +1501,23 @@
                             </div>
                         {% endfor %}
                     </div>
+                    {% if selected_version in ['nasb', 'amp'] %}
+                    <div class="copyright-notice mt-4">
+                        <small>
+                            Scripture quotations taken from the
+                            {% if selected_version == 'nasb' %}
+                            (NASB®) New American Standard Bible® , Copyright © 2020
+                            {% else %}
+                            Amplified® Bible (AMP)
+                            {% endif %},
+                            Copyright © The Lockman Foundation.
+                            Used by permission. All rights reserved.
+                            <a href="https://www.lockman.org/" target="_blank" rel="noopener noreferrer">
+                                www.Lockman.org
+                            </a>
+                        </small>
+                    </div>
+                    {% endif %}
                     
                     <!-- Chapter Navigation -->
                     <div class="chapter-navigation">
