@@ -319,6 +319,31 @@
             color: var(--accent-text);
             margin-top: 30px;
         }
+
+        .copyright-notice {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 16px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .copyright-notice i {
+            color: var(--accent-text);
+            font-size: 1rem;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .copyright-notice a {
+            color: var(--accent-text);
+            font-weight: 600;
+        }
         
         .search-form {
             max-width: 700px;
@@ -1728,7 +1753,7 @@
         </div>
     </section>
 
-    <!-- ========== BOOKS BROWSER (with search & testament filter, no badge, with icon) ========== -->
+    <!-- ========== BOOKS BROWSER ========== -->
     <section id="books" class="py-5">
         <div class="container col-11">
             <h2 class="text-center section-title mb-4">Browse the Bible</h2>
@@ -2346,6 +2371,39 @@
                     </div>
                 `;
             }).join('');
+            const copyrights = {
+                'en-nasb': `
+                    Scripture quotations taken from the (NASB®)
+                    New American Standard Bible®, Copyright © 2020 by The Lockman Foundation.
+                    Used by permission. All rights reserved.
+                `,
+                'en-amp': `
+                    Scripture quotations taken from the
+                    Amplified® Bible, Copyright © The Lockman Foundation.
+                    Used by permission. All rights reserved.
+                `
+            };
+
+            const selectedVersion = qlVersion.value;
+
+            let copyrightHtml = '';
+
+            if (copyrights[selectedVersion]) {
+                copyrightHtml = `
+                    <div class="copyright-notice mt-3">
+                        <i class="fas fa-copyright"></i>
+                        <small>
+                            ${copyrights[selectedVersion]}
+                            <a href="https://www.lockman.org/"
+                            target="_blank"
+                            rel="noopener noreferrer">
+                                www.Lockman.org
+                            </a>
+                        </small>
+                    </div>
+                `;
+            }
+
             qlResults.innerHTML = `
                 <div class="d-flex justify-content-end mb-3 gap-2">
                     <button id="qlPlayBtn" class="btn btn-success">
@@ -2369,41 +2427,9 @@
                     </div>
                 </div>
                 <div class="row g-4">${cards}</div>
+                ${copyrightHtml}
             `;
-            
-            const copyrights = {
-                'en-nasb': `
-                    Scripture quotations taken from the (NASB®)
-                    New American Standard Bible®, Copyright © 1960,
-                    1971, 1977, 1995, 2020 by The Lockman Foundation.
-                    Used by permission. All rights reserved.
-                `,
-                'en-amp': `
-                    Scripture quotations taken from the
-                    Amplified® Bible, Copyright © The Lockman Foundation.
-                    Used by permission. All rights reserved.
-                `
-            };
 
-            const selectedVersion = qlVersion.value;
-
-            let copyrightHtml = '';
-
-            if (copyrights[selectedVersion]) {
-                copyrightHtml = `
-                    <div class="copyright-notice mt-3">
-                        <small>
-                            ${copyrights[selectedVersion]}
-                            <a href="https://www.lockman.org/"
-                            target="_blank"
-                            rel="noopener noreferrer">
-                                www.Lockman.org
-                            </a>
-                        </small>
-                    </div>
-                `;
-            }            
-            
             audioProgressBar = document.getElementById('qlAudioProgressBar');
             audioCurrentTimeSpan = document.getElementById('qlAudioCurrentTime');
             audioDurationSpan = document.getElementById('qlAudioDuration');
