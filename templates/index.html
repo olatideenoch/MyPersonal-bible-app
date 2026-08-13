@@ -2370,30 +2370,40 @@
                 </div>
                 <div class="row g-4">${cards}</div>
             `;
+            
+            const copyrights = {
+                'en-nasb': `
+                    Scripture quotations taken from the (NASB®)
+                    New American Standard Bible®, Copyright © 1960,
+                    1971, 1977, 1995, 2020 by The Lockman Foundation.
+                    Used by permission. All rights reserved.
+                `,
+                'en-amp': `
+                    Scripture quotations taken from the
+                    Amplified® Bible, Copyright © The Lockman Foundation.
+                    Used by permission. All rights reserved.
+                `
+            };
+
+            const selectedVersion = qlVersion.value;
+
             let copyrightHtml = '';
 
-            if (selectedVersion === 'nasb' || selectedVersion === 'amp') {
+            if (copyrights[selectedVersion]) {
                 copyrightHtml = `
                     <div class="copyright-notice mt-3">
                         <small>
-                            Scripture quotations taken from
-                            ${selectedVersion === 'nasb'
-                                ? '(NASB®) New American Standard Bible® , Copyright © 2020' 
-                                : 'Amplified® Bible (AMP)'},
-                            Copyright © The Lockman Foundation.
-                            Used by permission. All rights reserved.
-                            <a href="https://www.lockman.org/" target="_blank" rel="noopener noreferrer">
+                            ${copyrights[selectedVersion]}
+                            <a href="https://www.lockman.org/"
+                            target="_blank"
+                            rel="noopener noreferrer">
                                 www.Lockman.org
                             </a>
                         </small>
                     </div>
                 `;
-            }
-            qlResults.innerHTML = `
-                ...
-                <div class="row g-4">${cards}</div>
-                ${copyrightHtml}
-            `;
+            }            
+            
             audioProgressBar = document.getElementById('qlAudioProgressBar');
             audioCurrentTimeSpan = document.getElementById('qlAudioCurrentTime');
             audioDurationSpan = document.getElementById('qlAudioDuration');

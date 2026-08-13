@@ -1104,10 +1104,6 @@ def books(book_slug):
     if not book:
         return f"Book '{book_slug}' not found", 404
 
-    # Chapter/version can arrive either via the in-page POST form (existing
-    # dropdown/prev-next nav) or as GET query params, so a URL like
-    # /books/genesis?chapter=1 is directly deep-linkable (used by the
-    # Bible in a Year day list).
     selected_chapter = request.form.get("chapter") or request.args.get("chapter")
     selected_version = request.form.get("version") or request.args.get("version", "en-kjv")
     verses = []
