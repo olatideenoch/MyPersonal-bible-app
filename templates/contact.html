@@ -937,6 +937,18 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#daily">Daily Verse</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#search">Search</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#books">Books</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('bible_in_a_year') }}">Bible in a Year</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="studyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Study</a>
+                        <ul class="dropdown-menu" aria-labelledby="studyDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('reading_plans_page') }}"><i class="fas fa-list-check me-2"></i>Reading Plans</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('devotional_page') }}"><i class="fas fa-book-open-reader me-2"></i>Daily Devotional</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('topics_page') }}"><i class="fas fa-lightbulb me-2"></i>Bible Topics</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('compare_page') }}"><i class="fas fa-columns me-2"></i>Compare Versions</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('quiz_page') }}"><i class="fas fa-question-circle me-2"></i>Bible Quiz</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('prayer_journal_page') }}"><i class="fas fa-hands-praying me-2"></i>Prayer Journal</a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="https://mypersonalbible.onrender.com" target="_blank">About Us</a></li>
                     <li class="nav-item"><a class="nav-link active" href="{{ url_for('contact') }}">Contact</a></li>
                 </ul>

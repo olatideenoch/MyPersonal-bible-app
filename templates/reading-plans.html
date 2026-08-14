@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Prevent theme flash on page load - MUST be first -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Guided Bible reading plans - Bible in 90 Days, New Testament in 30 Days, Psalms, Proverbs, the Gospels and more. Track your progress day by day.">
+    <meta name="robots" content="index, follow">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Reading Plans - MyPersonal Bible">
+    <meta property="og:description" content="Guided Bible reading plans with day-by-day progress tracking.">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="{{ url_for('static', filename='img/app-icon.jpg', _external=True) }}">
+    <link rel="canonical" href="{{ request.url }}">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#3d2205">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Reading Plans - MyPersonal Bible</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <style>
+        .plan-day {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+        }
+        .plan-day.completed {
+            border-left: 4px solid #4caf50;
+            opacity: 0.85;
+        }
+        .plan-day.completed .day-label {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+        .day-check {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            font-size: 0.75rem;
+            color: #fff;
+            transition: all 0.2s ease;
+        }
+        .day-check.checked {
+            background: #4caf50;
+            border-color: #4caf50;
+        }
+        .read-chip {
+            display: inline-block;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            margin: 2px 4px 2px 0;
+            transition: all 0.2s ease;
+        }
+        .read-chip:hover {
+            background: var(--accent-text);
+            color: #fff;
+        }
+        .plan-progress-ring {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+        .plan-detail-wrap {
+            display: none;
+        }
+        .plan-detail-wrap.open {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    {% include '_nav.html' %}
+
+    <main style="padding-top: 76px;">
+        <!-- Page header -->
+        <div class="page-header">
+            <div class="container">
+                <h1><i class="fas fa-list-check me-2"></i>Reading Plans</h1>
+                <p class="mt-3">Choose a guided journey through Scripture — with day-by-day tracking so you always know where you are.</p>
+            </div>
+        </div>
+
+        <div class="container col-11 py-5">
+            <!-- Stats row -->
+            <div class="row g-3 justify-content-center mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="card text-center p-3 h-100">
+                        <div class="fs-3" style="color: var(--accent-text);">{{ plans|length }}</div>
+                        <div class="text-muted small">Reading Plans</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card text-center p-3 h-100">
+                        <div class="fs-3" style="color: var(--accent-text);">66</div>
+                        <div class="text-muted small">Books of the Bible</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card text-center p-3 h-100">
+                        <div class="fs-3" style="color: var(--accent-text);">1,189</div>
+                        <div class="text-muted small">Chapters Total</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card text-center p-3 h-100">
+                        <div class="fs-3" style="color: var(--accent-text);">{% if user %}<i class="fas fa-check"></i>{% else %}-{% endif %}</div>
+                        <div class="text-muted small">{% if user %}Progress Saved{% else %}Sign in to save progress{% endif %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plan cards -->
+            <div class="row g-4 mb-5" id="planCards">
+                {% for plan in plans %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="tool-card p-4 d-flex flex-column">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="tool-icon me-3" style="background: {{ plan.color }};">
+                                <i class="fas {{ plan.icon }}"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0" style="font-family: 'Lora', serif;">{{ plan.title }}</h5>
+                                <small class="text-muted">{{ plan.total_days }} days</small>
+                            </div>
+                        </div>
+                        <p class="text-muted flex-grow-1">{{ plan.description }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button class="btn btn-primary btn-sm plan-open-btn" data-plan-id="{{ plan.id }}">
+                                <i class="fas fa-book-open me-1"></i>View Plan
+                            </button>
+                            <span class="badge-soft" id="badge-{{ plan.id }}"></span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Plan detail -->
+            <div class="plan-detail-wrap" id="planDetail">
+                <div class="card p-4">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+                        <button class="btn btn-outline-secondary btn-sm" id="backToPlansBtn">
+                            <i class="fas fa-arrow-left me-1"></i>All Plans
+                        </button>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="plan-progress-ring" id="planProgressRing" style="background: conic-gradient(var(--accent-primary) 0%, var(--bg-tertiary) 0);"></div>
+                            <div>
+                                <h4 class="mb-0" style="font-family: 'Lora', serif;" id="planDetailTitle"></h4>
+                                <small class="text-muted" id="planDetailMeta"></small>
+                            </div>
+                        </div>
+                        <button class="btn btn-success btn-sm" id="startPlanBtn">
+                            <i class="fas fa-play me-1"></i>Start / Restart Plan
+                        </button>
+                    </div>
+
+                    <div class="progress mb-4" style="height: 10px;">
+                        <div class="progress-bar" id="planProgressBar" role="progressbar" style="width: 0%; background: var(--accent-primary);"></div>
+                    </div>
+
+                    <div id="planSignInNote" class="alert text-center d-none">
+                        <i class="fas fa-user-circle me-2"></i><a href="{{ url_for('google_login') }}" style="color: var(--accent-text);">Sign in</a> to track your progress across devices. You can still read any day below.
+                    </div>
+
+                    <div id="planDaysList" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {% include '_footer.html' %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app-common.js') }}"></script>
+    <script>
+        (function () {
+            'use strict';
+            const USER_AUTHENTICATED = {{ 'true' if user else 'false' }};
+            const PLANS_KEY = 'biblePlans';
+            let currentPlan = null;
+            let currentDetail = null;
+            let authenticated = USER_AUTHENTICATED;
+
+            function localPlans() {
+                try { return JSON.parse(localStorage.getItem(PLANS_KEY) || '{}'); } catch (e) { return {}; }
+            }
+            function saveLocalPlans(p) {
+                localStorage.setItem(PLANS_KEY, JSON.stringify(p));
+            }
+            function mergePlans(local, remote) {
+                const merged = {};
+                const all = new Set(Object.keys(local).concat(Object.keys(remote)));
+                all.forEach(function (id) {
+                    const l = local[id] || {};
+                    const r = remote[id] || {};
+                    const lStart = l.start_date, rStart = r.start_date;
+                    const start = (lStart && rStart) ? (lStart < rStart ? lStart : rStart) : (lStart || rStart || null);
+                    const days = new Set((l.completed_days || []).concat(r.completed_days || []));
+                    merged[id] = { start_date: start, completed_days: Array.from(days).sort(function(a,b){return a-b;}) };
+                });
+                return merged;
+            }
+
+            async function loadServerPlans() {
+                try {
+                    const res = await fetch('/api/sync');
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.plans) {
+                            saveLocalPlans(mergePlans(localPlans(), data.plans));
+                            // Push merged back to server so both stay in sync
+                            const all = localPlans();
+                            await fetch('/api/sync', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ plans: all })
+                            });
+                        }
+                    } else if (res.status === 401) {
+                        authenticated = false;
+                    }
+                } catch (e) { /* offline */ }
+            }
+
+            function progressFor(planId) {
+                const p = localPlans()[planId];
+                const total = currentPlanMeta(planId) ? currentPlanMeta(planId).total_days : 0;
+                if (!p || !total) return { start: null, completed: [], pct: 0, n: 0 };
+                const n = (p.completed_days || []).length;
+                return { start: p.start_date, completed: p.completed_days || [], pct: Math.round(n / total * 1000) / 10, n: n };
+            }
+
+            // Server-rendered plan metadata
+            const PLANS_META = {{ plans|tojson|safe }};
+
+            function currentPlanMeta(id) {
+                for (let i = 0; i < PLANS_META.length; i++) {
+                    if (PLANS_META[i].id === id) return PLANS_META[i];
+                }
+                return null;
+            }
+
+            function renderBadges() {
+                PLANS_META.forEach(function (p) {
+                    const badge = document.getElementById('badge-' + p.id);
+                    if (!badge) return;
+                    const prog = progressFor(p.id);
+                    if (prog.start && prog.n > 0) {
+                        badge.innerHTML = '<i class="fas fa-circle-check me-1" style="color:#4caf50;"></i>' + prog.pct + '% done';
+                    } else if (prog.start) {
+                        badge.innerHTML = '<i class="fas fa-play me-1"></i>Started';
+                    } else {
+                        badge.innerHTML = '<i class="fas fa-ellipsis-h"></i>Not started';
+                    }
+                });
+            }
+
+            function openPlan(planId) {
+                fetch('/api/plans/' + planId)
+                    .then(function (res) { return res.json(); })
+                    .then(function (detail) {
+                        currentPlan = planId;
+                        currentDetail = detail;
+                        const wrap = document.getElementById('planDetail');
+                        wrap.classList.add('open');
+                        document.getElementById('planDetailTitle').textContent = detail.title;
+                        document.getElementById('planDetailMeta').textContent = detail.total_days + ' days · pick up any day';
+                        document.getElementById('planCards').style.display = 'none';
+                        renderPlanDetail();
+                        window.scrollTo({ top: wrap.offsetTop - 90, behavior: 'smooth' });
+                    })
+                    .catch(function () { MPB.showToast('Could not load plan', 'warning'); });
+            }
+
+            function renderPlanDetail() {
+                const prog = progressFor(currentPlan);
+                const total = currentDetail.total_days;
+                const list = document.getElementById('planDaysList');
+                const ring = document.getElementById('planProgressRing');
+                const bar = document.getElementById('planProgressBar');
+
+                ring.style.background = 'conic-gradient(var(--accent-primary) ' + (prog.pct * 3.6) + 'deg, var(--bg-tertiary) 0deg)';
+                ring.innerHTML = '<span style="background:var(--card-bg);border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center;">' + prog.pct + '%</span>';
+                bar.style.width = prog.pct + '%';
+                bar.textContent = prog.pct + '%';
+
+                const signInNote = document.getElementById('planSignInNote');
+                if (!authenticated && !prog.start) {
+                    signInNote.classList.remove('d-none');
+                } else {
+                    signInNote.classList.add('d-none');
+                }
+
+                const completedSet = new Set(prog.completed.map(String));
+                let html = '';
+                currentDetail.plan.forEach(function (day) {
+                    const done = completedSet.has(String(day.day));
+                    let chips = '';
+                    day.readings.forEach(function (g) {
+                        chips += '<a class="read-chip" href="/books/' + g.slug + '?chapter=' + g.start + '"><i class="fas fa-book-open me-1"></i>' + g.book + ' ' + (g.start === g.end ? g.start : g.start + '-' + g.end) + '</a>';
+                    });
+                    html += '<div class="plan-day d-flex align-items-start gap-3 ' + (done ? 'completed' : '') + '" data-day="' + day.day + '">' +
+                        '<span class="day-check ' + (done ? 'checked' : '') + '" data-day-check="' + day.day + '">' + (done ? '<i class="fas fa-check"></i>' : '') + '</span>' +
+                        '<div class="flex-grow-1">' +
+                        '<div class="d-flex justify-content-between flex-wrap gap-2">' +
+                        '<span class="day-label" style="font-weight:600;">Day ' + day.day + '</span>' +
+                        '<small class="text-muted">' + day.readings.length + ' reading' + (day.readings.length > 1 ? 's' : '') + '</small>' +
+                        '</div>' +
+                        '<div class="mt-1">' + chips + '</div>' +
+                        '</div></div>';
+                });
+                list.innerHTML = html;
+
+                list.querySelectorAll('.day-check').forEach(function (el) {
+                    el.addEventListener('click', function () { toggleDay(parseInt(el.dataset.dayCheck, 10)); });
+                });
+            }
+
+            async function toggleDay(day) {
+                const plans = localPlans();
+                const entry = plans[currentPlan] || { start_date: new Date().toISOString().slice(0, 10), completed_days: [] };
+                if (!entry.start_date) entry.start_date = new Date().toISOString().slice(0, 10);
+                const set = new Set((entry.completed_days || []).map(String));
+                const nowDone = set.has(String(day));
+                if (nowDone) set.delete(String(day)); else set.add(String(day));
+                entry.completed_days = Array.from(set).map(Number).sort(function (a, b) { return a - b; });
+                plans[currentPlan] = entry;
+                saveLocalPlans(plans);
+
+                // Push to server when signed in
+                if (authenticated) {
+                    try {
+                        const res = await fetch('/api/plans/' + currentPlan + '/mark', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ day: day, completed: !nowDone })
+                        });
+                        if (res.status === 401) authenticated = false;
+                    } catch (e) { /* offline - will sync later */ }
+                }
+                renderPlanDetail();
+                renderBadges();
+                MPB.showToast(nowDone ? 'Day unmarked' : 'Day marked complete!', nowDone ? 'info' : 'success');
+            }
+
+            document.querySelectorAll('.plan-open-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () { openPlan(btn.dataset.planId); });
+            });
+
+            document.getElementById('backToPlansBtn').addEventListener('click', function () {
+                document.getElementById('planDetail').classList.remove('open');
+                document.getElementById('planCards').style.display = '';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            document.getElementById('startPlanBtn').addEventListener('click', async function () {
+                if (!currentPlan) return;
+                if (!authenticated) {
+                    MPB.showToast('Sign in to track progress across devices', 'warning');
+                    return;
+                }
+                try {
+                    const res = await fetch('/api/plans/' + currentPlan + '/start', { method: 'POST' });
+                    if (res.ok) {
+                        const plans = localPlans();
+                        plans[currentPlan] = { start_date: new Date().toISOString().slice(0, 10), completed_days: [] };
+                        saveLocalPlans(plans);
+                        renderPlanDetail();
+                        renderBadges();
+                        MPB.showToast('Plan started — happy reading!', 'success');
+                    } else if (res.status === 401) {
+                        authenticated = false;
+                        MPB.showToast('Please sign in to start a plan', 'warning');
+                    } else {
+                        MPB.showToast('Could not start plan', 'warning');
+                    }
+                } catch (e) {
+                    MPB.showToast('Could not start plan (offline?)', 'warning');
+                }
+            });
+
+            // Boot
+            renderBadges();
+            if (authenticated) loadServerPlans().then(renderBadges);
+        })();
+    </script>
+</body>
+</html>

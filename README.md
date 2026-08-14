@@ -6,17 +6,43 @@ A beautiful, user-friendly web application for reading, searching, and exploring
 
 ## ✨ Features
 
+### Reading & Study
 - **📖 Verse of the Day** — A new inspiring verse every day (cached for consistency)
+- **🎲 Random Verse** — Tap "Surprise Me" for a random verse from anywhere in Scripture
 - **🔍 Powerful Search** — Find any verse, keyword, or phrase instantly across the Bible
 - **📚 Browse by Book** — Select any of the 66 books of the Bible with chapter navigation
 - **📝 Read Full Chapters** — View complete chapters with clean, readable formatting
 - **🌍 1000+ Bible Versions** — Premium support for NKJV, NIV, NLT + access to ESV, NASB, CSB, and 1000+ more translations
 - **🎯 Smart Multi-API System** — Intelligently routes requests between API.Bible, Bible.com, and free fallback API for reliability
 - **🌐 Multiple Languages** — Portuguese, Chinese, Romanian, Czech, Tamil, Malayalam, Latin, Cherokee, and more
+- **🆚 Compare Versions** — Read any chapter in two translations side by side
+- **⚡ Quick Verse Lookup** — Instantly view specific verses or verse ranges with audio support
+- **⚡ Quick Reference Jump** — Type any reference (e.g. "John 3:16") and jump straight there
+- **🔎 In-Chapter Filter** — Search within the current chapter to find a verse instantly
+- **🖼️ Share Verse Cards** — Generate beautiful verse images and share on WhatsApp, X, Facebook & Telegram
+
+### Audio
 - **🎧 Audio Playback** — Listen to chapters or selected verses with high-quality text-to-speech powered by Voice RSS
 - **⬇️ MP3 Downloads** — Download audio versions of chapters or verse selections for offline listening
-- **⚡ Quick Verse Lookup** — Instantly view specific verses or verse ranges with audio support
+
+### Personalisation & Growth
+- **📚 Guided Reading Plans** — Bible in 90 Days, New Testament in 30 Days, Psalms in 30, Proverbs in 31, the Gospels in 14 and more — with day-by-day progress tracking
+- **📅 Daily Devotional** — A new devotional every day: verse, reflection, prayer and action step (31-day cycle)
+- **💡 Bible Topics** — 20 curated verse collections (love, faith, hope, healing, wisdom...) for every season of life
+- **❓ Bible Quiz** — Test your Bible knowledge with trivia, instant answers and score tracking
+- **📝 Verse Notes** — Write personal study notes on any verse (synced to your account)
+- **🎨 Multi-colour Highlights** — Highlight verses in 5 colours
+- **🔖 Bookmarks** — Save favourite verses and jump back to them anytime
+- **🙏 Prayer Journal** — Write down prayer requests and mark them answered
+- **🏅 Achievements** — Earn badges for streaks, plans, quizzes and study habits
+- **🔥 Reading Streaks** — Track your current and longest reading streaks
+- **📊 Profile Analytics** — Beautiful charts of your yearly reading activity
+- **📤 Export Your Data** — Download bookmarks, highlights, notes & prayers as JSON, Markdown or text
+
+### Platform
 - **📱 Responsive Design** — Works perfectly on mobile, tablet, and desktop devices
+- **📴 Offline Reading** — Previously read chapters stay available offline (PWA service worker)
+- **☁️ Cross-device Sync** — Sign in with Google to sync bookmarks, highlights, notes, plans and prayers
 - **📧 Contact Form** — Send feedback or sponsorship inquiries directly through the app
 - **🔒 Privacy Focused** — No ads, no tracking, completely free to use
 
@@ -129,6 +155,21 @@ python main.py
 ```bash
 http://127.0.0.1:5000/
 ```
+
+## 🆕 New Features (v2)
+
+All new features work **without any additional API keys**:
+- **Reading Plans** (`/plans`) — plan content is generated locally from the built-in book/chapter index
+- **Bible Topics** (`/topics`) — 20 curated KJV verse collections stored in `main.py`
+- **Bible Quiz** (`/quiz`) — 57 curated trivia questions, scores saved to your account
+- **Compare Versions** (`/compare`) — uses the same smart multi-API fetcher as the reader
+- **Daily Devotional** (`/devotional`) — 31 original devotionals on a monthly cycle
+- **Prayer Journal** (`/prayer-journal`) — local-first, syncs when signed in
+- **Verse Notes, coloured highlights, share cards, quick jump, in-chapter filter** — built into the reader page
+- **Achievements & data export** — on your Profile page
+- **Offline mode** — `static/sw.js` service worker caches previously-read pages and chapters
+
+No changes to `requirements.txt` or environment variables are needed. Deploy as usual.
 
 ## 📖 Available Bible Versions
 

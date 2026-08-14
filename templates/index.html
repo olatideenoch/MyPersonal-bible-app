@@ -1345,6 +1345,16 @@
             .by-promo-card { flex-direction: column; text-align: center; padding: 24px 20px; }
             .by-promo-btn { width: 100%; }
         }
+
+        /* Study tools grid */
+        .study-tool-card {
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            border-radius: 18px;
+        }
+        .study-tool-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 18px 40px rgba(26, 15, 0, 0.16);
+        }
 </style>
     <script data-goatcounter="https://olatideenoch.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
@@ -1575,9 +1585,22 @@
                             <i class="fas fa-calendar-check d-lg-none me-2"></i>Bible in a Year
                         </a>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="studyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-graduation-cap d-lg-none me-2"></i>Study
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="studyDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('reading_plans_page') }}"><i class="fas fa-list-check me-2"></i>Reading Plans</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('devotional_page') }}"><i class="fas fa-book-open-reader me-2"></i>Daily Devotional</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('topics_page') }}"><i class="fas fa-lightbulb me-2"></i>Bible Topics</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('compare_page') }}"><i class="fas fa-columns me-2"></i>Compare Versions</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('quiz_page') }}"><i class="fas fa-question-circle me-2"></i>Bible Quiz</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('prayer_journal_page') }}"><i class="fas fa-hands-praying me-2"></i>Prayer Journal</a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="https://mypersonalbible.onrender.com" target="_blank">
-                            <i class="fas fa-calendar-check d-lg-none me-2"></i>About Us
+                            <i class="fas fa-globe d-lg-none me-2"></i>About Us
                         </a>
                     </li>
                     <li class="nav-item">
@@ -1655,11 +1678,29 @@
                 <div class="col-lg-8 col-11">
                     <div class="verse-card">
                         {% if daily_verse %}
-                            <p class="verse-text">"{{ daily_verse.text }}"</p>
-                            <p class="reference">— {{ daily_verse.reference }}</p>
+                            <p class="verse-text" id="dailyVerseText">"{{ daily_verse.text }}"</p>
+                            <p class="reference" id="dailyVerseRef">— {{ daily_verse.reference }}</p>
                         {% else %}
                             <p class="text-muted fs-4">Loading today's verse...</p>
                         {% endif %}
+                        <div class="d-flex justify-content-center gap-2 flex-wrap mt-4">
+                            <button class="btn btn-outline-secondary btn-sm" id="dailyShareBtn">
+                                <i class="fas fa-share-nodes me-1"></i>Share
+                            </button>
+                            <button class="btn btn-primary btn-sm" id="randomVerseBtn">
+                                <i class="fas fa-shuffle me-1"></i>Surprise Me
+                            </button>
+                        </div>
+                        <div id="randomVerseCard" class="mt-4 p-4 d-none" style="background: var(--bg-tertiary); border-radius: 16px;">
+                            <small class="text-muted d-block mb-2"><i class="fas fa-shuffle me-1"></i>Random Verse</small>
+                            <p class="verse-text" id="randomVerseText" style="font-size: 1.4rem;"></p>
+                            <p class="reference" id="randomVerseRef" style="font-size: 1.1rem;"></p>
+                            <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+                                <button class="btn btn-outline-secondary btn-sm" id="randomShareBtn"><i class="fas fa-share-nodes me-1"></i>Share</button>
+                                <button class="btn btn-outline-secondary btn-sm" id="randomCopyBtn"><i class="fas fa-copy me-1"></i>Copy</button>
+                                <button class="btn btn-outline-secondary btn-sm" id="randomAgainBtn"><i class="fas fa-rotate-right me-1"></i>Another</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1677,6 +1718,87 @@
                 <a href="{{ url_for('bible_in_a_year') }}" class="btn by-promo-btn">
                     <i class="fas fa-arrow-right me-2"></i>Start the Plan
                 </a>
+            </div>
+        </div>
+    </section>
+
+    <section id="study-tools" class="py-5">
+        <div class="container col-11">
+            <h2 class="text-center section-title mb-2">Study Tools</h2>
+            <p class="text-center text-muted mb-5">Everything you need to go deeper in the Word</p>
+            <div class="row g-4">
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{{ url_for('reading_plans_page') }}" class="text-decoration-none">
+                        <div class="card p-4 h-100 text-center study-tool-card">
+                            <i class="fas fa-list-check fa-2x mb-3" style="color: var(--accent-text);"></i>
+                            <h6 class="mb-1" style="color: var(--text-primary);">Reading Plans</h6>
+                            <small class="text-muted">90-day, 30-day & more</small>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{{ url_for('devotional_page') }}" class="text-decoration-none">
+                        <div class="card p-4 h-100 text-center study-tool-card">
+                            <i class="fas fa-book-open-reader fa-2x mb-3" style="color: var(--accent-text);"></i>
+                            <h6 class="mb-1" style="color: var(--text-primary);">Daily Devotional</h6>
+                            <small class="text-muted">A new word every day</small>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{{ url_for('topics_page') }}" class="text-decoration-none">
+                        <div class="card p-4 h-100 text-center study-tool-card">
+                            <i class="fas fa-lightbulb fa-2x mb-3" style="color: var(--accent-text);"></i>
+                            <h6 class="mb-1" style="color: var(--text-primary);">Bible Topics</h6>
+                            <small class="text-muted">Verses for every season</small>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{{ url_for('compare_page') }}" class="text-decoration-none">
+                        <div class="card p-4 h-100 text-center study-tool-card">
+                            <i class="fas fa-columns fa-2x mb-3" style="color: var(--accent-text);"></i>
+                            <h6 class="mb-1" style="color: var(--text-primary);">Compare Versions</h6>
+                            <small class="text-muted">Two translations side by side</small>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{{ url_for('quiz_page') }}" class="text-decoration-none">
+                        <div class="card p-4 h-100 text-center study-tool-card">
+                            <i class="fas fa-question-circle fa-2x mb-3" style="color: var(--accent-text);"></i>
+                            <h6 class="mb-1" style="color: var(--text-primary);">Bible Quiz</h6>
+                            <small class="text-muted">Test your knowledge</small>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{{ url_for('prayer_journal_page') }}" class="text-decoration-none">
+                        <div class="card p-4 h-100 text-center study-tool-card">
+                            <i class="fas fa-hands-praying fa-2x mb-3" style="color: var(--accent-text);"></i>
+                            <h6 class="mb-1" style="color: var(--text-primary);">Prayer Journal</h6>
+                            <small class="text-muted">Write it down, watch God work</small>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{{ url_for('user_profile') }}" class="text-decoration-none">
+                        <div class="card p-4 h-100 text-center study-tool-card">
+                            <i class="fas fa-chart-line fa-2x mb-3" style="color: var(--accent-text);"></i>
+                            <h6 class="mb-1" style="color: var(--text-primary);">Your Progress</h6>
+                            <small class="text-muted">Streaks, stats & achievements</small>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{{ url_for('index') }}#quick-lookup" class="text-decoration-none">
+                        <div class="card p-4 h-100 text-center study-tool-card">
+                            <i class="fas fa-bolt fa-2x mb-3" style="color: var(--accent-text);"></i>
+                            <h6 class="mb-1" style="color: var(--text-primary);">Quick Lookup</h6>
+                            <small class="text-muted">Jump to any verse instantly</small>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </section>
@@ -1828,6 +1950,7 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app-common.js') }}"></script>
 
     <script>
         const BIBLE_BOOKS = {{ books|tojson|safe }};
@@ -2692,6 +2815,72 @@
                 }
             });
         });
+
+        // ========== DAILY VERSE: SHARE + RANDOM VERSE ==========
+        (function () {
+            const dailyShareBtn = document.getElementById('dailyShareBtn');
+            const randomVerseBtn = document.getElementById('randomVerseBtn');
+            const randomVerseCard = document.getElementById('randomVerseCard');
+
+            if (dailyShareBtn) {
+                dailyShareBtn.addEventListener('click', function () {
+                    const ref = document.getElementById('dailyVerseRef');
+                    const text = document.getElementById('dailyVerseText');
+                    if (!ref || !text) return;
+                    const reference = ref.textContent.replace('—', '').trim();
+                    const verseText = text.textContent.replace(/^"|"$/g, '');
+                    if (window.MPB && MPB.shareVerse) MPB.shareVerse(reference, verseText);
+                });
+            }
+
+            function loadRandomVerse() {
+                if (!randomVerseBtn) return;
+                randomVerseBtn.disabled = true;
+                randomVerseBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Fetching...';
+                fetch('/api/random-verse')
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data.text) {
+                            document.getElementById('randomVerseText').textContent = '"' + data.text + '"';
+                            document.getElementById('randomVerseRef').textContent = '— ' + data.reference;
+                            randomVerseCard.classList.remove('d-none');
+                            randomVerseCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    })
+                    .catch(function () {})
+                    .finally(function () {
+                        randomVerseBtn.disabled = false;
+                        randomVerseBtn.innerHTML = '<i class="fas fa-shuffle me-1"></i>Surprise Me';
+                    });
+            }
+
+            if (randomVerseBtn) randomVerseBtn.addEventListener('click', loadRandomVerse);
+
+            const randomShareBtn = document.getElementById('randomShareBtn');
+            const randomCopyBtn = document.getElementById('randomCopyBtn');
+            const randomAgainBtn = document.getElementById('randomAgainBtn');
+
+            if (randomShareBtn) {
+                randomShareBtn.addEventListener('click', function () {
+                    const ref = document.getElementById('randomVerseRef').textContent.replace('—', '').trim();
+                    const text = document.getElementById('randomVerseText').textContent.replace(/^"|"$/g, '');
+                    if (window.MPB && MPB.shareVerse) MPB.shareVerse(ref, text);
+                });
+            }
+            if (randomCopyBtn) {
+                randomCopyBtn.addEventListener('click', function () {
+                    const ref = document.getElementById('randomVerseRef').textContent.replace('—', '').trim();
+                    const text = document.getElementById('randomVerseText').textContent;
+                    const copyText = ref + ' - ' + text;
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(copyText).then(function () {
+                            if (window.MPB) MPB.showToast('Verse copied!', 'success');
+                        });
+                    }
+                });
+            }
+            if (randomAgainBtn) randomAgainBtn.addEventListener('click', loadRandomVerse);
+        })();
 
         window.addEventListener('beforeunload', () => {
             if (speechSynth) speechSynth.cancel();

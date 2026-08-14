@@ -770,6 +770,51 @@
             background: var(--highlight-bg);
             border-left: 4px solid var(--highlight-border);
         }
+        /* Multi-color highlights */
+        .verse-item.hl-yellow { background: rgba(255, 213, 79, 0.22); border-left: 4px solid #ffd54f; }
+        .verse-item.hl-green { background: rgba(129, 199, 132, 0.22); border-left: 4px solid #81c784; }
+        .verse-item.hl-blue { background: rgba(100, 181, 246, 0.22); border-left: 4px solid #64b5f6; }
+        .verse-item.hl-pink { background: rgba(244, 143, 177, 0.22); border-left: 4px solid #f48fb1; }
+        .verse-item.hl-purple { background: rgba(186, 104, 200, 0.22); border-left: 4px solid #ba68c8; }
+        [data-theme="dark"] .verse-item.hl-yellow { background: rgba(255, 213, 79, 0.12); }
+        [data-theme="dark"] .verse-item.hl-green { background: rgba(129, 199, 132, 0.12); }
+        [data-theme="dark"] .verse-item.hl-blue { background: rgba(100, 181, 246, 0.12); }
+        [data-theme="dark"] .verse-item.hl-pink { background: rgba(244, 143, 177, 0.12); }
+        [data-theme="dark"] .verse-item.hl-purple { background: rgba(186, 104, 200, 0.12); }
+
+        /* Highlight color toolbar */
+        .highlight-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 10px 16px;
+            margin-bottom: 18px;
+        }
+        .hl-swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .hl-swatch:hover { transform: scale(1.15); }
+        .hl-swatch.active { border-color: var(--text-primary); box-shadow: 0 0 0 3px rgba(201, 146, 58, 0.35); }
+        .hl-swatch.eraser {
+            background: var(--bg-secondary);
+            border: 1.5px dashed var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
 
         .verse-content { flex: 1; min-width: 0; }
         .verse-number {
@@ -805,6 +850,36 @@
         .bookmark-btn:hover { color: var(--accent-text); transform: scale(1.1); }
         .bookmark-btn.bookmarked { opacity: 1; color: #ffd700; }
 
+        /* Verse action buttons (note + share) */
+        .verse-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+            margin-left: 4px;
+        }
+        .verse-action-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0;
+            padding: 5px 8px;
+            border-radius: 20px;
+        }
+        .verse-item:hover .verse-action-btn { opacity: 1; }
+        .verse-action-btn:hover { color: var(--accent-text); transform: scale(1.1); }
+        .verse-action-btn.has-note { opacity: 1; color: #4caf50; }
+        .note-indicator {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 0.75rem;
+            color: #4caf50;
+            vertical-align: middle;
+        }
+
         @media (max-width: 768px) { .verse-item { padding: 15px 12px; } .bookmark-btn { opacity: 1; padding: 3px 8px; margin-left: 5px; } .verse-text { font-size: 1.1rem; } }
         @media (max-width: 480px) { .verse-item { padding: 12px 10px; } .verse-text { font-size: 1rem; } .bookmark-btn { padding: 2px 5px; font-size: 1rem; } }
 
@@ -825,6 +900,106 @@
         }
 
         .bookmarks-panel.open { right: 0; }
+
+        /* Notes Panel */
+        .notes-panel {
+            position: fixed;
+            right: -350px;
+            top: 80px;
+            width: 340px;
+            max-height: calc(100vh - 100px);
+            background: var(--card-bg);
+            border-radius: 12px 0 0 12px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            transition: right 0.3s ease;
+            z-index: 1022;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .notes-panel.open { right: 0; }
+        .notes-list { padding: 10px; }
+        .note-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            border-left: 3px solid #4caf50;
+        }
+        .note-reference {
+            font-weight: bold;
+            color: #4caf50;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .note-text {
+            font-size: 0.92rem;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .note-date { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
+        .note-actions { display: flex; gap: 6px; }
+        .note-actions button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 2px 4px;
+        }
+        .note-actions button:hover { color: var(--accent-text); }
+        .note-actions .note-del:hover { color: #dc3545; }
+        .note-editor {
+            border-top: 1px solid var(--border-color);
+            padding: 12px;
+            position: sticky;
+            bottom: 0;
+            background: var(--card-bg);
+        }
+        .note-editor textarea {
+            width: 100%;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            resize: none;
+            font-size: 0.95rem;
+        }
+        .notes-toggle {
+            position: fixed;
+            right: 20px;
+            bottom: 140px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #4caf50;
+            color: white;
+            border: none;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1023;
+            transition: all 0.3s ease;
+        }
+        .notes-toggle:hover { transform: scale(1.1); }
+        .notes-toggle .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.7rem;
+        }
+        @media (max-width: 480px) { .notes-panel { width: 100%; right: -100%; } .notes-panel.open { right: 0; } }
 
         .bookmarks-header {
             padding: 15px 20px;
@@ -1172,6 +1347,32 @@
         <span class="badge" id="bookmarkCount" style="display: none;">0</span>
     </button>
 
+    <!-- Notes Panel -->
+    <div class="notes-panel" id="notesPanel">
+        <div class="bookmarks-header">
+            <h5 class="mb-0"><i class="fas fa-pen-nib me-2" style="color: #4caf50;"></i>My Notes</h5>
+            <button class="btn-close" id="closeNotesPanel"></button>
+        </div>
+        <div class="notes-list" id="notesList"></div>
+        <div class="note-editor" id="noteEditor" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong class="text-muted" style="font-size: 0.85rem;" id="noteEditorRef"></strong>
+                <button class="btn-close" style="font-size: 0.6rem;" id="noteEditorClose"></button>
+            </div>
+            <textarea id="noteEditorText" rows="4" placeholder="Write your note for this verse..."></textarea>
+            <div class="d-flex gap-2 mt-2">
+                <button class="btn btn-success btn-sm flex-grow-1" id="noteSaveBtn"><i class="fas fa-save me-1"></i>Save Note</button>
+                <button class="btn btn-outline-secondary btn-sm" id="noteDeleteBtn" style="display: none;"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes Toggle Button -->
+    <button class="notes-toggle" id="notesToggle" title="View Notes">
+        <i class="fas fa-pen-nib"></i>
+        <span class="badge" id="noteCount" style="display: none;">0</span>
+    </button>
+
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
@@ -1242,6 +1443,19 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}#search">Search</a></li>
                     <li class="nav-item"><a class="nav-link active" href="{{ url_for('books', book_slug=book.slug) }}">Books</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('bible_in_a_year') }}">Bible in a Year</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="studyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-graduation-cap d-lg-none me-2"></i>Study
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="studyDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('reading_plans_page') }}"><i class="fas fa-list-check me-2"></i>Reading Plans</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('devotional_page') }}"><i class="fas fa-book-open-reader me-2"></i>Daily Devotional</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('topics_page') }}"><i class="fas fa-lightbulb me-2"></i>Bible Topics</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('compare_page') }}"><i class="fas fa-columns me-2"></i>Compare Versions</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('quiz_page') }}"><i class="fas fa-question-circle me-2"></i>Bible Quiz</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('prayer_journal_page') }}"><i class="fas fa-hands-praying me-2"></i>Prayer Journal</a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="https://mypersonalbible.onrender.com" target="_blank">About Us</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
                 </ul>
@@ -1392,6 +1606,22 @@
                             <input type="hidden" name="chapter" value="{{ selected_chapter }}">
                         </form>
                     {% endif %}
+
+                    <!-- Quick Reference Jump (e.g. "John 3:16") -->
+                    <div class="card p-3 mb-4" id="quickRefCard">
+                        <div class="input-group">
+                            <span class="input-group-text" title="Jump to any verse">
+                                <i class="fas fa-bolt" style="color: var(--accent-text);"></i>
+                            </span>
+                            <input type="text" class="form-control" id="quickRefInput"
+                                   placeholder="Quick jump: type any reference, e.g. John 3:16 or Psalm 23"
+                                   aria-label="Quick jump to any Bible reference">
+                            <button class="btn btn-primary" type="button" id="quickRefGoBtn">Go</button>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            <i class="fas fa-lightbulb me-1"></i>Try "Gen 1:1", "psalm 23", "1 cor 13:4" — we'll take you straight there.
+                        </small>
+                    </div>
                     
                     <!-- Version Selection Form -->
                     {% if selected_chapter %}
@@ -1501,6 +1731,23 @@
             {% if verses %}
                 <div class="verse-container">
                     <h3 class="mb-4 text-center">{{ book.name }} {{ selected_chapter }}</h3>
+
+                    <!-- Reader tools: highlight colors + in-chapter filter -->
+                    <div class="highlight-toolbar">
+                        <small class="text-muted me-2"><i class="fas fa-highlighter me-1"></i>Highlight:</small>
+                        <span class="hl-swatch active" data-color="yellow" title="Yellow" style="background: #ffd54f;"></span>
+                        <span class="hl-swatch" data-color="green" title="Green" style="background: #81c784;"></span>
+                        <span class="hl-swatch" data-color="blue" title="Blue" style="background: #64b5f6;"></span>
+                        <span class="hl-swatch" data-color="pink" title="Pink" style="background: #f48fb1;"></span>
+                        <span class="hl-swatch" data-color="purple" title="Purple" style="background: #ba68c8;"></span>
+                        <span class="hl-swatch eraser" data-color="" title="Remove highlight"><i class="fas fa-eraser"></i></span>
+                        <span class="mx-2" style="width:1px;height:24px;background:var(--border-color);"></span>
+                        <div class="input-group input-group-sm" style="max-width: 260px;">
+                            <span class="input-group-text"><i class="fas fa-filter"></i></span>
+                            <input type="text" class="form-control" id="chapterFilterInput" placeholder="Filter verses in this chapter...">
+                        </div>
+                    </div>
+
                     <div class="row g-0" id="versesContainer">
                         {% for verse in verses %}
                             <div class="col-12 verse-item" id="verse-{{ loop.index }}" data-verse="{{ loop.index }}" data-reference="{{ book.name }} {{ selected_chapter }}:{{ loop.index }}">
@@ -1511,6 +1758,14 @@
                                 <button class="bookmark-btn" data-verse="{{ loop.index }}" data-reference="{{ book.name }} {{ selected_chapter }}:{{ loop.index }}" data-text="{{ verse.text }}" title="Bookmark this verse">
                                     <i class="far fa-bookmark"></i>
                                 </button>
+                                <div class="verse-actions">
+                                    <button class="verse-action-btn note-btn" data-verse="{{ loop.index }}" data-reference="{{ book.name }} {{ selected_chapter }}:{{ loop.index }}" data-text="{{ verse.text }}" title="Add a note">
+                                        <i class="fas fa-pen-nib"></i>
+                                    </button>
+                                    <button class="verse-action-btn share-btn" data-verse="{{ loop.index }}" data-reference="{{ book.name }} {{ selected_chapter }}:{{ loop.index }}" data-text="{{ verse.text }}" title="Share this verse">
+                                        <i class="fas fa-share-nodes"></i>
+                                    </button>
+                                </div>
                             </div>
                         {% endfor %}
                     </div>
@@ -1564,6 +1819,7 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app-common.js') }}"></script>
 
     <!-- Chapter text data -->
     {% if chapter_text and selected_chapter %}
@@ -1781,6 +2037,8 @@
                 const localData = {
                     bookmarks: JSON.parse(localStorage.getItem('bibleBookmarks') || '[]'),
                     highlights: JSON.parse(localStorage.getItem('bibleHighlights') || '{}'),
+                    highlightColors: JSON.parse(localStorage.getItem('bibleHighlightColors') || '{}'),
+                    notes: JSON.parse(localStorage.getItem('bibleNotes') || '[]'),
                     progress: getAllReadingProgress(),
                     readingLog: JSON.parse(localStorage.getItem(STREAK_LOG_KEY) || '[]'),
                     font_size: localStorage.getItem('bibleFontSize'),
@@ -1808,6 +2066,12 @@
                     }
                     if (serverData.highlights) {
                         localStorage.setItem('bibleHighlights', JSON.stringify(serverData.highlights));
+                    }
+                    if (serverData.highlightColors) {
+                        localStorage.setItem('bibleHighlightColors', JSON.stringify(serverData.highlightColors));
+                    }
+                    if (serverData.notes) {
+                        localStorage.setItem('bibleNotes', JSON.stringify(serverData.notes));
                     }
                     if (serverData.readingLog) {
                         localStorage.setItem(STREAK_LOG_KEY, JSON.stringify(serverData.readingLog));
@@ -2053,24 +2317,45 @@
                 updateBookmarkButtons();
             }
 
-            // ========== VERSE HIGHLIGHTING ==========
+            // ========== VERSE HIGHLIGHTING (multi-color) ==========
             if (typeof BOOK_NAME !== 'undefined' && typeof CHAPTER_NUM !== 'undefined') {
                 let highlights = JSON.parse(localStorage.getItem('bibleHighlights')) || {};
+                let highlightColors = JSON.parse(localStorage.getItem('bibleHighlightColors')) || {};
                 const chapterKey = `${BOOK_NAME}_${CHAPTER_NUM}`;
-                
+                let selectedColor = 'yellow'; // default highlight color
+
                 function saveHighlights() {
                     localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
+                    localStorage.setItem('bibleHighlightColors', JSON.stringify(highlightColors));
                 }
-                
+
+                function applyHighlightClass(el, color) {
+                    el.classList.remove('highlighted', 'hl-yellow', 'hl-green', 'hl-blue', 'hl-pink', 'hl-purple');
+                    if (color) el.classList.add('hl-' + color);
+                }
+
+                function setVerseColor(verseNum, color, save) {
+                    if (!highlightColors[chapterKey]) highlightColors[chapterKey] = {};
+                    if (color) {
+                        highlightColors[chapterKey][String(verseNum)] = color;
+                    } else {
+                        delete highlightColors[chapterKey][String(verseNum)];
+                    }
+                    if (!Object.keys(highlightColors[chapterKey]).length) delete highlightColors[chapterKey];
+                    if (save !== false) saveHighlights();
+                }
+
                 function toggleHighlight(verseElement, verseNum) {
                     const chapterHighlights = highlights[chapterKey] || [];
                     const index = chapterHighlights.indexOf(verseNum);
                     if (index > -1) {
                         chapterHighlights.splice(index, 1);
-                        verseElement.classList.remove('highlighted');
+                        applyHighlightClass(verseElement, '');
+                        setVerseColor(verseNum, '', false);
                     } else {
                         chapterHighlights.push(verseNum);
-                        verseElement.classList.add('highlighted');
+                        applyHighlightClass(verseElement, selectedColor);
+                        setVerseColor(verseNum, selectedColor, false);
                     }
                     if (chapterHighlights.length > 0) {
                         highlights[chapterKey] = chapterHighlights;
@@ -2079,20 +2364,237 @@
                     }
                     saveHighlights();
                 }
-                
+
+                // Restore highlights (with colors when available)
                 if (highlights[chapterKey]) {
                     highlights[chapterKey].forEach(verseNum => {
                         const verseElement = document.getElementById(`verse-${verseNum}`);
-                        if (verseElement) verseElement.classList.add('highlighted');
+                        if (verseElement) {
+                            const color = (highlightColors[chapterKey] || {})[String(verseNum)] || 'yellow';
+                            applyHighlightClass(verseElement, color);
+                        }
                     });
                 }
-                
+
+                // Highlight color swatches
+                document.querySelectorAll('.hl-swatch').forEach(swatch => {
+                    swatch.addEventListener('click', () => {
+                        document.querySelectorAll('.hl-swatch').forEach(s => s.classList.remove('active'));
+                        swatch.classList.add('active');
+                        selectedColor = swatch.dataset.color;
+                    });
+                });
+
                 document.querySelectorAll('.verse-item').forEach(item => {
                     item.addEventListener('click', (e) => {
-                        if (!e.target.closest('.bookmark-btn')) {
+                        if (!e.target.closest('.bookmark-btn') && !e.target.closest('.verse-action-btn')) {
                             toggleHighlight(item, parseInt(item.dataset.verse));
                         }
                     });
+                });
+            }
+
+            // ========== IN-CHAPTER VERSE FILTER ==========
+            const chapterFilterInput = document.getElementById('chapterFilterInput');
+            if (chapterFilterInput) {
+                chapterFilterInput.addEventListener('input', () => {
+                    const q = chapterFilterInput.value.trim().toLowerCase();
+                    document.querySelectorAll('#versesContainer .verse-item').forEach(item => {
+                        const text = (item.querySelector('.verse-text') || {}).textContent || '';
+                        item.style.display = (!q || text.toLowerCase().includes(q)) ? '' : 'none';
+                    });
+                });
+            }
+
+            // ========== PERSONAL VERSE NOTES ==========
+            let notes = JSON.parse(localStorage.getItem('bibleNotes')) || [];
+            const notesPanel = document.getElementById('notesPanel');
+            const notesToggle = document.getElementById('notesToggle');
+            const notesList = document.getElementById('notesList');
+            const noteCount = document.getElementById('noteCount');
+            const noteEditor = document.getElementById('noteEditor');
+            const noteEditorRef = document.getElementById('noteEditorRef');
+            const noteEditorText = document.getElementById('noteEditorText');
+            let editingNoteRef = null;
+
+            function saveNotes() {
+                localStorage.setItem('bibleNotes', JSON.stringify(notes));
+                updateNotesList();
+                updateNoteCount();
+                updateNoteButtons();
+            }
+
+            function updateNoteCount() {
+                if (!noteCount) return;
+                if (notes.length > 0) {
+                    noteCount.style.display = 'inline';
+                    noteCount.textContent = notes.length;
+                } else {
+                    noteCount.style.display = 'none';
+                }
+            }
+
+            function escapeHtml(s) {
+                const div = document.createElement('div');
+                div.textContent = s == null ? '' : String(s);
+                return div.innerHTML;
+            }
+
+            function updateNotesList() {
+                if (!notesList) return;
+                if (notes.length === 0) {
+                    notesList.innerHTML = '<p class="text-center text-muted p-3">No notes yet. Click the pen icon on any verse to write your thoughts.</p>';
+                    return;
+                }
+                notesList.innerHTML = notes.sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+                    .map(n => `
+                        <div class="note-item">
+                            <div class="note-reference">
+                                <span>${escapeHtml(n.reference)}</span>
+                                <span class="note-actions">
+                                    <button class="note-edit" data-ref="${escapeHtml(n.reference)}" title="Edit"><i class="fas fa-edit"></i></button>
+                                    <button class="note-del" data-id="${escapeHtml(n.id)}" title="Delete"><i class="fas fa-trash"></i></button>
+                                </span>
+                            </div>
+                            <div class="note-text">${escapeHtml(n.text)}</div>
+                            <div class="note-date"><i class="far fa-clock me-1"></i>${escapeHtml((n.updated_at || n.created_at || '').slice(0, 10))}</div>
+                        </div>
+                    `).join('');
+
+                notesList.querySelectorAll('.note-del').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        notes = notes.filter(n => n.id !== btn.dataset.id);
+                        saveNotes();
+                        showToast('Note deleted');
+                    });
+                });
+                notesList.querySelectorAll('.note-edit').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        openNoteEditor(btn.dataset.ref);
+                    });
+                });
+            }
+
+            function updateNoteButtons() {
+                document.querySelectorAll('.note-btn').forEach(btn => {
+                    const ref = btn.dataset.reference;
+                    const has = notes.some(n => n.reference === ref);
+                    btn.classList.toggle('has-note', has);
+                    btn.title = has ? 'Edit note' : 'Add a note';
+                });
+            }
+
+            function openNoteEditor(reference) {
+                editingNoteRef = reference;
+                const existing = notes.find(n => n.reference === reference);
+                noteEditorRef.textContent = reference;
+                noteEditorText.value = existing ? existing.text : '';
+                noteEditor.style.display = 'block';
+                document.getElementById('noteDeleteBtn').style.display = existing ? '' : 'none';
+                noteEditorText.focus();
+            }
+
+            function closeNoteEditor() {
+                noteEditor.style.display = 'none';
+                editingNoteRef = null;
+            }
+
+            document.getElementById('noteSaveBtn')?.addEventListener('click', () => {
+                const text = noteEditorText.value.trim();
+                if (!text || !editingNoteRef) { showToast('Write something first!'); return; }
+                const existing = notes.find(n => n.reference === editingNoteRef);
+                if (existing) {
+                    existing.text = text;
+                    existing.updated_at = new Date().toISOString();
+                } else {
+                    notes.push({
+                        id: Date.now(),
+                        reference: editingNoteRef,
+                        text: text,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    });
+                }
+                saveNotes();
+                closeNoteEditor();
+                showToast('Note saved!');
+            });
+
+            document.getElementById('noteDeleteBtn')?.addEventListener('click', () => {
+                notes = notes.filter(n => n.reference !== editingNoteRef);
+                saveNotes();
+                closeNoteEditor();
+                showToast('Note deleted');
+            });
+
+            document.getElementById('noteEditorClose')?.addEventListener('click', closeNoteEditor);
+
+            if (notesToggle) {
+                notesToggle.addEventListener('click', () => {
+                    notesPanel.classList.toggle('open');
+                    if (bookmarksPanel) bookmarksPanel.classList.remove('open');
+                });
+            }
+            document.getElementById('closeNotesPanel')?.addEventListener('click', () => {
+                if (notesPanel) notesPanel.classList.remove('open');
+            });
+
+            document.querySelectorAll('.note-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    openNoteEditor(btn.dataset.reference);
+                    if (notesPanel) notesPanel.classList.add('open');
+                });
+            });
+
+            document.querySelectorAll('.share-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (window.MPB && MPB.shareVerse) {
+                        MPB.shareVerse(btn.dataset.reference, btn.dataset.text);
+                    }
+                });
+            });
+
+            if (typeof BOOK_NAME !== 'undefined') {
+                updateNotesList();
+                updateNoteCount();
+                updateNoteButtons();
+            }
+
+            // ========== QUICK REFERENCE JUMP ==========
+            const quickRefInput = document.getElementById('quickRefInput');
+            const quickRefGoBtn = document.getElementById('quickRefGoBtn');
+            if (quickRefGoBtn && quickRefInput) {
+                quickRefGoBtn.addEventListener('click', () => {
+                    if (window.MPB && MPB.jumpToReference) MPB.jumpToReference(quickRefInput.value);
+                });
+                quickRefInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (window.MPB && MPB.jumpToReference) MPB.jumpToReference(quickRefInput.value);
+                    }
+                });
+            }
+
+            // ========== SCROLL TO REQUESTED VERSE (from quick jump) ==========
+            (function () {
+                const params = new URLSearchParams(window.location.search);
+                const verseParam = params.get('verse');
+                if (verseParam && typeof BOOK_NAME !== 'undefined') {
+                    setTimeout(() => {
+                        const target = document.getElementById('verse-' + verseParam);
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            target.style.boxShadow = '0 0 0 3px var(--accent-primary)';
+                            setTimeout(() => { target.style.boxShadow = ''; }, 3000);
+                        }
+                    }, 600);
+                }
+            })();
+
+            // ========== OFFLINE SUPPORT (Service Worker) ==========
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/static/sw.js').catch(() => {});
                 });
             }
 
