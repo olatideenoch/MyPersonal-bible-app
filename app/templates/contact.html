@@ -847,7 +847,7 @@
             .google-signin-btn { padding: 6px 10px; }
             .navbar-toggler { padding: 4px 8px; }
         }
-        @media (max-width: 359px) {
+        @media (max-width: 419px) {
             .navbar .navbar-brand .brand-text { display: none; }
         }
 
@@ -876,6 +876,8 @@
     <script data-goatcounter="https://olatideenoch.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
+
+    {% include '_welcome_modal.html' %}
 
     <!-- Support Modal -->
     <div class="modal fade" id="supportModal" tabindex="-1" aria-labelledby="supportModalLabel" aria-hidden="true">
@@ -958,7 +960,7 @@
                     <i class="fas fa-moon" id="themeIconMobile"></i>
                 </button>
                 
-                <button class="theme-toggle-btn" id="helpButtonMobile" title="Show app features & help">
+                <button class="theme-toggle-btn help-toggle-btn" data-welcome-open title="Show app features & help">
                     <i class="fas fa-question"></i>
                 </button>
             </div>
@@ -979,6 +981,9 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="studyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Study</a>
                         <ul class="dropdown-menu" aria-labelledby="studyDropdown">
+                            <li><a class="dropdown-item" href="#" data-welcome-open><i class="fas fa-question-circle me-2"></i>Help &amp; Features</a></li>
+                            <li><a class="dropdown-item" href="https://mypersonalbible.onrender.com" target="_blank" rel="noopener"><i class="fas fa-globe me-2"></i>About Us &mdash; Website</a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('user.continue_reading_page') }}"><i class="fas fa-book-open-reader me-2"></i>Continue Reading</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('study.reading_plans_page') }}"><i class="fas fa-list-check me-2"></i>Reading Plans</a></li>
@@ -1026,7 +1031,7 @@
                         <i class="fas fa-moon" id="themeIcon"></i>
                     </button>
                     
-                    <button class="theme-toggle-btn" id="helpButton" title="Show app features & help">
+                    <button class="theme-toggle-btn help-toggle-btn" data-welcome-open title="Show app features & help">
                         <i class="fas fa-question"></i>
                     </button>
                 </div>
@@ -1128,6 +1133,7 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app-common.js') }}"></script>
 
     <!-- Dark Mode Toggle Script  -->
     <script>
@@ -1194,25 +1200,7 @@
         })();
     </script>
 
-    <!-- Help Button Script -->
-    <script>
-        (function() {
-            const helpButton = document.getElementById('helpButton');
-            const helpButtonMobile = document.getElementById('helpButtonMobile');
-            
-            function redirectToHomeHelp(e) {
-                if (e) e.preventDefault();
-                window.location.href = "{{ url_for('main.index') }}?showHelp=true";
-            }
-            
-            if (helpButton) {
-                helpButton.addEventListener('click', redirectToHomeHelp);
-            }
-            if (helpButtonMobile) {
-                helpButtonMobile.addEventListener('click', redirectToHomeHelp);
-            }
-        })();
-    </script>
+    <!-- Help buttons are handled by the shared welcome-modal logic in app-common.js -->
 
     <!-- Sync Now Script (for authenticated users) -->
     <script>

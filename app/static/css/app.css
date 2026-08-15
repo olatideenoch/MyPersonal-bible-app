@@ -518,15 +518,19 @@ footer a {
 
 /* Keep the fuller navbar (with Study dropdown + bell) on one line on
    mid-size desktops by tightening link spacing. */
-@media (min-width: 1200px) and (max-width: 1439px) {
+@media (min-width: 1200px) {
     .navbar .nav-link {
-        font-size: 0.92rem;
-        padding-left: 0.55rem !important;
-        padding-right: 0.55rem !important;
+        font-size: 0.88rem;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
     }
-    .navbar-brand { font-size: 1.55rem; }
+    .navbar-brand { font-size: 1.5rem; }
     .navbar .user-profile-btn span { display: none; }
     .navbar .google-signin-btn span { display: none; }
+    .navbar .theme-toggle-btn { width: 36px; height: 36px; font-size: 0.95rem; }
+}
+@media (min-width: 1600px) {
+    .navbar .nav-link { font-size: 0.95rem; padding-left: 0.55rem !important; padding-right: 0.55rem !important; }
 }
 
 /* Small phones: icon-only sign-in button so the mobile row stays single-line */
@@ -537,23 +541,23 @@ footer a {
 
 /* Small phones: shrink the brand + action icons so everything fits */
 @media (max-width: 575px) {
-    .navbar-brand { font-size: 0.9rem; letter-spacing: 0; }
+    .navbar-brand { font-size: 0.8rem; letter-spacing: 0; }
     .navbar-brand img { width: 28px; height: 28px; }
-    .navbar-mobile-actions { gap: 6px !important; }
+    .navbar-mobile-actions { gap: 4px !important; }
     .navbar-mobile-actions .theme-toggle-btn {
-        width: 34px;
-        height: 34px;
-        font-size: 0.9rem;
+        width: 32px;
+        height: 32px;
+        font-size: 0.85rem;
     }
-    .navbar-mobile-actions .user-profile-btn img { width: 28px; height: 28px; }
-    .navbar .google-signin-btn { padding: 6px 10px; }
-    .navbar-toggler { padding: 4px 8px; }
+    .navbar-mobile-actions .user-profile-btn img { width: 26px; height: 26px; }
+    .navbar .google-signin-btn { padding: 5px 8px; }
+    .navbar-toggler { padding: 4px 6px; }
 }
 /* Tablets (mobile layout, 576-991px): slightly smaller brand */
 @media (min-width: 576px) and (max-width: 991px) {
     .navbar .navbar-brand { font-size: 1.2rem; }
 }
 /* Very narrow screens: icon-only brand so the row never wraps */
-@media (max-width: 379px) {
+@media (max-width: 419px) {
     .navbar .navbar-brand .brand-text { display: none; }
 }

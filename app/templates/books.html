@@ -876,12 +876,17 @@
         }
 
         /* Keep the fuller navbar on one line on mid-size desktops */
-        @media (min-width: 1200px) and (max-width: 1439px) {
-            .nav-link { font-size: 0.92rem; padding-left: 0.55rem !important; padding-right: 0.55rem !important; }
-            .navbar-brand { font-size: 1.55rem; }
+        @media (min-width: 1200px) {
+            .nav-link { font-size: 0.88rem; padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .navbar-brand { font-size: 1.5rem; }
             .user-profile-btn span { display: none; }
             .google-signin-btn span { display: none; }
             .streak-badge-wrapper { display: none; }
+            .theme-toggle-btn { width: 36px; height: 36px; font-size: 0.95rem; }
+        }
+        @media (min-width: 1600px) {
+            .nav-link { font-size: 0.95rem; padding-left: 0.55rem !important; padding-right: 0.55rem !important; }
+            .streak-badge-wrapper { display: block; }
         }
 
         .verse-content { flex: 1; min-width: 0; }
@@ -1400,7 +1405,7 @@
             .google-signin-btn { padding: 6px 10px; }
             .navbar-toggler { padding: 4px 8px; }
         }
-        @media (max-width: 359px) {
+        @media (max-width: 419px) {
             .navbar .navbar-brand .brand-text { display: none; }
         }
 
@@ -1430,6 +1435,8 @@
         async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
+
+    {% include '_welcome_modal.html' %}
 
     <!-- Reading Progress Bar -->
     <div class="reading-progress-container">
@@ -1532,6 +1539,10 @@
                 <button class="theme-toggle-btn" data-push-reminders title="Daily verse reminders">
                     <i class="fas fa-bell-slash" data-push-icon></i>
                 </button>
+
+                <button class="theme-toggle-btn help-toggle-btn" data-welcome-open title="Show app features & help">
+                    <i class="fas fa-question"></i>
+                </button>
                 
                 
             </div>
@@ -1554,7 +1565,8 @@
                             <i class="fas fa-graduation-cap d-xl-none me-2"></i>Study
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="studyDropdown">
-                            <li><a class="dropdown-item" href="#" id="helpDropdownLink"><i class="fas fa-question-circle me-2"></i>Help &amp; Features</a></li>
+                            <li><a class="dropdown-item" href="#" data-welcome-open><i class="fas fa-question-circle me-2"></i>Help &amp; Features</a></li>
+                            <li><a class="dropdown-item" href="https://mypersonalbible.onrender.com" target="_blank" rel="noopener"><i class="fas fa-globe me-2"></i>About Us &mdash; Website</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('user.continue_reading_page') }}"><i class="fas fa-book-open-reader me-2"></i>Continue Reading</a></li>
                             <li><hr class="dropdown-divider"></li>
@@ -1567,7 +1579,6 @@
                             <li><a class="dropdown-item" href="{{ url_for('study.memorize_page') }}"><i class="fas fa-brain me-2"></i>Memorize Verses</a></li>
                         </ul>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="https://mypersonalbible.onrender.com" target="_blank">About Us</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('main.contact') }}">Contact</a></li>
                 </ul>
                 
@@ -1613,6 +1624,10 @@
 
                     <button class="theme-toggle-btn" data-push-reminders title="Daily verse reminders">
                         <i class="fas fa-bell-slash" data-push-icon></i>
+                    </button>
+
+                    <button class="theme-toggle-btn help-toggle-btn" data-welcome-open title="Show app features & help">
+                        <i class="fas fa-question"></i>
                     </button>
                     
                     
@@ -2334,14 +2349,8 @@
             });
 
             // ========== HELP BUTTON ==========
-            const helpButton = document.getElementById('helpDropdownLink');
-            
-            function goToHome(e) {
-                if (e) e.preventDefault();
-                window.location.href = "{{ url_for('main.index') }}";
-            }
-            
-            if (helpButton) helpButton.addEventListener('click', goToHome);
+            // (The Help & Features link and the ? buttons are handled by
+            // the shared welcome-modal logic in app-common.js.)
 
             // ========== READING PROGRESS TRACKER ==========
             const progressBar = document.getElementById('readingProgressBar');

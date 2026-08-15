@@ -555,7 +555,65 @@
         els.forEach(function (el) { io.observe(el); });
     }
 
+
+    /* ---------- Welcome / Features modal (shared across pages) ---------- */
+    function initWelcomeModal() {
+        const modalEl = document.getElementById('welcomeModal');
+        if (!modalEl || typeof bootstrap === 'undefined') return;
+
+        const wm = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true, focus: true });
+        const dsc = document.getElementById('dontShowAgain');
+        const WELCOME_VERSION = '2.8.0';
+
+        // Show the modal once per app version (resets the "don't show" flag on updates)
+        const lsv = localStorage.getItem('bibleAppVersion');
+        if (lsv !== WELCOME_VERSION) {
+            localStorage.removeItem('bibleAppWelcomeSeen');
+            localStorage.removeItem('bibleAppDontShowWelcome');
+            localStorage.setItem('bibleAppVersion', WELCOME_VERSION);
+        }
+
+        function showWelcome() {
+            wm.show();
+        }
+        window.MPB.openWelcome = showWelcome;
+
+        // Every trigger: the ? icons and the "Help & Features" dropdown item
+        document.querySelectorAll('[data-welcome-open]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                // close the dropdown menu if the trigger lives inside one
+                const menu = btn.closest('.dropdown-menu');
+                if (menu && menu.classList.contains('show')) {
+                    const toggle = menu.parentElement.querySelector('[data-bs-toggle="dropdown"]');
+                    if (toggle && bootstrap.Dropdown) {
+                        const inst = bootstrap.Dropdown.getInstance(toggle) || new bootstrap.Dropdown(toggle);
+                        inst.hide();
+                    }
+                }
+                showWelcome();
+            });
+        });
+
+        if (dsc) {
+            dsc.addEventListener('change', function () {
+                if (this.checked) localStorage.setItem('bibleAppDontShowWelcome', 'true');
+                else localStorage.removeItem('bibleAppDontShowWelcome');
+            });
+        }
+        modalEl.addEventListener('hidden.bs.modal', function () {
+            if (dsc && dsc.checked) localStorage.setItem('bibleAppDontShowWelcome', 'true');
+        });
+
+        // Auto-show on the home page only, and only when not dismissed
+        if (document.body.getAttribute('data-welcome-autoshow') === '1' &&
+            localStorage.getItem('bibleAppDontShowWelcome') !== 'true') {
+            setTimeout(function () { showWelcome(); }, 250);
+        }
+    }
+
     /* ---------- Expose API ---------- */
+
 
     window.MPB = {
         showToast: showToast,
@@ -574,6 +632,7 @@
     initTheme();
     registerServiceWorker();
     initScrollReveal();
+    initWelcomeModal();
     document.querySelectorAll('[data-push-reminders]').forEach(function (btn) {
         btn.addEventListener('click', function (e) { e.preventDefault(); pushToggle(); });
     });

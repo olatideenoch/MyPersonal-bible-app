@@ -6,7 +6,7 @@
      - Static assets (CDN css/js/fonts): cache-first
    Bump CACHE_VERSION when deploying a new version.
    ============================================================ */
-const CACHE_VERSION = 'mpb-v7';
+const CACHE_VERSION = 'mpb-v8';
 const RUNTIME_CACHE = CACHE_VERSION + '-runtime';
 const STATIC_CACHE = CACHE_VERSION + '-static';
 

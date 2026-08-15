@@ -43,6 +43,9 @@
             <button class="theme-toggle-btn" data-push-reminders title="Daily verse reminders">
                 <i class="fas fa-bell-slash" data-push-icon></i>
             </button>
+            <button class="theme-toggle-btn help-toggle-btn" data-welcome-open title="Show app features & help">
+                <i class="fas fa-question"></i>
+            </button>
         </div>
 
         <!-- Hamburger button -->
@@ -78,6 +81,9 @@
                         <i class="fas fa-graduation-cap d-xl-none me-2"></i>Study
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="studyDropdown">
+                        <li><a class="dropdown-item" href="#" data-welcome-open><i class="fas fa-question-circle me-2"></i>Help &amp; Features</a></li>
+                            <li><a class="dropdown-item" href="https://mypersonalbible.onrender.com" target="_blank" rel="noopener"><i class="fas fa-globe me-2"></i>About Us &mdash; Website</a></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="{{ url_for('user.continue_reading_page') }}"><i class="fas fa-book-open-reader me-2"></i>Continue Reading</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="{{ url_for('study.reading_plans_page') }}"><i class="fas fa-list-check me-2"></i>Reading Plans</a></li>
@@ -88,11 +94,6 @@
                         <li><a class="dropdown-item" href="{{ url_for('study.prayer_journal_page') }}"><i class="fas fa-hands-praying me-2"></i>Prayer Journal</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('study.memorize_page') }}"><i class="fas fa-brain me-2"></i>Memorize Verses</a></li>
                     </ul>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="https://mypersonalbible.onrender.com" target="_blank">
-                        <i class="fas fa-globe d-xl-none me-2"></i>About Us
-                    </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('main.contact') }}">
@@ -138,6 +139,9 @@
                 </button>
                 <button class="theme-toggle-btn" data-push-reminders title="Daily verse reminders">
                     <i class="fas fa-bell-slash" data-push-icon></i>
+                </button>
+                <button class="theme-toggle-btn help-toggle-btn" data-welcome-open title="Show app features & help">
+                    <i class="fas fa-question"></i>
                 </button>
             </div>
         </div>

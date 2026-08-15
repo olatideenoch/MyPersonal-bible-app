@@ -151,6 +151,14 @@
 </style>
 </head>
 <body>
+
+    {% include '_welcome_modal.html' %}
+    <button class="theme-toggle-btn help-toggle-btn" data-welcome-open
+            title="Show app features & help"
+            style="position: fixed; top: 16px; right: 16px; z-index: 1050;">
+        <i class="fas fa-question"></i>
+    </button>
+
     <div class="install-card">
         <div class="text-center mb-4">
             <i class="fab fa-android fa-3x" style="color: var(--accent-text);"></i>
@@ -210,5 +218,7 @@
             </a>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app-common.js') }}"></script>
 </body>
 </html>

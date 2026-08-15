@@ -1,0 +1,305 @@
+<!-- Shared Welcome / Features Modal (included on every page) -->
+<style>
+        /* ── Welcome / Features Modal ── */
+        .welcome-modal {
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(26, 15, 0, 0.28);
+        }
+        [data-theme="dark"] .welcome-modal { box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7); }
+        .welcome-modal-header {
+            position: relative;
+            background: linear-gradient(150deg, var(--bg-tertiary) 0%, var(--card-bg) 85%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 28px 28px 22px;
+            text-align: center;
+        }
+        .welcome-cross {
+            width: 56px; height: 56px;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            box-shadow: 0 8px 26px rgba(201, 146, 58, 0.35);
+        }
+        [data-theme="dark"] .welcome-cross {
+            background: linear-gradient(135deg, #7d5518, #5a3a0e);
+            color: #f2e8d0;
+            box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5);
+        }
+        .welcome-modal-header .modal-title {
+            font-family: 'Cinzel', 'Lora', serif;
+            font-size: 1.45rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .welcome-brand { color: var(--accent-text); }
+        .welcome-close {
+            position: absolute;
+            top: 16px; right: 16px;
+        }
+        [data-theme="dark"] .welcome-close { filter: invert(1) brightness(1.6); }
+        .welcome-section-title {
+            font-family: 'Cinzel', 'Lora', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+        }
+        .welcome-section-title i { color: var(--accent-text); }
+        .welcome-feature {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 14px 12px;
+            height: 100%;
+            transition: all 0.25s ease;
+        }
+        .welcome-feature:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-3px);
+            box-shadow: var(--card-shadow);
+        }
+        .welcome-feature-icon {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--accent-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            margin-bottom: 10px;
+        }
+        .welcome-feature h6 { font-size: 0.92rem; font-weight: 600; margin-bottom: 2px; }
+        .welcome-quick-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .welcome-quick-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        .welcome-quick-link:hover {
+            background: var(--accent-text);
+            border-color: var(--accent-text);
+            color: var(--accent-contrast);
+            transform: translateY(-2px);
+        }
+        .welcome-announcement {
+            background: var(--bg-tertiary);
+            border-left: 4px solid var(--accent-primary);
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+        .welcome-announcement h6 { font-family: 'Cinzel', 'Lora', serif; letter-spacing: 0.03em; }
+        .welcome-modal-footer {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 14px 24px;
+        }
+        @media (max-width: 767px) {
+            .welcome-modal-header { padding: 20px 18px 16px; }
+            .welcome-modal-header .modal-title { font-size: 1.2rem; }
+            .welcome-cross { width: 46px; height: 46px; font-size: 1.3rem; margin-bottom: 10px; }
+            .welcome-quick-links { grid-template-columns: repeat(2, 1fr); }
+            .welcome-feature { padding: 10px 8px; }
+            .welcome-feature-icon { width: 34px; height: 34px; font-size: 0.9rem; }
+            .welcome-modal-footer { flex-wrap: wrap; gap: 10px; }
+            .welcome-modal-footer .btn { width: 100%; }
+        }
+
+
+        /* Cinzel display headings (matches the landing page identity) */
+        .navbar-brand, .page-header h1, .section-title, .hero h1, h1.display-font {
+            font-family: 'Cinzel', 'Lora', serif !important;
+            letter-spacing: 0.02em;
+        }
+
+
+.card, .card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
+            color: var(--text-primary);
+        }
+        .btn-outline-primary {
+            color: var(--accent-text);
+            border-color: var(--accent-primary);
+            background: transparent;
+        }
+        .btn-outline-primary:hover {
+            background-color: var(--accent-text);
+            border-color: var(--accent-text);
+            color: var(--accent-contrast);
+        }
+
+        /* ── Vertical centering fix (works on desktop AND mobile) ── */
+        #welcomeModal .modal-dialog {
+            height: auto;
+            min-height: calc(100vh - 2rem);
+            max-height: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #welcomeModal .modal-content {
+            width: 100%;
+            max-height: min(86vh, 820px);
+            display: flex;
+            flex-direction: column;
+        }
+        #welcomeModal .modal-body {
+            overflow-y: auto;
+        }
+        .welcome-modal-footer {
+            flex-shrink: 0;
+        }
+        @media (max-height: 700px) {
+            #welcomeModal .modal-dialog { max-height: 92vh; }
+            #welcomeModal .modal-content { max-height: 92vh; }
+            .welcome-modal-header { padding: 18px 20px 14px; }
+            .welcome-cross { width: 42px; height: 42px; font-size: 1.2rem; margin-bottom: 8px; }
+        }
+</style>
+
+    <!-- Welcome/Features Modal -->
+    <div class="modal fade" id="welcomeModal" tabindex="-1" aria-labelledby="welcomeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content welcome-modal">
+                <div class="welcome-modal-header">
+                    <button type="button" class="btn-close welcome-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="welcome-cross">&#10013;</div>
+                    <h3 class="modal-title" id="welcomeModalLabel">Welcome to <span class="welcome-brand">MyPersonal Bible</span></h3>
+                    <p class="text-muted small mb-0 mt-2">Draw near to God through His living Word &mdash; read, listen, study and grow.</p>
+                </div>
+                <div class="modal-body">
+                    <h5 class="welcome-section-title">
+                        <i class="fas fa-star me-2"></i>Everything at your fingertips
+                    </h5>
+                    <div class="row g-2 g-md-3 mb-4">
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="welcome-feature">
+                                <div class="welcome-feature-icon"><i class="fas fa-book-open-reader"></i></div>
+                                <h6>Continue Reading</h6>
+                                <small class="text-muted d-none d-xl-block">Pick up where you left off.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="welcome-feature">
+                                <div class="welcome-feature-icon"><i class="fas fa-calendar-day"></i></div>
+                                <h6>Daily Verse</h6>
+                                <small class="text-muted d-none d-xl-block">A new verse every morning.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="welcome-feature">
+                                <div class="welcome-feature-icon"><i class="fas fa-headphones"></i></div>
+                                <h6>Audio Bible</h6>
+                                <small class="text-muted d-none d-xl-block">Stream or download MP3s.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="welcome-feature">
+                                <div class="welcome-feature-icon"><i class="fas fa-pen-nib"></i></div>
+                                <h6>Notes &amp; Highlights</h6>
+                                <small class="text-muted d-none d-xl-block">Annotate in 5 colours.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="welcome-feature">
+                                <div class="welcome-feature-icon"><i class="fas fa-list-check"></i></div>
+                                <h6>Reading Plans</h6>
+                                <small class="text-muted d-none d-xl-block">8 plans + custom builder.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="welcome-feature">
+                                <div class="welcome-feature-icon"><i class="fas fa-brain"></i></div>
+                                <h6>Memorize Verses</h6>
+                                <small class="text-muted d-none d-xl-block">Flashcards that stick.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="welcome-feature">
+                                <div class="welcome-feature-icon"><i class="fas fa-question-circle"></i></div>
+                                <h6>Bible Quiz</h6>
+                                <small class="text-muted d-none d-xl-block">170+ questions.</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="welcome-feature">
+                                <div class="welcome-feature-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                <h6>Cloud Sync</h6>
+                                <small class="text-muted d-none d-xl-block">All your devices.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="welcome-section-title">
+                        <i class="fas fa-compass me-2"></i>Jump right in
+                    </h5>
+                    <div class="welcome-quick-links mb-4">
+                        <a class="welcome-quick-link" href="{{ url_for('user.continue_reading_page') }}"><i class="fas fa-book-open-reader"></i> Continue Reading</a>
+                        <a class="welcome-quick-link" href="{{ url_for('study.reading_plans_page') }}"><i class="fas fa-list-check"></i> Reading Plans</a>
+                        <a class="welcome-quick-link" href="{{ url_for('study.memorize_page') }}"><i class="fas fa-brain"></i> Memorize</a>
+                        <a class="welcome-quick-link" href="{{ url_for('study.quiz_page') }}"><i class="fas fa-question-circle"></i> Bible Quiz</a>
+                        <a class="welcome-quick-link" href="{{ url_for('study.devotional_page') }}"><i class="fas fa-book-open-reader"></i> Devotional</a>
+                        <a class="welcome-quick-link" href="{{ url_for('study.topics_page') }}"><i class="fas fa-lightbulb"></i> Topics</a>
+                    </div>
+
+                    <div class="welcome-announcement mb-3">
+                        <h6 class="mb-2">
+                            <i class="fas fa-gift me-2" style="color: var(--accent-text);"></i>What's New
+                        </h6>
+                        <ul class="mb-0 ps-3 small text-muted">
+                            <li class="mb-1"><strong>&#128218; Continue Reading</strong> &mdash; pick up exactly where you left off, right from this home page</li>
+                            <li class="mb-1"><strong>&#128276; Daily Verse Reminders</strong> &mdash; get a verse pushed to your device every morning</li>
+                            <li class="mb-1"><strong>&#127757; French &amp; Yor&ugrave;b&aacute;</strong> &mdash; 14 Bible versions, including Louis Segond 1910 and B&iacute;b&eacute;l&igrave; M&iacute;m&#7885;&#769;</li>
+                            <li class="mb-1"><strong>&#128214; Matthew Henry Commentary</strong> &mdash; on every chapter</li>
+                            <li class="mb-1"><strong>&#128220; 8 Reading Plans + Custom Builder</strong> &mdash; and the Bible in a Year tracker</li>
+                            <li class="mb-1"><strong>&#129504; Memorize Verses</strong> &mdash; flashcards with spaced repetition</li>
+                            <li><strong>&#10067; Bible Quiz</strong> &mdash; 170+ questions with score tracking</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row gap-2 mb-3">
+                        <a href="{{ url_for('main.contact') }}?open=support" class="btn btn-outline-secondary flex-grow-1">
+                            <i class="fas fa-heart me-2"></i>Support the App
+                        </a>
+                        <a href="https://mypersonalbible.onrender.com/#videos" target="_blank" rel="noopener" class="btn btn-outline-secondary flex-grow-1">
+                            <i class="fas fa-graduation-cap me-2"></i>Tutorials &amp; Videos
+                        </a>
+                    </div>
+                </div>
+                <div class="welcome-modal-footer d-flex justify-content-between align-items-center">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" id="dontShowAgain">
+                        <label class="form-check-label small" for="dontShowAgain">Don't show this again</label>
+                    </div>
+                    <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-bible me-2"></i>Start Reading
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
