@@ -38,7 +38,7 @@
     function registerServiceWorker() {
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-                navigator.serviceWorker.register('/static/sw.js').catch(function (err) {
+                navigator.serviceWorker.register('/sw.js').catch(function (err) {
                     console.warn('Service worker registration failed:', err);
                 });
             });
@@ -74,15 +74,26 @@
     }
 
     function localData() {
+        const progress = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('reading_progress_')) {
+                try { progress[key] = JSON.parse(localStorage.getItem(key)); } catch (e) {}
+            }
+        }
         return {
             bookmarks: JSON.parse(localStorage.getItem('bibleBookmarks') || '[]'),
             highlights: JSON.parse(localStorage.getItem('bibleHighlights') || '{}'),
             highlightColors: JSON.parse(localStorage.getItem('bibleHighlightColors') || '{}'),
+            highlightLabels: JSON.parse(localStorage.getItem('bibleHighlightLabels') || '{}'),
+            memoryState: JSON.parse(localStorage.getItem('bibleMemoryState') || '{}'),
             notes: JSON.parse(localStorage.getItem('bibleNotes') || '[]'),
             prayers: JSON.parse(localStorage.getItem('biblePrayers') || '[]'),
             plans: JSON.parse(localStorage.getItem('biblePlans') || '{}'),
+            customPlans: JSON.parse(localStorage.getItem('bibleCustomPlans') || '{}'),
             quizStats: JSON.parse(localStorage.getItem('bibleQuizStats') || 'null'),
             readingLog: JSON.parse(localStorage.getItem('bibleReadingLog') || '[]'),
+            progress: progress,
             font_size: localStorage.getItem('bibleFontSize'),
             theme: localStorage.getItem('bibleAppTheme')
         };
@@ -107,11 +118,19 @@
                     if (serverData.bookmarks) localStorage.setItem('bibleBookmarks', JSON.stringify(serverData.bookmarks));
                     if (serverData.highlights) localStorage.setItem('bibleHighlights', JSON.stringify(serverData.highlights));
                     if (serverData.highlightColors) localStorage.setItem('bibleHighlightColors', JSON.stringify(serverData.highlightColors));
+                    if (serverData.highlightLabels) localStorage.setItem('bibleHighlightLabels', JSON.stringify(serverData.highlightLabels));
+                    if (serverData.memoryState) localStorage.setItem('bibleMemoryState', JSON.stringify(serverData.memoryState));
+                    if (serverData.customPlans) localStorage.setItem('bibleCustomPlans', JSON.stringify(serverData.customPlans));
                     if (serverData.notes) localStorage.setItem('bibleNotes', JSON.stringify(serverData.notes));
                     if (serverData.prayers) localStorage.setItem('biblePrayers', JSON.stringify(serverData.prayers));
                     if (serverData.plans) localStorage.setItem('biblePlans', JSON.stringify(serverData.plans));
                     if (serverData.quizStats) localStorage.setItem('bibleQuizStats', JSON.stringify(serverData.quizStats));
                     if (serverData.readingLog) localStorage.setItem('bibleReadingLog', JSON.stringify(serverData.readingLog));
+                    if (serverData.progress) {
+                        Object.keys(serverData.progress).forEach(function (k) {
+                            try { localStorage.setItem(k, JSON.stringify(serverData.progress[k])); } catch (e) {}
+                        });
+                    }
                     if (serverData.font_size) localStorage.setItem('bibleFontSize', serverData.font_size);
                     if (serverData.theme) localStorage.setItem('bibleAppTheme', serverData.theme);
                 }
@@ -131,7 +150,7 @@
     function generateVerseCard(reference, text, options) {
         options = options || {};
         const width = 1080;
-        const height = 1350;
+        const height = 1080; // square card (1:1 - ideal for social feeds)
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
@@ -153,31 +172,32 @@
         // Decorative circles
         ctx.globalAlpha = 0.15;
         ctx.fillStyle = '#e8b86a';
-        ctx.beginPath(); ctx.arc(width - 80, 90, 160, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(70, height - 100, 130, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(width - 70, 80, 150, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(60, height - 80, 110, 0, Math.PI * 2); ctx.fill();
         ctx.globalAlpha = 1;
 
         // Top label
         ctx.fillStyle = '#e8b86a';
-        ctx.font = '600 44px Georgia, serif';
+        ctx.font = '600 42px Georgia, serif';
         ctx.textAlign = 'center';
-        ctx.fillText('MyPersonal Bible', width / 2, 130);
+        ctx.fillText('MyPersonal Bible', width / 2, 110);
 
         // Divider
         ctx.strokeStyle = 'rgba(232,184,106,0.6)';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(width / 2 - 60, 170);
-        ctx.lineTo(width / 2 + 60, 170);
+        ctx.moveTo(width / 2 - 60, 150);
+        ctx.lineTo(width / 2 + 60, 150);
         ctx.stroke();
 
-        // Verse text (wrapped)
+        // Verse text (wrapped, vertically centered)
         ctx.fillStyle = '#faf6ee';
-        ctx.font = 'italic 52px Georgia, serif';
+        ctx.font = 'italic 50px Georgia, serif';
         ctx.textAlign = 'center';
         const words = text.split(' ');
         const maxWidth = width - 160;
-        const lines = [];
+        const maxLines = 7;
+        let lines = [];
         let line = '';
         for (let i = 0; i < words.length; i++) {
             const test = line + (line ? ' ' : '') + words[i];
@@ -190,22 +210,35 @@
         }
         if (line) lines.push(line);
 
-        let y = 420;
-        const lineHeight = 84;
-        lines.slice(0, 9).forEach(function (l) {
+        let truncated = false;
+        if (lines.length > maxLines) {
+            lines = lines.slice(0, maxLines);
+            truncated = true;
+        }
+        if (truncated) {
+            lines[maxLines - 1] = lines[maxLines - 1].replace(/[.,;:!?\s]+$/, '') + ' …';
+        }
+
+        const lineHeight = 80;
+        const blockHeight = lines.length * lineHeight;
+        // available vertical band for the verse text
+        const bandTop = 220;
+        const bandBottom = 800;
+        let y = bandTop + Math.max(0, (bandBottom - bandTop - blockHeight) / 2) + 60;
+        lines.forEach(function (l) {
             ctx.fillText(l, width / 2, y);
             y += lineHeight;
         });
 
         // Reference
         ctx.fillStyle = '#e8b86a';
-        ctx.font = '600 58px Georgia, serif';
-        ctx.fillText('— ' + reference + ' —', width / 2, height - 180);
+        ctx.font = '600 56px Georgia, serif';
+        ctx.fillText('— ' + reference + ' —', width / 2, 900);
 
         // Footer
         ctx.fillStyle = 'rgba(250,246,238,0.8)';
-        ctx.font = '36px Georgia, serif';
-        ctx.fillText('mypersonal-bible-app.onrender.com', width / 2, height - 90);
+        ctx.font = '32px Georgia, serif';
+        ctx.fillText('mypersonal-bible-app.onrender.com', width / 2, 990);
 
         return canvas;
     }
@@ -220,7 +253,7 @@
 
             const shareHtml =
                 '<div class="text-center mb-3">' +
-                '  <img src="' + url + '" alt="Verse card" style="max-width:100%;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.25);">' +
+                '  <img src="' + url + '" alt="Verse card" style="width:100%;max-width:340px;aspect-ratio:1/1;object-fit:cover;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.25);">' +
                 '</div>' +
                 '<div class="d-flex flex-wrap justify-content-center gap-2 mb-3">' +
                 '  <a class="btn btn-success btn-sm" href="https://wa.me/?text=' + encText + '" target="_blank" rel="noopener"><i class="fab fa-whatsapp me-1"></i> WhatsApp</a>' +
@@ -348,7 +381,182 @@
         return true;
     }
 
+    /* ---------- Automatic data restore (free-tier resilience) ----------
+       On free hosting the server's copy of user data is wiped on every
+       redeploy. The browser copy survives. So whenever a signed-in user
+       opens the app, we silently re-upload their data (throttled to once
+       every 10 minutes) — the server copy rebuilds itself with zero
+       action needed from the user. */
+    async function autoRestoreSync() {
+        try {
+            const last = parseInt(localStorage.getItem('bibleLastAutoSync') || '0', 10);
+            if (Date.now() - last < 10 * 60 * 1000) return;
+            const user = await fetchUser();
+            if (!user.authenticated) return;
+            const res = await fetch('/api/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(localData())
+            });
+            if (res.ok) localStorage.setItem('bibleLastAutoSync', String(Date.now()));
+        } catch (e) { /* offline - try again next visit */ }
+    }
+
+    /* ---------- Daily verse reminders (Web Push) ---------- */
+    const PUSH_STATE_KEY = 'biblePushReminders';
+
+    function pushSupported() {
+        return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    }
+
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+        return outputArray;
+    }
+
+    async function pushGetConfig() {
+        try {
+            const res = await fetch('/api/push/config');
+            if (res.ok) return await res.json();
+        } catch (e) { /* offline */ }
+        return { available: false, public_key: '' };
+    }
+
+    async function pushStatus() {
+        if (!pushSupported()) return 'unsupported';
+        const cfg = await pushGetConfig();
+        if (!cfg.available) return 'unconfigured';
+        if (Notification.permission === 'denied') return 'denied';
+        if (localStorage.getItem(PUSH_STATE_KEY) !== 'on') return 'off';
+        try {
+            const reg = await navigator.serviceWorker.getRegistration();
+            if (!reg) return 'off';
+            const sub = await reg.pushManager.getSubscription();
+            return sub ? 'on' : 'off';
+        } catch (e) { return 'off'; }
+    }
+
+    function updatePushUI(status) {
+        document.querySelectorAll('[data-push-reminders]').forEach(function (btn) {
+            const icon = btn.querySelector('[data-push-icon]');
+            const label = btn.querySelector('[data-push-label]');
+            const enabled = status === 'on';
+            if (icon) icon.className = 'fas ' + (enabled ? 'fa-bell' : 'fa-bell-slash');
+            btn.title = enabled ? 'Daily verse reminders: ON (tap to turn off)' : 'Daily verse reminders: OFF (tap to turn on)';
+            if (enabled) btn.classList.add('push-on');
+            else btn.classList.remove('push-on');
+            if (label) label.textContent = enabled ? 'Reminder On' : 'Verse Reminder';
+        });
+    }
+
+    async function refreshPushUI() {
+        const status = await pushStatus();
+        updatePushUI(status);
+        return status;
+    }
+
+    async function pushToggle() {
+        const status = await pushStatus();
+        if (status === 'unsupported') {
+            showToast('This browser does not support notifications', 'warning');
+            return;
+        }
+        if (status === 'unconfigured') {
+            showToast('Daily reminders are not configured yet on this server (see README)', 'warning');
+            return;
+        }
+        if (status === 'denied') {
+            showToast('Notifications are blocked in your browser settings', 'warning');
+            return;
+        }
+        if (status === 'on') {
+            // Disable
+            try {
+                const reg = await navigator.serviceWorker.getRegistration();
+                const sub = reg ? await reg.pushManager.getSubscription() : null;
+                if (sub) {
+                    await fetch('/api/push/subscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ subscription: sub.toJSON(), enabled: false })
+                    });
+                    await sub.unsubscribe();
+                }
+                localStorage.setItem(PUSH_STATE_KEY, 'off');
+                updatePushUI('off');
+                showToast('Daily verse reminders turned off');
+            } catch (e) {
+                showToast('Could not turn off reminders', 'warning');
+            }
+            return;
+        }
+        // Enable
+        if (Notification.permission === 'default') {
+            const perm = await Notification.requestPermission();
+            if (perm !== 'granted') {
+                showToast('Permission not granted — reminders stay off', 'warning');
+                updatePushUI('off');
+                return;
+            }
+        }
+        try {
+            const cfg = await pushGetConfig();
+            if (!cfg.available) {
+                showToast('Daily reminders are not configured yet on this server (see README)', 'warning');
+                return;
+            }
+            const reg = await navigator.serviceWorker.ready;
+            let sub = await reg.pushManager.getSubscription();
+            if (!sub) {
+                sub = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(cfg.public_key)
+                });
+            }
+            const res = await fetch('/api/push/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subscription: sub.toJSON(), enabled: true })
+            });
+            if (res.ok) {
+                localStorage.setItem(PUSH_STATE_KEY, 'on');
+                updatePushUI('on');
+                showToast('Daily verse reminders are ON! 🎉 You\'ll get a verse each morning.', 'success');
+            } else {
+                showToast('Could not enable reminders', 'warning');
+            }
+        } catch (e) {
+            console.error('Push enable error:', e);
+            showToast('Could not enable reminders on this browser', 'warning');
+        }
+    }
+
+    
+    /* ---------- Scroll reveal (subtle fade-up) ---------- */
+    function initScrollReveal() {
+        const els = document.querySelectorAll('.reveal');
+        if (!els.length) return;
+        if (!('IntersectionObserver' in window)) {
+            els.forEach(function (el) { el.classList.add('reveal-visible'); });
+            return;
+        }
+        const io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal-visible');
+                    io.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        els.forEach(function (el) { io.observe(el); });
+    }
+
     /* ---------- Expose API ---------- */
+
     window.MPB = {
         showToast: showToast,
         fetchUser: fetchUser,
@@ -357,12 +565,20 @@
         generateVerseCard: generateVerseCard,
         shareVerse: shareVerse,
         parseReference: parseReference,
-        jumpToReference: jumpToReference
+        jumpToReference: jumpToReference,
+        pushToggle: pushToggle,
+        pushStatus: pushStatus
     };
 
     /* ---------- Boot ---------- */
     initTheme();
     registerServiceWorker();
+    initScrollReveal();
+    document.querySelectorAll('[data-push-reminders]').forEach(function (btn) {
+        btn.addEventListener('click', function (e) { e.preventDefault(); pushToggle(); });
+    });
+    refreshPushUI();
+    autoRestoreSync();
     if (window.MPB_BOOK_SLUGS === undefined) {
         // Default list of book slugs (used by parseReference)
         window.MPB_BOOK_SLUGS = [

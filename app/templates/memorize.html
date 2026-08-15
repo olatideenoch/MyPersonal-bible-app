@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Prevent theme flash on page load - MUST be first -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Memorize Scripture with spaced repetition - your Bible memory verse trainer.">
+    <meta name="robots" content="index, follow">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Memorize Verses - MyPersonal Bible">
+    <meta property="og:description" content="Memorize Scripture with spaced repetition.">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="{{ url_for('static', filename='img/app-icon.jpg', _external=True) }}">
+    <link rel="canonical" href="{{ request.url }}">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#3d2205">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Memorize Verses - MyPersonal Bible</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <style>
+        .stat-pill {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 8px 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+        /* Flashcard */
+        .flashcard-wrap {
+            perspective: 1200px;
+            max-width: 560px;
+            margin: 0 auto;
+            cursor: pointer;
+        }
+        .flashcard {
+            position: relative;
+            width: 100%;
+            min-height: 320px;
+            transition: transform 0.5s ease;
+            transform-style: preserve-3d;
+        }
+        .flashcard.flipped { transform: rotateY(180deg); }
+        .flashcard-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 28px;
+            text-align: center;
+        }
+        .flashcard-back { transform: rotateY(180deg); overflow-y: auto; }
+        .flashcard .card-ref {
+            font-family: 'Lora', serif;
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .flashcard .card-text {
+            font-size: 1.35rem;
+            line-height: 1.8;
+            font-style: italic;
+            color: var(--text-primary);
+        }
+        .box-chip {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 1.5px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            line-height: 27px;
+            text-align: center;
+            margin: 0 2px;
+        }
+        .box-chip.filled { background: var(--accent-text); border-color: var(--accent-text); color: var(--accent-contrast); }
+        .card-list-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .card-list-item .mastered { color: #4caf50; }
+        @media (max-width: 575px) {
+            .flashcard { min-height: 260px; }
+            .flashcard .card-ref { font-size: 1.6rem; }
+            .flashcard .card-text { font-size: 1.1rem; line-height: 1.7; }
+            .flashcard-face { padding: 20px 16px; }
+            .box-chip { width: 24px; height: 24px; line-height: 21px; font-size: 0.7rem; margin: 0 1px; }
+            .card-list-item { flex-wrap: wrap; }
+            .card-list-item > div:last-child { width: 100%; text-align: left !important; }
+            .ratingBtns .btn { padding: 6px 12px; font-size: 0.9rem; }
+        }
+    
+        /* Cinzel display headings (matches the landing page identity) */
+        .navbar-brand, .page-header h1, .section-title, .hero h1, h1.display-font {
+            font-family: 'Cinzel', 'Lora', serif !important;
+            letter-spacing: 0.02em;
+        }
+
+</style>
+</head>
+<body>
+    {% include '_nav.html' %}
+
+    <main style="padding-top: 76px;">
+        <div class="page-header reveal">
+            <div class="container">
+                <h1><i class="fas fa-brain me-2"></i>Memorize Verses</h1>
+                <p class="mt-3">Hide God's Word in your heart. Verses you tag "Memorize" in the reader appear here as flashcards, reviewed with smart spaced repetition.</p>
+            </div>
+        </div>
+
+        <div class="container col-lg-8 col-11 py-5">
+            <!-- Stats -->
+            <div class="d-flex flex-wrap justify-content-center gap-2 mb-4 reveal" id="memStats" style="display:none;">
+                <span class="stat-pill"><i class="fas fa-list" style="color: var(--accent-text);"></i><strong id="statTotal">0</strong> verses</span>
+                <span class="stat-pill"><i class="fas fa-calendar-day" style="color: #ff9800;"></i><strong id="statDue">0</strong> due today</span>
+                <span class="stat-pill"><i class="fas fa-crown" style="color: #4caf50;"></i><strong id="statMastered">0</strong> mastered</span>
+            </div>
+
+            <!-- Empty state -->
+            <div id="memEmpty" class="text-center py-5 d-none">
+                <div style="font-size: 3.5rem; margin-bottom: 12px;">🧠</div>
+                <h4 style="font-family: 'Lora', serif;">No verses to memorize yet</h4>
+                <p class="text-muted col-lg-8 mx-auto">Open any chapter in the reader, tap the <span class="badge-soft"><i class="fas fa-brain"></i> Memorize</span> chip in the highlight toolbar, then click a verse. It will appear here automatically.</p>
+                <a class="btn btn-primary" href="{{ url_for('main.index') }}#books"><i class="fas fa-book me-2"></i>Open the Bible</a>
+            </div>
+
+            <!-- Study area -->
+            <div id="memStudy" class="d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge-soft" id="studyProgress">Card 1 of 5</span>
+                    <button class="btn btn-outline-secondary btn-sm" id="quitStudyBtn"><i class="fas fa-xmark me-1"></i>Quit</button>
+                </div>
+                <div class="progress mb-4" style="height: 8px;">
+                    <div class="progress-bar" id="studyBar" style="width: 0%; background: var(--accent-primary);"></div>
+                </div>
+
+                <div class="flashcard-wrap" id="flashcardWrap">
+                    <div class="flashcard" id="flashcard">
+                        <div class="flashcard-face flashcard-front">
+                            <small class="text-muted mb-3"><i class="fas fa-question-circle me-1"></i>What verse is this?</small>
+                            <div class="card-ref" id="cardRef">John 3:16</div>
+                            <small class="text-muted mt-4"><i class="fas fa-rotate-right me-1"></i>Tap the card to reveal</small>
+                        </div>
+                        <div class="flashcard-face flashcard-back">
+                            <div class="card-text" id="cardText"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4 d-none" id="ratingBtns">
+                    <p class="text-muted mb-2">How well did you remember it?</p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-outline-secondary" id="againBtn" style="color: #e53935; border-color: #e53935;">
+                            <i class="fas fa-rotate-left me-1"></i>Again
+                        </button>
+                        <button class="btn btn-success" id="goodBtn">
+                            <i class="fas fa-check me-1"></i>Got it!
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Study complete -->
+                <div class="text-center mt-4 d-none" id="studyComplete">
+                    <h4 style="font-family: 'Lora', serif;"><i class="fas fa-trophy me-2" style="color: var(--accent-text);"></i>Session complete!</h4>
+                    <p class="text-muted" id="completeStats"></p>
+                    <button class="btn btn-primary" id="doneStudyBtn"><i class="fas fa-check me-1"></i>Back to My Verses</button>
+                </div>
+            </div>
+
+            <!-- My verses list -->
+            <div class="mt-5 reveal" id="memListWrap">
+                <h4 class="text-center mb-3" style="font-family: 'Lora', serif;" id="memListTitle">My Memory Verses</h4>
+                <div id="memList"></div>
+            </div>
+
+            <!-- Box legend -->
+            <div class="text-center mt-4 text-muted small" id="boxLegend" style="display:none;">
+                <span class="me-2">Progress:</span>
+                <span class="box-chip">0</span><span class="box-chip">1</span><span class="box-chip">2</span><span class="box-chip">3</span><span class="box-chip">4</span><span class="box-chip">5</span>
+                <span class="ms-2"><i class="fas fa-crown me-1" style="color:#4caf50;"></i>Box 5 = mastered (reviewed every 30 days)</span>
+            </div>
+        </div>
+    </main>
+
+    {% include '_footer.html' %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app-common.js') }}"></script>
+    <script>
+        (function () {
+            'use strict';
+            const AUTHENTICATED = {{ 'true' if user else 'false' }};
+            const LABELS_KEY = 'bibleHighlightLabels';
+            const MEM_KEY = 'bibleMemoryState';
+            const INTERVALS = [0, 1, 3, 7, 14, 30]; // days until next review per box
+            const MAX_BOX = 5;
+
+            function getLabels() {
+                try { return JSON.parse(localStorage.getItem(LABELS_KEY) || '{}'); } catch (e) { return {}; }
+            }
+            function getMemoryState() {
+                try { return JSON.parse(localStorage.getItem(MEM_KEY) || '{}'); } catch (e) { return {}; }
+            }
+            function saveMemoryState(state) {
+                localStorage.setItem(MEM_KEY, JSON.stringify(state));
+                if (AUTHENTICATED) {
+                    fetch('/api/sync', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ memoryState: state })
+                    }).catch(function () {});
+                }
+            }
+
+            function getCards() {
+                // memorize-labeled verses -> {ref, text}
+                const labels = getLabels();
+                const cards = [];
+                Object.keys(labels).forEach(function (chapterKey) {
+                    Object.keys(labels[chapterKey]).forEach(function (verseNum) {
+                        const entry = labels[chapterKey][verseNum];
+                        if (entry && entry.label === 'memorize') {
+                            const parts = chapterKey.split('_');
+                            const book = parts.slice(0, -1).join(' ');
+                            const chapter = parts[parts.length - 1];
+                            cards.push({
+                                ref: book + ' ' + chapter + ':' + verseNum,
+                                text: entry.text || ''
+                            });
+                        }
+                    });
+                });
+                return cards.sort(function (a, b) { return a.ref > b.ref ? 1 : -1; });
+            }
+
+            function isDue(ref, state) {
+                const s = state[ref];
+                if (!s) return true;
+                const due = new Date(s.due + 'T00:00:00');
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                return due <= today;
+            }
+
+            function render() {
+                const cards = getCards();
+                const state = getMemoryState();
+                const statsWrap = document.getElementById('memStats');
+                const empty = document.getElementById('memEmpty');
+                const listWrap = document.getElementById('memListWrap');
+                const legend = document.getElementById('boxLegend');
+
+                if (!cards.length) {
+                    statsWrap.style.display = 'none';
+                    listWrap.style.display = 'none';
+                    legend.style.display = 'none';
+                    empty.classList.remove('d-none');
+                    return;
+                }
+
+                empty.classList.add('d-none');
+                statsWrap.style.display = '';
+                listWrap.style.display = '';
+                legend.style.display = '';
+
+                const due = cards.filter(function (c) { return isDue(c.ref, state); });
+                const mastered = cards.filter(function (c) { return (state[c.ref] || {}).box >= MAX_BOX; });
+                document.getElementById('statTotal').textContent = cards.length;
+                document.getElementById('statDue').textContent = due.length;
+                document.getElementById('statMastered').textContent = mastered.length;
+
+                const list = document.getElementById('memList');
+                list.innerHTML = cards.map(function (c) {
+                    const s = state[c.ref] || {};
+                    const box = s.box || 0;
+                    const dueNow = isDue(c.ref, state);
+                    const isMastered = box >= MAX_BOX;
+                    let chips = '';
+                    for (let i = 0; i <= MAX_BOX; i++) {
+                        chips += '<span class="box-chip ' + (i <= box ? 'filled' : '') + '">' + i + '</span>';
+                    }
+                    return '<div class="card-list-item">' +
+                        '<div class="flex-grow-1">' +
+                        '<div style="font-weight:600;">' + c.ref + '</div>' +
+                        '<div class="mt-1" style="font-size:0.9rem;">' + chips + '</div>' +
+                        '</div>' +
+                        '<div class="text-end">' +
+                        (isMastered ? '<span class="mastered"><i class="fas fa-crown me-1"></i>Mastered</span>' :
+                            (dueNow ? '<span style="color:#ff9800;"><i class="fas fa-calendar-day me-1"></i>Due</span>' :
+                             '<span class="text-muted">Next: ' + (s.due || '') + '</span>')) +
+                        '<div class="mt-2"><button class="btn btn-outline-secondary btn-sm review-one" data-ref="' + c.ref + '"><i class="fas fa-play me-1"></i>Review</button></div>' +
+                        '</div></div>';
+                }).join('');
+
+                list.querySelectorAll('.review-one').forEach(function (btn) {
+                    btn.addEventListener('click', function () { startStudy([btn.dataset.ref]); });
+                });
+
+                if (due.length) {
+                    startStudy(due.map(function (c) { return c.ref; }));
+                }
+            }
+
+            /* ----- study flow ----- */
+            let queue = [];
+            let queueIndex = 0;
+            let sessionStats = { seen: 0, remembered: 0 };
+            let cardShown = false;
+
+            function startStudy(refs) {
+                queue = refs;
+                queueIndex = 0;
+                sessionStats = { seen: 0, remembered: 0 };
+                document.getElementById('memStudy').classList.remove('d-none');
+                document.getElementById('studyComplete').classList.add('d-none');
+                document.getElementById('memListWrap').style.display = 'none';
+                window.scrollTo({ top: document.getElementById('memStudy').offsetTop - 90, behavior: 'smooth' });
+                showNext();
+            }
+
+            function showNext() {
+                if (queueIndex >= queue.length) {
+                    finishSession();
+                    return;
+                }
+                const ref = queue[queueIndex];
+                const cards = getCards();
+                const card = cards.find(function (c) { return c.ref === ref; });
+                document.getElementById('studyProgress').textContent =
+                    'Card ' + (queueIndex + 1) + ' of ' + queue.length;
+                document.getElementById('studyBar').style.width = ((queueIndex) / queue.length * 100) + '%';
+                document.getElementById('cardRef').textContent = card ? card.ref : ref;
+                document.getElementById('cardText').textContent = card ? card.text : '';
+                const fc = document.getElementById('flashcard');
+                fc.classList.remove('flipped');
+                cardShown = false;
+                document.getElementById('ratingBtns').classList.add('d-none');
+                document.getElementById('studyComplete').classList.add('d-none');
+            }
+
+            function finishSession() {
+                document.getElementById('studyBar').style.width = '100%';
+                document.getElementById('flashcard').classList.add('d-none');
+                document.getElementById('ratingBtns').classList.add('d-none');
+                document.getElementById('studyComplete').classList.remove('d-none');
+                document.getElementById('completeStats').textContent =
+                    'You reviewed ' + sessionStats.seen + ' verse' + (sessionStats.seen !== 1 ? 's' : '') +
+                    ' and remembered ' + sessionStats.remembered + '.';
+            }
+
+            function rate(remembered) {
+                const ref = queue[queueIndex];
+                const state = getMemoryState();
+                const current = state[ref] || { box: 0 };
+                let box;
+                if (remembered) {
+                    box = Math.min(current.box + 1, MAX_BOX);
+                    sessionStats.remembered++;
+                } else {
+                    box = 0;
+                }
+                const today = new Date();
+                const next = new Date(today.getTime() + INTERVALS[box] * 24 * 3600 * 1000);
+                state[ref] = {
+                    box: box,
+                    due: next.toISOString().slice(0, 10),
+                    last: new Date().toISOString()
+                };
+                saveMemoryState(state);
+                sessionStats.seen++;
+                queueIndex++;
+                document.getElementById('studyBar').style.width = (queueIndex / queue.length * 100) + '%';
+                showNext();
+            }
+
+            document.getElementById('flashcardWrap').addEventListener('click', function () {
+                if (cardShown || queueIndex >= queue.length) return;
+                document.getElementById('flashcard').classList.add('flipped');
+                cardShown = true;
+                setTimeout(function () { document.getElementById('ratingBtns').classList.remove('d-none'); }, 350);
+            });
+            document.getElementById('againBtn').addEventListener('click', function () { rate(false); });
+            document.getElementById('goodBtn').addEventListener('click', function () { rate(true); });
+            document.getElementById('quitStudyBtn').addEventListener('click', function () {
+                document.getElementById('memStudy').classList.add('d-none');
+                document.getElementById('flashcard').classList.remove('d-none');
+                document.getElementById('memListWrap').style.display = '';
+                render();
+            });
+            document.getElementById('doneStudyBtn').addEventListener('click', function () {
+                document.getElementById('memStudy').classList.add('d-none');
+                document.getElementById('flashcard').classList.remove('d-none');
+                document.getElementById('memListWrap').style.display = '';
+                render();
+            });
+
+            // Pull server memoryState + labels for signed-in users
+            async function loadServerData() {
+                if (!AUTHENTICATED) return;
+                try {
+                    const res = await fetch('/api/sync');
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.highlightLabels) localStorage.setItem(LABELS_KEY, JSON.stringify(data.highlightLabels));
+                        if (data.memoryState) localStorage.setItem(MEM_KEY, JSON.stringify(data.memoryState));
+                    }
+                } catch (e) { /* offline */ }
+            }
+
+            loadServerData().then(render);
+        })();
+    </script>
+</body>
+</html>

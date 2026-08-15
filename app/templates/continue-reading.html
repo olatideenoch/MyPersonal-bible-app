@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Prevent theme flash on page load - MUST be first -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Continue reading where you left off - your recently read Bible chapters, all in one place.">
+    <meta name="robots" content="index, follow">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Continue Reading - MyPersonal Bible">
+    <meta property="og:description" content="Pick up right where you left off in your Bible reading.">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="{{ url_for('static', filename='img/app-icon.jpg', _external=True) }}">
+    <link rel="canonical" href="{{ request.url }}">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#3d2205">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Continue Reading - MyPersonal Bible</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <style>
+        .reading-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .reading-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(26, 15, 0, 0.14);
+            border-color: var(--accent-primary);
+        }
+        .reading-book-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Lora', serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        [data-theme="dark"] .reading-book-icon {
+            background: linear-gradient(135deg, #7d5518, #5a3a0e);
+            color: #f2e8d0;
+        }
+        .today-chip {
+            display: inline-block;
+            background: #4caf50;
+            color: #fff;
+            border-radius: 20px;
+            padding: 1px 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .group-header {
+            font-family: 'Lora', serif;
+            color: var(--text-secondary);
+            margin: 28px 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .group-header::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+        .stat-pill {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 8px 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+        @media (max-width: 575px) {
+            .reading-item { padding: 12px 14px; gap: 12px; }
+            .reading-book-icon { width: 42px; height: 42px; font-size: 1.05rem; }
+            .reading-item .btn { font-size: 0.8rem; padding: 4px 10px; }
+            .stat-pill { padding: 6px 12px; font-size: 0.82rem; }
+        }
+    
+        /* Cinzel display headings (matches the landing page identity) */
+        .navbar-brand, .page-header h1, .section-title, .hero h1, h1.display-font {
+            font-family: 'Cinzel', 'Lora', serif !important;
+            letter-spacing: 0.02em;
+        }
+
+</style>
+</head>
+<body>
+    {% include '_nav.html' %}
+
+    <main style="padding-top: 76px;">
+        <div class="page-header reveal">
+            <div class="container">
+                <h1><i class="fas fa-book-open-reader me-2"></i>Continue Reading</h1>
+                <p class="mt-3">Pick up right where you left off — every chapter you've opened, right here.</p>
+            </div>
+        </div>
+
+        <div class="container col-lg-7 col-11 py-5">
+            <!-- Stats -->
+            <div class="d-flex flex-wrap justify-content-center gap-2 mb-4 reveal">
+                <span class="stat-pill"><i class="fas fa-book" style="color: var(--accent-text);"></i><strong id="statChapters">0</strong> chapters</span>
+                <span class="stat-pill"><i class="fas fa-bible" style="color: var(--accent-text);"></i><strong id="statBooks">0</strong> books</span>
+                <span class="stat-pill"><i class="fas fa-clock" style="color: var(--accent-text);"></i>Last read: <strong id="statLastRead">—</strong></span>
+            </div>
+
+            <!-- List -->
+            <div id="readingList"></div>
+
+            <!-- Empty state -->
+            <div id="readingEmpty" class="text-center py-5 d-none">
+                <div style="font-size: 3.5rem; margin-bottom: 12px;">📖</div>
+                <h4 style="font-family: 'Lora', serif;">No reading history yet</h4>
+                <p class="text-muted">Open any chapter and it will appear here so you can pick up where you left off.</p>
+                <a class="btn btn-primary" href="{{ url_for('main.index') }}#books"><i class="fas fa-book me-2"></i>Browse the Bible</a>
+            </div>
+
+            <!-- Clear history -->
+            <div class="text-center mt-4" id="clearWrap" style="display: none;">
+                <button class="btn btn-outline-secondary btn-sm" id="clearHistoryBtn">
+                    <i class="fas fa-trash me-1"></i>Clear reading history
+                </button>
+            </div>
+        </div>
+    </main>
+
+    {% include '_footer.html' %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app-common.js') }}"></script>
+    <script>
+        (function () {
+            'use strict';
+            const AUTHENTICATED = {{ 'true' if user else 'false' }};
+
+            function getLocalProgress() {
+                const entries = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('reading_progress_')) {
+                        try {
+                            const val = JSON.parse(localStorage.getItem(key));
+                            if (val && val.book && val.chapter) entries.push(val);
+                        } catch (e) {}
+                    }
+                }
+                return entries;
+            }
+
+            async function getServerProgress() {
+                if (!AUTHENTICATED) return [];
+                try {
+                    const res = await fetch('/api/sync');
+                    if (res.ok) {
+                        const data = await res.json();
+                        const progress = data.progress || {};
+                        return Object.values(progress).filter(function (v) {
+                            return v && v.book && v.chapter;
+                        });
+                    }
+                } catch (e) { /* offline */ }
+                return [];
+            }
+
+            function mergeEntries(localList, serverList) {
+                // Newest wins per book+chapter
+                const map = {};
+                localList.concat(serverList).forEach(function (e) {
+                    const key = e.slug + '_' + e.chapter;
+                    const t = e.timestamp || '';
+                    if (!map[key] || t > (map[key].timestamp || '')) map[key] = e;
+                });
+                return Object.values(map).sort(function (a, b) {
+                    return (b.timestamp || '') > (a.timestamp || '') ? 1 : -1;
+                });
+            }
+
+            function timeAgo(iso) {
+                const t = new Date(iso);
+                if (isNaN(t.getTime())) return '';
+                const diff = Date.now() - t.getTime();
+                const mins = Math.floor(diff / 60000);
+                if (mins < 1) return 'just now';
+                if (mins < 60) return mins + ' min ago';
+                const hours = Math.floor(mins / 60);
+                if (hours < 24) return hours + (hours === 1 ? ' hour ago' : ' hours ago');
+                const days = Math.floor(hours / 24);
+                if (days < 7) return days + (days === 1 ? ' day ago' : ' days ago');
+                return t.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+            }
+
+            function isToday(iso) {
+                const t = new Date(iso);
+                const now = new Date();
+                return t.toDateString() === now.toDateString();
+            }
+
+            function isThisWeek(iso) {
+                const t = new Date(iso);
+                const now = new Date();
+                const weekAgo = new Date(now.getTime() - 6 * 24 * 3600 * 1000);
+                return t >= weekAgo && !isToday(iso);
+            }
+
+            function bookInitial(name) {
+                // "1 Samuel" -> "1S", "Song of Solomon" -> "So"
+                const words = name.split(' ');
+                if (words.length === 1) return words[0].charAt(0);
+                if (/^[123]/.test(words[0])) return words[0] + ' ' + words[1].charAt(0);
+                return words[0].charAt(0);
+            }
+
+            function render(entries) {
+                const list = document.getElementById('readingList');
+                const empty = document.getElementById('readingEmpty');
+                const clearWrap = document.getElementById('clearWrap');
+
+                if (!entries.length) {
+                    list.innerHTML = '';
+                    empty.classList.remove('d-none');
+                    clearWrap.style.display = 'none';
+                    document.getElementById('statChapters').textContent = '0';
+                    document.getElementById('statBooks').textContent = '0';
+                    document.getElementById('statLastRead').textContent = '—';
+                    return;
+                }
+
+                empty.classList.add('d-none');
+                clearWrap.style.display = '';
+
+                const chapters = entries.length;
+                const books = new Set(entries.map(function (e) { return e.slug; })).size;
+                document.getElementById('statChapters').textContent = chapters;
+                document.getElementById('statBooks').textContent = books;
+                document.getElementById('statLastRead').textContent = timeAgo(entries[0].timestamp);
+
+                const groups = [
+                    { label: 'Today', test: function (e) { return isToday(e.timestamp); } },
+                    { label: 'This Week', test: function (e) { return isThisWeek(e.timestamp); } },
+                    { label: 'Earlier', test: function () { return true; } },
+                ];
+
+                let html = '';
+                groups.forEach(function (g) {
+                    const inGroup = entries.filter(g.test);
+                    if (!inGroup.length) return;
+                    html += '<div class="group-header"><i class="fas fa-clock" style="color: var(--accent-text);"></i>' + g.label + '</div>';
+                    inGroup.forEach(function (e) {
+                        const today = isToday(e.timestamp) ? '<span class="today-chip">Today</span>' : '';
+                        html += '<div class="reading-item" data-url="/books/' + e.slug + '?chapter=' + e.chapter + '">' +
+                            '<div class="reading-book-icon">' + bookInitial(e.book) + '</div>' +
+                            '<div class="flex-grow-1">' +
+                            '<div style="font-weight: 600; font-size: 1.1rem;">' + e.book + ' ' + e.chapter + today + '</div>' +
+                            '<small class="text-muted"><i class="far fa-clock me-1"></i>' + timeAgo(e.timestamp) + '</small>' +
+                            '</div>' +
+                            '<button class="btn btn-success btn-sm rounded-pill"><i class="fas fa-play me-1"></i>Resume</button>' +
+                            '</div>';
+                    });
+                });
+
+                list.innerHTML = html;
+                list.querySelectorAll('.reading-item').forEach(function (item) {
+                    item.addEventListener('click', function () {
+                        window.location.href = item.dataset.url;
+                    });
+                });
+            }
+
+            async function load() {
+                const local = getLocalProgress();
+                const server = await getServerProgress();
+                render(mergeEntries(local, server));
+            }
+
+            document.getElementById('clearHistoryBtn').addEventListener('click', function () {
+                if (!confirm('Clear all reading history? Your bookmarks, highlights and notes are NOT affected.')) return;
+                // Clear local copy
+                const keys = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('reading_progress_')) keys.push(key);
+                }
+                keys.forEach(function (k) { localStorage.removeItem(k); });
+                // Clear server copy if signed in
+                if (AUTHENTICATED) {
+                    fetch('/api/clear-progress', { method: 'POST' }).catch(function () {});
+                }
+                MPB.showToast('Reading history cleared');
+                load();
+            });
+
+            load();
+        })();
+    </script>
+</body>
+</html>

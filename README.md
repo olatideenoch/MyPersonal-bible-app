@@ -26,12 +26,20 @@ A beautiful, user-friendly web application for reading, searching, and exploring
 - **⬇️ MP3 Downloads** — Download audio versions of chapters or verse selections for offline listening
 
 ### Personalisation & Growth
+- **📖 Continue Reading** — Every chapter you open is remembered; pick up right where you left off, grouped by Today / This Week / Earlier
+- **🔔 Daily Verse Reminders** — Optional web-push notification with the Verse of the Day every morning (tap the bell icon in the navbar)
 - **📚 Guided Reading Plans** — Bible in 90 Days, New Testament in 30 Days, Psalms in 30, Proverbs in 31, the Gospels in 14 and more — with day-by-day progress tracking
 - **📅 Daily Devotional** — A new devotional every day: verse, reflection, prayer and action step (31-day cycle)
 - **💡 Bible Topics** — 20 curated verse collections (love, faith, hope, healing, wisdom...) for every season of life
 - **❓ Bible Quiz** — Test your Bible knowledge with trivia, instant answers and score tracking
 - **📝 Verse Notes** — Write personal study notes on any verse (synced to your account)
 - **🎨 Multi-colour Highlights** — Highlight verses in 5 colours
+- **🏷️ Highlight Labels** — Tag verses as Promise, Warning, Command, Praise or Memorize (with icon badges)
+- **🧠 Memorize Verses** — Flashcards with spaced repetition to hide God's Word in your heart
+- **📖 Matthew Henry Commentary** — The classic public-domain concise commentary, one tap away on every chapter
+- **⚒️ Custom Plan Builder** — Pick any books and set your own pace; the plan is generated instantly
+- **🔍 Built-in KJV Search** — Search always works: if the premium API is unavailable, results come from a bundled offline KJV index
+- **🌍 French & Yoruba** — Louis Segond 1910 (Français) and Bíbélì Mímọ́ ní Èdè Yorùbá Òde-Òní
 - **🔖 Bookmarks** — Save favourite verses and jump back to them anytime
 - **🙏 Prayer Journal** — Write down prayer requests and mark them answered
 - **🏅 Achievements** — Earn badges for streaks, plans, quizzes and study habits
@@ -48,8 +56,9 @@ A beautiful, user-friendly web application for reading, searching, and exploring
 
 ## 🛠 Tech Stack
 
-- **Backend**: Python 3 + Flask
+- **Backend**: Python 3 + Flask (application-factory pattern with blueprints)
 - **Frontend**: Bootstrap 5, Font Awesome, Google Fonts (Crimson Text, Lora)
+- **Tests**: pytest (46 tests covering pages, APIs, sync, plans and content)
 - **Bible APIs** (Multi-tier):
   - [API.Bible](https://api.bible/) - Premium versions (NKJV, NIV, NLT) + 1000+ translations
   - [Bible.com/YouVersion](https://www.youversion.com/developer) - Extended versions (ESV, NASB, CSB) + thousands more
@@ -130,6 +139,21 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 APP_SECRET_KEY=your_secret_key_for_sessions
 ```
 
+**Web Push (for daily verse reminders - optional)**
+```bash
+# Generate these with: python generate_vapid.py
+VAPID_PUBLIC_KEY=your_vapid_public_key
+VAPID_PRIVATE_KEY=your_vapid_private_key
+VAPID_SUBJECT=mailto:you@example.com
+
+# Secret token used by the daily cron to trigger the push
+APP_PUSH_TOKEN=your_random_secret
+```
+Then schedule a free daily trigger: the included GitHub Actions workflow
+(`.github/workflows/daily-verse-reminder.yml`) calls
+`/api/push/send?token=...` every morning — or use a free cron-job.org job.
+If you skip this step, the bell button simply reports "not configured".
+
 5. **Get API Keys (Optional)** - *Unlock premium Bible versions*
 
 To access premium versions (NKJV, NIV, NLT, ESV, NASB, CSB), get free API keys:
@@ -151,12 +175,88 @@ To access premium versions (NKJV, NIV, NLT, ESV, NASB, CSB), get free API keys:
 python main.py
 ```
 
-7. Open in your browser
+7. Run the tests (optional)
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+8. Open in your browser
 ```bash
 http://127.0.0.1:5000/
 ```
 
+## 🗂 Project Structure
+
+The backend follows the Flask application-factory pattern, organised into
+small single-purpose modules:
+
+```
+├── main.py                      # entry point (gunicorn main:app / python main.py)
+├── app/
+│   ├── __init__.py              # create_app() factory
+│   ├── config.py                # all env-driven configuration in one place
+│   ├── utils.py                 # shared text helpers
+│   ├── content.py               # bundled data loader (KJV, commentary, Yoruba)
+│   ├── bible/                   # domain data (no request handling)
+│   │   ├── books.py             #   book catalogue, versions, API mappings
+│   │   ├── verses.py            #   chapter fetching across all sources
+│   │   ├── plans.py             #   reading plans + Bible-in-a-Year builder
+│   │   ├── topics.py            #   topical verse collections
+│   │   ├── quiz.py              #   quiz question bank
+│   │   └── devotionals.py       #   daily devotionals
+│   ├── services/                # business logic (no request handling)
+│   │   ├── storage.py           #   user data persistence (JSON files)
+│   │   ├── analytics.py         #   streaks, progress, achievements
+│   │   ├── daily_verse.py       #   verse of the day
+│   │   ├── audio.py             #   text-to-speech (Voice RSS)
+│   │   └── emailer.py           #   contact-form email (Resend)
+│   ├── routes/                  # Flask blueprints (HTTP layer)
+│   │   ├── main.py              #   home, search, contact, install
+│   │   ├── reader.py            #   chapters, verses, compare, commentary, audio
+│   │   ├── study.py             #   plans, topics, quiz, devotional, memorize
+│   │   ├── user.py              #   OAuth, sync, streaks, profile, export
+│   │   ├── push.py              #   daily verse reminders
+│   │   └── meta.py              #   robots, sitemap, health, offline, sw.js
+│   ├── templates/               # Jinja templates
+│   └── static/                  # css, js, images, PWA, bundled data files
+├── tests/                       # pytest suite (46 tests)
+├── build_data.py                # rebuilds static/data/*.json.gz from sources
+├── generate_vapid.py            # generates Web Push keys
+├── requirements.txt / requirements-dev.txt
+└── DATA_STORAGE.md              # storage architecture & Postgres migration guide
+```
+
+**Layering rule:** `routes/` handles HTTP only; `services/` holds the
+business logic; `bible/` is pure content; `content.py` loads the bundled
+public-domain data. This makes features easy to find, test and extend.
+
+**Running in production** (both entry points work):
+```bash
+gunicorn main:app                    # what Render already uses
+gunicorn 'app:create_app()'          # factory form
+```
+
+## 💾 Where user data lives
+
+Your data is stored in two places — the user's browser (localStorage) and,
+after Google sign-in, one JSON file per user in `SYNC_DATA_DIR` on the server.
+On Render's **free tier** (no persistent disk) the server copy resets on every
+deploy, but the app automatically re-uploads each user's browser copy on their
+next visit, so nothing is permanently lost. See **`DATA_STORAGE.md`** for the
+full explanation and a step-by-step PostgreSQL migration path.
+
 ## 🆕 New Features (v2)
+
+## 📦 Bundled data (offline features)
+
+Three compressed data files live in `static/data/` (built by `python3 build_data.py`):
+
+- `kjv.json.gz` — the full KJV (public domain), powers the built-in search fallback
+- `commentary.json.gz` — Matthew Henry's Concise Commentary (public domain)
+- `yoruba.json.gz` — Biblica Open Yoruba Contemporary Bible (free to use with attribution)
+
+They load lazily into memory, so free-tier hosting handles them easily.
 
 All new features work **without any additional API keys**:
 - **Reading Plans** (`/plans`) — plan content is generated locally from the built-in book/chapter index
@@ -180,6 +280,10 @@ No changes to `requirements.txt` or environment variables are needed. Deploy as 
 - **ESV** - English Standard Version
 - **NASB** - New American Standard Bible
 - **CSB** - Christian Standard Bible
+
+### Other Languages
+- **Français** - Louis Segond 1910 (free getbible.net API)
+- **Yorùbá** - Bíbélì Mímọ́ ní Èdè Yorùbá Òde-Òní (bundled, works offline)
 
 ### Public Domain Versions (Always Available)
 - **KJV** - King James Version

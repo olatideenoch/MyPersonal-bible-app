@@ -1,0 +1,3355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Prevent theme flash on page load - MUST be first -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Browse Bible books and chapters in MyPersonal Bible. Read scripture online, search verses, and play audio for every chapter with an easy-to-use interface.">
+    <meta name="keywords" content="Bible books, Bible chapters, Bible reader, online Bible, scripture audio, Christian app">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="author" content="MyPersonal Bible">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Browse Books - MyPersonal Bible">
+    <meta property="og:description" content="Browse Bible books and chapters in MyPersonal Bible. Read scripture online, search verses, and play audio for every chapter.">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="{{ url_for('static', filename='img/app-icon.jpg', _external=True) }}">
+    <meta property="og:site_name" content="MyPersonal Bible">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Browse Books - MyPersonal Bible">
+    <meta name="twitter:description" content="Browse Bible books and chapters in MyPersonal Bible. Read scripture online, search verses, and play audio for every chapter.">
+    <meta name="twitter:image" content="{{ url_for('static', filename='img/app-icon.jpg', _external=True) }}">
+    <link rel="canonical" href="{{ request.url }}">
+    
+    <!-- Favicon & App Icons -->
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    
+    <!-- PWA / Mobile -->
+    <meta name="theme-color" content="#3d2205">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title>Browse Books - MyPersonal Bible</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Light mode (default) variables */
+        :root {
+            --bg-primary: #faf6ee;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f2e8d0;
+            --text-primary: #1a0f00;
+            --text-secondary: #6b3f12;
+            --text-muted: #8a7256;
+            --accent-primary: #c9923a;
+            --accent-secondary: #9a6a1e;
+            --accent-text: #9a6a1e; /* WCAG-safe gold for text/filled-buttons in light mode */
+            --accent-contrast: #ffffff; /* text on accent backgrounds */
+            --card-bg: #ffffff;
+            --card-shadow: 0 10px 30px rgba(26,15,0,0.08);
+            --border-color: rgba(201, 146, 58, 0.15);
+            --navbar-bg: rgba(250, 246, 238, 0.95);
+            --footer-bg: #3d2205;
+            --footer-text: #e8d9bd;
+            --hero-overlay: linear-gradient(rgba(61, 34, 5, 0.75), rgba(154, 106, 30, 0.75));
+            --input-bg: #ffffff;
+            --input-border: #d8c7a1;
+            --highlight-bg: rgba(201, 146, 58, 0.2);
+            --highlight-border: #c9923a;
+            --breadcrumb-bg: rgba(255, 255, 255, 0.7);
+            --btn-primary-bg: #9a6a1e;
+            --btn-primary-text: #ffffff;
+            --btn-primary-hover: #7d5518;
+            --btn-success-bg: #c9923a;
+            --btn-success-text: #1a0f00;
+            --btn-success-hover: #b17f2f;
+        }
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --bg-primary: #1a0f00;
+            --bg-secondary: #2a1a08;
+            --bg-tertiary: #3d2205;
+            --text-primary: #f2e8d0;
+            --text-secondary: #e8b86a;
+            --text-muted: #b8a082;
+            --accent-primary: #e8b86a;
+            --accent-secondary: #6b3f12;
+            --accent-text: #e8b86a; /* unchanged from --accent-primary in dark mode */
+            --accent-contrast: #1a0f00; /* dark text on light-gold accents */
+            --card-bg: #2a1a08;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            --border-color: rgba(232, 184, 106, 0.2);
+            --navbar-bg: rgba(26, 15, 0, 0.95);
+            --footer-bg: #0f0800;
+            --footer-text: #b8a082;
+            --hero-overlay: linear-gradient(rgba(26, 15, 0, 0.85), rgba(154, 106, 30, 0.75));
+            --input-bg: #2a1a08;
+            --input-border: #6b3f12;
+            --highlight-bg: rgba(232, 184, 106, 0.2);
+            --highlight-border: #e8b86a;
+            --breadcrumb-bg: rgba(42, 26, 8, 0.8);
+            --btn-primary-bg: #6b3f12;
+            --btn-primary-text: #f2e8d0;
+            --btn-primary-hover: #86541c;
+            --btn-success-bg: #e8b86a;
+            --btn-success-text: #1a0f00;
+            --btn-success-hover: #dba84f;
+        }
+
+        .btn-primary {
+            background-color: var(--btn-primary-bg);
+            border-color: var(--btn-primary-bg);
+            color: var(--btn-primary-text);
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus,
+        .btn-primary:active {
+            background-color: var(--btn-primary-hover) !important;
+            border-color: var(--btn-primary-hover) !important;
+            color: var(--btn-primary-text) !important;
+        }
+
+        .btn-primary:focus {
+            box-shadow: 0 0 0 0.25rem rgba(154, 106, 30, 0.35);
+        }
+
+        .btn-success {
+            background-color: var(--btn-success-bg);
+            border-color: var(--btn-success-bg);
+            color: var(--btn-success-text);
+        }
+
+        .btn-success:hover,
+        .btn-success:focus,
+        .btn-success:active {
+            background-color: var(--btn-success-hover) !important;
+            border-color: var(--btn-success-hover) !important;
+            color: var(--btn-success-text) !important;
+        }
+
+        .btn-success:focus {
+            box-shadow: 0 0 0 0.25rem rgba(201, 146, 58, 0.35);
+        }
+
+        .btn-outline-secondary {
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--accent-text);
+            border-color: var(--accent-text);
+            color: #ffffff;
+        }
+
+        .btn-check:checked + .btn-outline-secondary {
+            background-color: var(--accent-text);
+            border-color: var(--accent-text);
+            color: #ffffff;
+        }
+
+        /* Google Sign-In Button Styling */
+        .google-signin-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            text-decoration: none;
+        }
+        
+        .google-signin-btn:hover {
+            background: var(--accent-text);
+            color: var(--accent-contrast);
+            border-color: var(--accent-text);
+        }
+        
+        .user-profile-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 30px;
+            padding: 5px 12px 5px 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .user-profile-btn:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .user-profile-btn img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-primary);
+        }
+        
+        /* Sync Toast Notification */
+        .sync-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            z-index: 2000;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from { bottom: -50px; opacity: 0; }
+            to { bottom: 20px; opacity: 1; }
+        }
+
+        /* App Icon Styling */
+        .navbar-brand img {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .navbar-brand:hover img {
+            transform: scale(1.05);
+        }
+
+        [data-theme="dark"] .navbar-brand img {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Navbar brand font size for mobile */
+        @media (max-width: 480px) {
+            .navbar-brand {
+                font-size: 1.2rem !important;
+            }
+        }
+        
+        /* Smooth transitions */
+        * {
+            transition: background-color 0.3s ease, 
+                        border-color 0.3s ease, 
+                        box-shadow 0.3s ease,
+                        color 0.2s ease;
+        }
+
+        body {
+            font-family: 'Crimson Text', serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background-color: var(--navbar-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--card-shadow);
+        }
+
+        .navbar-brand {
+            font-family: 'Lora', serif;
+            font-size: 1.8rem;
+            color: var(--text-secondary) !important;
+        }
+
+        .nav-link { color: var(--text-primary) !important; }
+        .nav-link:hover { color: var(--accent-text) !important; }
+
+        /* Bootstrap text/close helpers mapped to the theme (dark mode safety) */
+        .text-muted { color: var(--text-muted) !important; }
+        .text-secondary { color: var(--text-secondary) !important; }
+        [data-theme="dark"] .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+        .form-select option { background-color: var(--card-bg); color: var(--text-primary); }
+        .alert { background-color: var(--card-bg); border-color: var(--border-color); color: var(--text-primary); }
+        .card { background: var(--card-bg); border-color: var(--border-color); }
+
+        /* Navbar toggler (hamburger icon) styling */
+        .navbar-toggler {
+            border-color: var(--border-color) !important;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.25rem rgba(141, 155, 106, 0.25) !important;
+        }
+
+        [data-theme="dark"] .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25) !important;
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2860, 47, 47, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+        }
+
+        [data-theme="dark"] .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+        }
+
+        /* Mobile menu - hamburger drops full width */
+        @media (max-width: 1199px) {
+            .navbar-collapse {
+                background: var(--navbar-bg);
+                padding: 1rem;
+                border-radius: 0 0 15px 15px;
+                margin-top: 10px;
+                box-shadow: var(--card-shadow);
+                border: 1px solid var(--border-color);
+                border-top: none;
+                width: 100%;
+            }
+            
+            .navbar-nav .nav-item {
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .navbar-nav .nav-item:last-child {
+                border-bottom: none;
+            }
+            
+            .navbar-nav .nav-link {
+                padding: 12px 15px !important;
+                font-size: 1.1rem;
+                display: flex;
+                align-items: center;
+                width: 100%;
+            }
+            
+            .navbar-nav .nav-link i {
+                width: 28px;
+                color: var(--accent-text);
+            }
+            
+            .navbar-nav .nav-link:hover {
+                background: var(--bg-tertiary);
+                border-radius: 8px;
+            }
+        }
+
+        @media (max-width: 1199px) {
+            .navbar .container {
+                display: flex;
+                align-items: center;
+            }
+
+            .navbar-brand {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .navbar-mobile-actions {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                margin-right: 8px;
+            }
+
+            .navbar-toggler {
+                margin-left: 0;
+                flex-shrink: 0;
+            }
+        }
+        /* /* Mobile navbar - keep everything on one line */
+        @media (max-width: 1199px) {
+            /* .navbar .container {
+                flex-wrap: nowrap;
+            } */
+            
+            .navbar-brand {
+                flex: 1;
+                margin-right: 4px;
+                font-size: 0.85rem !important;
+            }
+            
+            .navbar-brand img {
+                width: 28px !important;
+                height: 28px !important;
+            }
+            
+            .navbar-brand span {
+                font-size: 0.75rem !important;
+            } 
+
+            .brand-text {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 120px;
+                display: block;
+            }
+            
+            .user-profile-btn {
+                padding: 3px 6px;
+            }
+            
+            .user-profile-btn img {
+                width: 24px;
+                height: 24px;
+            }
+            
+            .google-signin-btn {
+                padding: 2px 5px;
+                font-size: 0.65rem;
+                line-height: 1.1;
+                text-align: center;
+                max-width: 42px;
+                flex-direction: column;
+                gap: 1px;
+                border-radius: 8px;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            .google-signin-btn i {
+                font-size: 0.8rem;
+            }
+            
+            .google-signin-btn span {
+                font-size: 0.55rem !important;
+                line-height: 1;
+            }
+            
+            .theme-toggle-btn {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .theme-toggle-btn i {
+                font-size: 0.85rem;
+            }
+            
+            .navbar-toggler {
+                padding: 4px 8px;
+            }
+            
+            .navbar-toggler-icon {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .gap-2 {
+                gap: 3px !important;
+            }
+        }
+
+
+        @media (max-width: 380px) {
+            .navbar-brand span {
+                font-size: 0.65rem !important;
+            }
+            
+            .navbar-brand img {
+                width: 24px !important;
+                height: 24px !important;
+            }
+            
+            .google-signin-btn {
+                padding: 2px 4px;
+                max-width: 38px;
+            }
+            
+            .google-signin-btn i {
+                font-size: 0.7rem;
+            }
+            
+            .google-signin-btn span {
+                font-size: 0.5rem !important;
+            }
+            
+            .theme-toggle-btn, #helpButtonMobile {
+                width: 28px;
+                height: 28px;
+            }
+        }
+
+        .page-header {
+            background: var(--hero-overlay), url('../static/img/bg-1.jpg') no-repeat center/cover;
+            color: white;
+            padding: 100px 0 60px;
+            text-align: center;
+        }
+
+        .head-center { margin-top: 20px; text-align: center; }
+        .page-header h1 {
+            font-family: 'Lora', serif;
+            font-size: 3.5rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Breadcrumb Navigation */
+        .breadcrumb-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding: 0 10px;
+        }
+
+        .breadcrumb-nav {
+            background: var(--breadcrumb-bg);
+            backdrop-filter: blur(5px);
+            padding: 8px 16px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            max-width: 100%;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+
+        .breadcrumb-item a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 6px;
+            border-radius: 20px;
+            opacity: 0.8;
+        }
+
+        .breadcrumb-item a:hover {
+            opacity: 1;
+            background: var(--bg-tertiary);
+            text-decoration: none;
+            color: var(--accent-text);
+        }
+
+        .breadcrumb-item i {
+            font-size: 0.85rem;
+            margin-right: 2px;
+            color: var(--accent-text);
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-muted);
+            margin: 0 4px;
+            font-size: 0.7rem;
+        }
+
+        .breadcrumb-item.active {
+            color: var(--accent-text);
+            font-weight: 600;
+            padding: 4px 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            opacity: 1;
+        }
+
+        .breadcrumb-item.active i {
+            color: var(--accent-text);
+        }
+
+        .breadcrumb-book-selector {
+            margin-left: 8px;
+            padding-left: 8px;
+            border-left: 1px solid var(--border-color);
+        }
+
+        .breadcrumb-book-selector select {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 6px 28px 6px 12px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            min-width: 160px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='%236c757d' d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 10px;
+        }
+
+        [data-theme="dark"] .breadcrumb-book-selector select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='white' d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3e%3c/svg%3e");
+        }
+
+        .breadcrumb-book-selector select option {
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        .breadcrumb-book-selector select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px var(--border-color);
+        }
+
+        /* Mobile optimizations for breadcrumb */
+        @media (max-width: 768px) {
+            .breadcrumb-wrapper { margin-top: 15px; padding: 0 5px; }
+            .breadcrumb-nav { padding: 8px 12px; border-radius: 30px; gap: 0; }
+            .breadcrumb-item { font-size: 0.85rem; }
+            .breadcrumb-item a { padding: 3px 4px; }
+            .breadcrumb-item i { font-size: 0.75rem; }
+            .breadcrumb-separator { margin: 0 2px; font-size: 0.6rem; }
+            .breadcrumb-book-selector { margin-left: 0; padding-left: 0; border-left: none; margin-top: 5px; width: 100%; }
+            .breadcrumb-book-selector select { width: 100%; min-width: unset; padding: 6px 28px 6px 12px; font-size: 0.85rem; text-align: center; background-position: right 10px center; }
+        }
+
+        @media (max-width: 480px) {
+            .breadcrumb-nav { padding: 6px 10px; border-radius: 25px; }
+            .breadcrumb-item { font-size: 0.8rem; }
+            .breadcrumb-item i { font-size: 0.7rem; }
+            .breadcrumb-separator { margin: 0 1px; }
+            .breadcrumb-item .full-text { display: none; }
+            .breadcrumb-item .short-text { display: inline; }
+            .breadcrumb-book-selector select { padding: 5px 24px 5px 10px; font-size: 0.8rem; }
+        }
+
+        .breadcrumb-item .short-text { display: none; }
+
+        @media (max-width: 480px) {
+            .breadcrumb-item .full-text { display: none; }
+            .breadcrumb-item .short-text { display: inline; }
+        }
+
+        .section-title {
+            font-family: 'Lora', serif;
+            color: var(--text-secondary);
+            position: relative;
+            display: inline-block;
+            margin-bottom: 50px;
+        }
+
+        .section-title::after {
+            content: '';
+            width: 80px;
+            height: 3px;
+            background: var(--accent-primary);
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .verse-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Reading Progress Bar */
+        .reading-progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: transparent;
+            z-index: 1030;
+        }
+
+        .reading-progress-bar {
+            height: 4px;
+            background: var(--accent-primary);
+            width: 0%;
+            transition: width 0.1s ease;
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        /* Font Size Controls */
+        .font-size-controls-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .font-size-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        .font-size-header i {
+            font-size: 1.2rem;
+            color: var(--accent-text);
+        }
+
+        .font-size-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .font-size-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .font-size-btn:hover {
+            background: var(--accent-text);
+            color: var(--accent-contrast);
+            border-color: var(--accent-text);
+            transform: scale(1.05);
+        }
+
+        .font-size-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+            font-weight: 600;
+            color: var(--accent-text);
+        }
+
+        /* Verse Highlighting */
+        .verse-item {
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .verse-item:hover { background: var(--bg-tertiary); }
+        .verse-item.highlighted {
+            background: var(--highlight-bg);
+            border-left: 4px solid var(--highlight-border);
+        }
+        /* Multi-color highlights */
+        .verse-item.hl-yellow { background: rgba(255, 213, 79, 0.22); border-left: 4px solid #ffd54f; }
+        .verse-item.hl-green { background: rgba(129, 199, 132, 0.22); border-left: 4px solid #81c784; }
+        .verse-item.hl-blue { background: rgba(100, 181, 246, 0.22); border-left: 4px solid #64b5f6; }
+        .verse-item.hl-pink { background: rgba(244, 143, 177, 0.22); border-left: 4px solid #f48fb1; }
+        .verse-item.hl-purple { background: rgba(186, 104, 200, 0.22); border-left: 4px solid #ba68c8; }
+        [data-theme="dark"] .verse-item.hl-yellow { background: rgba(255, 213, 79, 0.12); }
+        [data-theme="dark"] .verse-item.hl-green { background: rgba(129, 199, 132, 0.12); }
+        [data-theme="dark"] .verse-item.hl-blue { background: rgba(100, 181, 246, 0.12); }
+        [data-theme="dark"] .verse-item.hl-pink { background: rgba(244, 143, 177, 0.12); }
+        [data-theme="dark"] .verse-item.hl-purple { background: rgba(186, 104, 200, 0.12); }
+
+        /* Highlight color toolbar */
+        .highlight-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 10px 16px;
+            margin-bottom: 18px;
+        }
+        .hl-swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .hl-swatch:hover { transform: scale(1.15); }
+        .hl-swatch.active { border-color: var(--text-primary); box-shadow: 0 0 0 3px rgba(201, 146, 58, 0.35); }
+        .hl-swatch.eraser {
+            background: var(--bg-secondary);
+            border: 1.5px dashed var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Highlight label chips */
+        .hl-label-chip {
+            border: 1.5px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-muted);
+            border-radius: 30px;
+            padding: 4px 12px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        .hl-label-chip:hover { border-color: var(--accent-primary); color: var(--text-primary); }
+        .hl-label-chip.active {
+            background: var(--accent-text);
+            border-color: var(--accent-text);
+            color: var(--accent-contrast);
+            font-weight: 600;
+        }
+        .verse-label-badge {
+            display: inline-block;
+            margin-left: 6px;
+            font-size: 0.8rem;
+            vertical-align: middle;
+        }
+
+        .verse-count-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 6px 16px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+        .verse-count-hint i { color: var(--accent-text); }
+        .verse-count-hint strong { color: var(--text-primary); }
+
+        /* Responsive reader toolbar */
+        @media (max-width: 767px) {
+            .highlight-toolbar { gap: 6px; padding: 10px 10px; }
+            .hl-swatch { width: 26px; height: 26px; }
+            .hl-label-chip { padding: 3px 9px; font-size: 0.78rem; }
+            .highlight-toolbar .input-group { max-width: 100% !important; flex: 1 1 100%; }
+            .highlight-toolbar small.text-muted { font-size: 0.75rem; width: 100%; text-align: center; }
+        }
+
+        /* Keep the fuller navbar on one line on mid-size desktops */
+        @media (min-width: 1200px) and (max-width: 1439px) {
+            .nav-link { font-size: 0.92rem; padding-left: 0.55rem !important; padding-right: 0.55rem !important; }
+            .navbar-brand { font-size: 1.55rem; }
+            .user-profile-btn span { display: none; }
+            .google-signin-btn span { display: none; }
+            .streak-badge-wrapper { display: none; }
+        }
+
+        .verse-content { flex: 1; min-width: 0; }
+        .verse-number {
+            font-weight: bold;
+            color: var(--accent-text);
+            margin-right: 10px;
+            font-size: 1.1rem;
+            display: inline;
+        }
+
+        .verse-text {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            display: inline;
+        }
+
+        /* Bookmark Button */
+        .bookmark-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0;
+            padding: 5px 10px;
+            border-radius: 20px;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+
+        .verse-item:hover .bookmark-btn { opacity: 1; }
+        .bookmark-btn:hover { color: var(--accent-text); transform: scale(1.1); }
+        .bookmark-btn.bookmarked { opacity: 1; color: #ffd700; }
+
+        /* Verse action buttons (note + share) */
+        .verse-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+            margin-left: 4px;
+        }
+        .verse-action-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0;
+            padding: 5px 8px;
+            border-radius: 20px;
+        }
+        .verse-item:hover .verse-action-btn { opacity: 1; }
+        .verse-action-btn:hover { color: var(--accent-text); transform: scale(1.1); }
+        .verse-action-btn.has-note { opacity: 1; color: #4caf50; }
+        .note-indicator {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 0.75rem;
+            color: #4caf50;
+            vertical-align: middle;
+        }
+
+        @media (max-width: 768px) { .verse-item { padding: 15px 12px; } .bookmark-btn { opacity: 1; padding: 3px 8px; margin-left: 5px; } .verse-action-btn { opacity: 1; } .verse-text { font-size: 1.1rem; } }
+        @media (max-width: 480px) { .verse-item { padding: 12px 10px; } .verse-text { font-size: 1rem; } .bookmark-btn { padding: 2px 5px; font-size: 1rem; } .verse-action-btn { padding: 3px 5px; } }
+
+        /* Bookmarks Panel */
+        .bookmarks-panel {
+            position: fixed;
+            right: -350px;
+            top: 80px;
+            width: 320px;
+            max-height: calc(100vh - 100px);
+            background: var(--card-bg);
+            border-radius: 12px 0 0 12px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            transition: right 0.3s ease;
+            z-index: 1020;
+            overflow-y: auto;
+        }
+
+        .bookmarks-panel.open { right: 0; }
+
+        /* Notes Panel */
+        .notes-panel {
+            position: fixed;
+            right: -350px;
+            top: 80px;
+            width: 340px;
+            max-height: calc(100vh - 100px);
+            background: var(--card-bg);
+            border-radius: 12px 0 0 12px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            transition: right 0.3s ease;
+            z-index: 1022;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .notes-panel.open { right: 0; }
+        .notes-list { padding: 10px; }
+        .note-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            border-left: 3px solid #4caf50;
+        }
+        .note-reference {
+            font-weight: bold;
+            color: #4caf50;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .note-text {
+            font-size: 0.92rem;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .note-date { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
+        .note-actions { display: flex; gap: 6px; }
+        .note-actions button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 2px 4px;
+        }
+        .note-actions button:hover { color: var(--accent-text); }
+        .note-actions .note-del:hover { color: #dc3545; }
+        .note-editor {
+            border-top: 1px solid var(--border-color);
+            padding: 12px;
+            position: sticky;
+            bottom: 0;
+            background: var(--card-bg);
+        }
+        .note-editor textarea {
+            width: 100%;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            resize: none;
+            font-size: 0.95rem;
+        }
+        .notes-toggle {
+            position: fixed;
+            right: 20px;
+            bottom: 140px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #4caf50;
+            color: white;
+            border: none;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1023;
+            transition: all 0.3s ease;
+        }
+        .notes-toggle:hover { transform: scale(1.1); }
+        .notes-toggle .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.7rem;
+        }
+        @media (max-width: 480px) { .notes-panel { width: 100%; right: -100%; } .notes-panel.open { right: 0; } }
+
+        .bookmarks-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bookmarks-list { padding: 10px; }
+
+        .bookmark-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        .bookmark-item:hover {
+            transform: translateX(-5px);
+            box-shadow: var(--card-shadow);
+        }
+
+        .bookmark-reference {
+            font-weight: bold;
+            color: var(--accent-text);
+            margin-bottom: 5px;
+        }
+
+        .bookmark-text {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .delete-bookmark {
+            float: right;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+
+        .delete-bookmark:hover { color: #dc3545; }
+
+        .bookmarks-toggle {
+            position: fixed;
+            right: 20px;
+            bottom: 80px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--accent-text);
+            color: var(--accent-contrast);
+            border: none;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1021;
+            transition: all 0.3s ease;
+        }
+
+        .bookmarks-toggle:hover { transform: scale(1.1); }
+
+        .bookmarks-toggle .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 3px 7px;
+            font-size: 0.7rem;
+        }
+
+        /* Chapter Navigation */
+        .chapter-navigation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .chapter-nav-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--accent-text);
+            color: var(--accent-contrast);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--card-shadow);
+            font-size: 1.2rem;
+        }
+
+        .chapter-nav-btn:hover:not(:disabled) {
+            transform: scale(1.1);
+            background: var(--text-secondary);
+        }
+
+        .chapter-nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .chapter-indicator {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) { .page-header h1 { font-size: 2.5rem; } .verse-container { padding: 20px 15px; } .chapter-navigation { gap: 15px; } .chapter-nav-btn { width: 45px; height: 45px; } .bookmarks-panel { width: 280px; } }
+        @media (max-width: 480px) { .page-header h1 { font-size: 2rem; } .bookmarks-panel { width: 100%; right: -100%; } .bookmarks-panel.open { right: 0; } .chapter-indicator { font-size: 0.9rem; } }
+
+        /* Form controls */
+        .form-control, .form-select, .input-group-text {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-primary);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--input-bg);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
+        }
+
+        .input-group-text { color: var(--text-muted); }
+
+        /* Theme toggle button (desktop) */
+        .theme-toggle-btn, #helpButtonMobile {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle-btn:hover, #helpButtonMobile:hover {
+            background: var(--accent-text);
+            color: var(--accent-contrast);
+            border-color: var(--accent-text);
+            transform: rotate(360deg);
+        }
+
+        /* Audio controls */
+        .audio-controls-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .audio-main-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .audio-play-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .audio-play-btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            white-space: nowrap;
+        }
+
+        .audio-time-display {
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .audio-menu-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .copyright-notice {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 20px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 16px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .copyright-notice i {
+            color: var(--accent-text);
+            font-size: 1rem;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .copyright-notice a {
+            color: var(--accent-text);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) { .audio-controls-container { padding: 15px; } .audio-main-controls { gap: 10px; } .audio-play-btn { padding: 10px 20px; font-size: 1rem; } .audio-time-display { min-width: 80px; font-size: 0.85rem; } }
+        @media (max-width: 576px) { .audio-play-section { width: 100%; justify-content: center; } .audio-play-btn { padding: 10px 25px; width: auto; } .audio-menu-section { margin-top: 10px; justify-content: center; } .skip-buttons { display: flex; gap: 5px; } }
+
+        .progress { background-color: var(--bg-tertiary); cursor: pointer; }
+        .dropdown-menu { background-color: var(--card-bg); border-color: var(--border-color); }
+        .dropdown-item { color: var(--text-primary); }
+        .dropdown-item:hover { background-color: var(--accent-text); color: var(--accent-contrast); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+        /* Toast notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            z-index: 2000;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { bottom: -50px; opacity: 0; }
+            to { bottom: 20px; opacity: 1; }
+        }
+
+        footer {
+            background: var(--footer-bg);
+            color: var(--footer-text);
+            padding: 50px 0 30px;
+            margin-top: 120px;
+        }
+
+        .back-link { color: var(--footer-text); text-decoration: none; }
+        .back-link:hover { text-decoration: underline; color: white; }
+    
+        /* ===== Reading Streak Badge ===== */
+        .streak-badge-wrapper { position: relative; }
+        .streak-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        .streak-badge:empty { display: none; }
+        .streak-badge:hover {
+            background: var(--accent-text);
+            color: var(--accent-contrast);
+            border-color: var(--accent-text);
+        }
+        .streak-badge.streak-badge-zero {
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+        }
+        .streak-popover {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 16px;
+            min-width: 200px;
+            box-shadow: var(--card-shadow);
+            z-index: 1050;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+        .streak-popover.open { display: block; }
+        .streak-popover div { margin-bottom: 4px; }
+        .streak-popover div:last-child { margin-bottom: 0; }
+        @media (max-width: 480px) {
+            .streak-badge { padding: 5px 9px; font-size: 0.75rem; }
+            .streak-popover { right: -40px; min-width: 180px; }
+        }
+
+        /* Small phones: shrink the brand + action icons so everything fits */
+        @media (max-width: 400px) {
+            .navbar-brand { font-size: 1rem; }
+            .navbar-brand img { width: 28px; height: 28px; }
+            .navbar-mobile-actions { gap: 6px !important; }
+            .navbar-mobile-actions .theme-toggle-btn { width: 34px; height: 34px; font-size: 0.9rem; }
+            .navbar-mobile-actions .user-profile-btn img { width: 28px; height: 28px; }
+            .google-signin-btn { padding: 6px 10px; }
+            .navbar-toggler { padding: 4px 8px; }
+        }
+        @media (max-width: 359px) {
+            .navbar .navbar-brand .brand-text { display: none; }
+        }
+
+
+        /* Cinzel display headings (matches the landing page identity) */
+        .navbar-brand, .page-header h1, .section-title, .hero h1, h1.display-font {
+            font-family: 'Cinzel', 'Lora', serif !important;
+            letter-spacing: 0.02em;
+        }
+
+
+.card, .card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
+            color: var(--text-primary);
+        }
+        .btn-outline-primary {
+            color: var(--accent-text);
+            border-color: var(--accent-primary);
+            background: transparent;
+        }
+        .btn-outline-primary:hover {
+            background-color: var(--accent-text);
+            border-color: var(--accent-text);
+            color: var(--accent-contrast);
+        }
+</style>
+    <script data-goatcounter="https://olatideenoch.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+
+    <!-- Reading Progress Bar -->
+    <div class="reading-progress-container">
+        <div class="reading-progress-bar" id="readingProgressBar"></div>
+    </div>
+
+    <!-- Bookmarks Panel -->
+    <div class="bookmarks-panel" id="bookmarksPanel">
+        <div class="bookmarks-header">
+            <h5 class="mb-0"><i class="fas fa-bookmark me-2" style="color: #ffd700;"></i>My Bookmarks</h5>
+            <button class="btn-close" id="closeBookmarksPanel"></button>
+        </div>
+        <div class="bookmarks-list" id="bookmarksList"></div>
+    </div>
+
+    <!-- Bookmarks Toggle Button -->
+    <button class="bookmarks-toggle" id="bookmarksToggle" title="View Bookmarks">
+        <i class="fas fa-bookmark"></i>
+        <span class="badge" id="bookmarkCount" style="display: none;">0</span>
+    </button>
+
+    <!-- Notes Panel -->
+    <div class="notes-panel" id="notesPanel">
+        <div class="bookmarks-header">
+            <h5 class="mb-0"><i class="fas fa-pen-nib me-2" style="color: #4caf50;"></i>My Notes</h5>
+            <button class="btn-close" id="closeNotesPanel"></button>
+        </div>
+        <div class="notes-list" id="notesList"></div>
+        <div class="note-editor" id="noteEditor" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong class="text-muted" style="font-size: 0.85rem;" id="noteEditorRef"></strong>
+                <button class="btn-close" style="font-size: 0.6rem;" id="noteEditorClose"></button>
+            </div>
+            <textarea id="noteEditorText" rows="4" placeholder="Write your note for this verse..."></textarea>
+            <div class="d-flex gap-2 mt-2">
+                <button class="btn btn-success btn-sm flex-grow-1" id="noteSaveBtn"><i class="fas fa-save me-1"></i>Save Note</button>
+                <button class="btn btn-outline-secondary btn-sm" id="noteDeleteBtn" style="display: none;"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes Toggle Button -->
+    <button class="notes-toggle" id="notesToggle" title="View Notes">
+        <i class="fas fa-pen-nib"></i>
+        <span class="badge" id="noteCount" style="display: none;">0</span>
+    </button>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-xl fixed-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index') }}">
+                <img src="{{ url_for('static', filename='img/app-icon.jpg') }}" 
+                    alt="MyPersonal Bible" 
+                    width="36" 
+                    height="36" 
+                    class="me-2 rounded-2"
+                    style="object-fit: cover;">
+                <span class="brand-text">MyPersonal Bible</span>
+            </a>
+            
+            <!-- Mobile: Action icons OUTSIDE hamburger -->
+            <div class="navbar-mobile-actions d-xl-none d-flex align-items-center gap-2">
+                {% if user %}
+                <div class="dropdown">
+                    <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% if user.picture %}
+                        <img src="{{ user.picture }}" alt="{{ user.name }}">
+                        {% else %}
+                        <i class="fas fa-user-circle"></i>
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><span class="dropdown-item-text user-email small">{{ user.email }}</span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('user.user_profile') }}"><i class="fas fa-user me-2"></i>View Profile</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{{ url_for('user.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
+                    </ul>
+                </div>
+                {% else %}
+                <a href="{{ url_for('user.google_login') }}" class="google-signin-btn">
+                    <i class="fab fa-google"></i>
+                    <span style="font-size: 0.8rem;">Sign In</span>
+                </a>
+                {% endif %}
+                
+                <div class="streak-badge-wrapper">
+                    <button class="streak-badge" id="streakBadgeMobile" title="Reading streak" type="button"></button>
+                    <div class="streak-popover" id="streakPopoverMobile">
+                        <div>Longest streak: <strong class="streak-popover-longest">0</strong> days</div>
+                        <div>Total days read: <strong class="streak-popover-total">0</strong></div>
+                    </div>
+                </div>
+
+                <button class="theme-toggle-btn" id="themeToggleMobile" title="Toggle dark mode">
+                    <i class="fas fa-moon" id="themeIconMobile"></i>
+                </button>
+
+                <button class="theme-toggle-btn" data-push-reminders title="Daily verse reminders">
+                    <i class="fas fa-bell-slash" data-push-icon></i>
+                </button>
+                
+                
+            </div>
+            
+            <!-- Hamburger button (mobile only) - ALWAYS LAST -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Everything else pushed to the right on desktop -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Nav links FIRST -->
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}#daily">Daily Verse</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}#search">Search</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('reader.books', book_slug=book.slug) }}">Books</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('study.bible_in_a_year') }}">Bible in a Year</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="studyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-graduation-cap d-xl-none me-2"></i>Study
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="studyDropdown">
+                            <li><a class="dropdown-item" href="#" id="helpDropdownLink"><i class="fas fa-question-circle me-2"></i>Help &amp; Features</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('user.continue_reading_page') }}"><i class="fas fa-book-open-reader me-2"></i>Continue Reading</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('study.reading_plans_page') }}"><i class="fas fa-list-check me-2"></i>Reading Plans</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('study.devotional_page') }}"><i class="fas fa-book-open-reader me-2"></i>Daily Devotional</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('study.topics_page') }}"><i class="fas fa-lightbulb me-2"></i>Bible Topics</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('reader.compare_page') }}"><i class="fas fa-columns me-2"></i>Compare Versions</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('study.quiz_page') }}"><i class="fas fa-question-circle me-2"></i>Bible Quiz</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('study.prayer_journal_page') }}"><i class="fas fa-hands-praying me-2"></i>Prayer Journal</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('study.memorize_page') }}"><i class="fas fa-brain me-2"></i>Memorize Verses</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="https://mypersonalbible.onrender.com" target="_blank">About Us</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.contact') }}">Contact</a></li>
+                </ul>
+                
+                <!-- Desktop: Action icons AFTER nav links -->
+                <div class="d-none d-xl-flex align-items-center gap-2 ms-3">
+                    {% if user %}
+                    <div class="dropdown">
+                        <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            {% if user.picture %}
+                            <img src="{{ user.picture }}" alt="{{ user.name }}">
+                            {% else %}
+                            <i class="fas fa-user-circle"></i>
+                            {% endif %}
+                            <span class="ms-1">{{ user.name.split(' ')[0] }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-item-text user-email small">{{ user.email }}</span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('user.user_profile') }}"><i class="fas fa-user me-2"></i>View Profile</a></li>                            
+                            <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('user.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <a href="{{ url_for('user.google_login') }}" class="google-signin-btn">
+                        <i class="fab fa-google"></i>
+                        <span style="font-size: 0.8rem;">Sign In</span>
+                    </a>
+                    {% endif %}
+                    
+                    <div class="streak-badge-wrapper">
+                        <button class="streak-badge" id="streakBadge" title="Reading streak" type="button"></button>
+                        <div class="streak-popover" id="streakPopover">
+                            <div>Longest streak: <strong class="streak-popover-longest">0</strong> days</div>
+                            <div>Total days read: <strong class="streak-popover-total">0</strong></div>
+                        </div>
+                    </div>
+
+                    <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                    </button>
+
+                    <button class="theme-toggle-btn" data-push-reminders title="Daily verse reminders">
+                        <i class="fas fa-bell-slash" data-push-icon></i>
+                    </button>
+                    
+                    
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1 class="head-center">Browse the Holy Scriptures</h1>
+            <p class="mt-3 lead">Select a book to begin reading</p>
+            
+            <!-- Breadcrumb Navigation -->
+            <div class="breadcrumb-wrapper">
+                <nav class="breadcrumb-nav">
+                    <span class="breadcrumb-item">
+                        <a href="{{ url_for('main.index') }}">
+                            <i class="fas fa-home"></i>
+                            <span class="full-text">Home</span>
+                            <span class="short-text">Home</span>
+                        </a>
+                    </span>
+                    <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+                    <span class="breadcrumb-item">
+                        <a href="{{ url_for('main.index') }}#books">
+                            <i class="fas fa-book"></i>
+                            <span class="full-text">Books</span>
+                            <span class="short-text">Books</span>
+                        </a>
+                    </span>
+                    <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+                    <span class="breadcrumb-item active">
+                        <i class="fas fa-book-open"></i>
+                        <span class="full-text">{{ book.name }}</span>
+                        <span class="short-text">
+                            {% if book.name|length > 12 %}
+                                {{ book.name[:10] }}...
+                            {% else %}
+                                {{ book.name }}
+                            {% endif %}
+                        </span>
+                    </span>
+                    {% if selected_chapter %}
+                    <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+                    <span class="breadcrumb-item active">
+                        <i class="fas fa-list"></i>
+                        <span class="full-text">Chapter {{ selected_chapter }}</span>
+                        <span class="short-text">Ch {{ selected_chapter }}</span>
+                    </span>
+                    {% endif %}
+                    
+                    <!-- Quick Book Switcher -->
+                    <span class="breadcrumb-book-selector">
+                        <select id="breadcrumbBookSelect" onchange="navigateToBook(this.value)">
+                            <option value="">📖 Switch Book...</option>
+                            {% for b in books %}
+                                <option value="{{ b.slug }}" {% if b.name == book.name %}selected{% endif %}>
+                                    {{ b.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </span>
+                </nav>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chapter and Verse Selection -->
+    <section class="py-3">
+        <div class="container col-11">
+            <h2 class="text-center section-title">Select Chapter and Verse in {{ book.name }}</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <!-- Chapter Selection Form -->
+                    <form method="POST" action="{{ url_for('reader.books', book_slug=book.slug) }}" class="mb-4">
+                        <div class="input-group">
+                            <label class="input-group-text" for="chapterSelect">Chapter</label>
+                            <select class="form-select" id="chapterSelect" name="chapter" required onchange="this.form.submit()">
+                            <!-- <select class="form-select" id="chapterSelect" name="chapter" required> -->
+                                <option value="" selected disabled>Choose a chapter...</option>
+                                {% for ch in range(1, book.chapters + 1) %}
+                                    <option value="{{ ch }}" {% if selected_chapter == ch %}selected{% endif %}>{{ ch }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-success" type="submit">Load Chapter</button>
+                        </div>
+                    </form>
+                    
+                    <!-- Verse Selection Form -->
+                    {% if verses %}
+                        <form method="POST" action="{{ url_for('reader.books', book_slug=book.slug) }}" class="mb-3">
+                            <div class="input-group">
+                                <label class="input-group-text" for="verseSelect">Jump to Verse</label>
+                                <select class="form-select" id="verseSelect" name="verse">
+                                    <option value="" selected>Select verse...</option>
+                                    {% for vs in range(1, verses|length + 1) %}
+                                        <option value="{{ vs }}">{{ vs }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button class="btn btn-primary" type="submit">Go</button>
+                            </div>
+                            <input type="hidden" name="chapter" value="{{ selected_chapter }}">
+                        </form>
+                        <div class="verse-count-hint mb-3">
+                            <i class="fas fa-list-ol me-1"></i>
+                            <strong>{{ book.name }} {{ selected_chapter }}</strong> has
+                            <strong>{{ verses|length }}</strong> verse{{ 's' if verses|length != 1 else '' }}
+                            &mdash; pick any verse from <strong>1</strong> to <strong>{{ verses|length }}</strong>.
+                        </div>
+                    {% endif %}
+
+                    <!-- Quick Reference Jump (e.g. "John 3:16") -->
+                    <div class="card p-3 mb-4" id="quickRefCard">
+                        <div class="input-group">
+                            <span class="input-group-text" title="Jump to any verse">
+                                <i class="fas fa-bolt" style="color: var(--accent-text);"></i>
+                            </span>
+                            <input type="text" class="form-control" id="quickRefInput"
+                                   placeholder="Quick jump: type any reference, e.g. John 3:16 or Psalm 23"
+                                   aria-label="Quick jump to any Bible reference">
+                            <button class="btn btn-primary" type="button" id="quickRefGoBtn">Go</button>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            <i class="fas fa-lightbulb me-1"></i>Try "Gen 1:1", "psalm 23", "1 cor 13:4" — we'll take you straight there.
+                        </small>
+                    </div>
+                    
+                    <!-- Version Selection Form -->
+                    {% if selected_chapter %}
+                        <form method="POST" class="mb-4">
+                            <div class="input-group">
+                                <label class="input-group-text">Version</label>
+                                <select class="form-select" name="version">
+                                    {% for version in versions %}
+                                        <option value="{{ version.id }}" {% if version.id == selected_version %}selected{% endif %}>
+                                            {{ version.version }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <input type="hidden" name="chapter" value="{{ selected_chapter }}">
+                                <button class="btn btn-primary" type="submit">Change Version</button>
+                            </div>
+                        </form>
+                    {% endif %}
+
+                    {% if error_message %}
+                        <div class="alert alert-warning mt-3" role="alert">
+                            {{ error_message }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Audio Controls -->
+            {% if chapter_text and selected_chapter %}
+            <div class="audio-controls-container">
+                <div class="audio-main-controls">
+                    <div class="audio-play-section">
+                        <div class="skip-buttons">
+                            <button id="skipBackBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-backward"></i>
+                            </button>
+                        </div>
+                        <button id="audioPlayBtn" class="btn btn-success rounded-pill audio-play-btn">
+                            <i class="fas fa-play me-2"></i>Play Chapter {{ selected_chapter }}
+                        </button>
+                        <div class="skip-buttons">
+                            <button id="skipForwardBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-forward"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="audio-time-display">
+                        <small class="text-muted"><span id="audioCurrentTime">0:00</span> / <span id="audioDuration">0:00</span></small>
+                    </div>
+
+                    <div class="audio-menu-section">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary" id="audioMenuBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="audioMenuBtn">
+                                <li><h6 class="dropdown-header">Playback Speed</h6></li>
+                                <li>
+                                    <div class="dropdown-item">
+                                        <div class="btn-group btn-group-sm w-100" role="group">
+                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed050" value="0.5">
+                                            <label class="btn btn-outline-secondary" for="speed050">0.5x</label>
+                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed075" value="0.75">
+                                            <label class="btn btn-outline-secondary" for="speed075">0.75x</label>
+                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed100" value="1" checked>
+                                            <label class="btn btn-outline-secondary" for="speed100">1x</label>
+                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed125" value="1.25">
+                                            <label class="btn btn-outline-secondary" for="speed125">1.25x</label>
+                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed150" value="1.5">
+                                            <label class="btn btn-outline-secondary" for="speed150">1.5x</label>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><button id="audioDownloadBtn" class="dropdown-item"><i class="fas fa-download me-2"></i> Download as MP3</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <div class="progress" style="height: 6px;" id="audioProgressContainer">
+                        <div id="audioProgress" class="progress-bar bg-primary" role="progressbar" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Font Size Controls -->
+            {% if verses %}
+            <div class="font-size-controls-container">
+                <div class="font-size-header">
+                    <i class="fas fa-text-height"></i>
+                    <span>Text Size Control</span>
+                </div>
+                <div class="font-size-controls">
+                    <button class="font-size-btn" id="fontSizeDown" title="Decrease font size">A-</button>
+                    <span class="font-size-indicator" id="fontSizeIndicator">100%</span>
+                    <button class="font-size-btn" id="fontSizeReset" title="Reset font size">A</button>
+                    <button class="font-size-btn" id="fontSizeUp" title="Increase font size">A+</button>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Display Verses -->
+            {% if verses %}
+                <div class="verse-container">
+                    <h3 class="mb-3 text-center">{{ book.name }} {{ selected_chapter }}</h3>
+
+                    <!-- Scripture / Commentary tabs -->
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <button class="btn btn-sm btn-success reader-tab active" id="tabScripture" type="button">
+                            <i class="fas fa-book-open me-1"></i>Scripture
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary reader-tab" id="tabCommentary" type="button">
+                            <i class="fas fa-comment-dots me-1"></i>Commentary
+                        </button>
+                    </div>
+
+                    <!-- Commentary panel -->
+                    <div class="card p-4 mb-4 d-none" id="commentaryPanel">
+                        <div id="commentaryLoading" class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm" style="color: var(--accent-primary);"></div>
+                            <p class="text-muted mt-2 mb-0">Loading commentary...</p>
+                        </div>
+                        <div id="commentaryContent"></div>
+                        <div id="commentaryEmpty" class="d-none text-center py-4">
+                            <i class="fas fa-comment-slash fa-2x text-muted mb-3"></i>
+                            <p class="text-muted">No commentary is available for this chapter yet.</p>
+                        </div>
+                        <div class="mt-3 text-muted small" id="commentarySource"></div>
+                    </div>
+
+                    <!-- Reader tools: highlight colors + labels + in-chapter filter -->
+                    <div class="highlight-toolbar">
+                        <small class="text-muted me-2"><i class="fas fa-highlighter me-1"></i>Highlight:</small>
+                        <span class="hl-swatch active" data-color="yellow" title="Yellow" style="background: #ffd54f;"></span>
+                        <span class="hl-swatch" data-color="green" title="Green" style="background: #81c784;"></span>
+                        <span class="hl-swatch" data-color="blue" title="Blue" style="background: #64b5f6;"></span>
+                        <span class="hl-swatch" data-color="pink" title="Pink" style="background: #f48fb1;"></span>
+                        <span class="hl-swatch" data-color="purple" title="Purple" style="background: #ba68c8;"></span>
+                        <span class="hl-swatch eraser" data-color="" title="Remove highlight"><i class="fas fa-eraser"></i></span>
+                        <span class="mx-2" style="width:1px;height:24px;background:var(--border-color);"></span>
+                        <small class="text-muted me-1"><i class="fas fa-tag me-1"></i>Label:</small>
+                        <button class="hl-label-chip active" data-label="" type="button">None</button>
+                        <button class="hl-label-chip" data-label="promise" type="button"><i class="fas fa-handshake me-1" style="color:#64b5f6;"></i>Promise</button>
+                        <button class="hl-label-chip" data-label="warning" type="button"><i class="fas fa-triangle-exclamation me-1" style="color:#ff9800;"></i>Warning</button>
+                        <button class="hl-label-chip" data-label="command" type="button"><i class="fas fa-scroll me-1" style="color:#9c27b0;"></i>Command</button>
+                        <button class="hl-label-chip" data-label="memorize" type="button"><i class="fas fa-brain me-1" style="color:#e91e63;"></i>Memorize</button>
+                        <button class="hl-label-chip" data-label="praise" type="button"><i class="fas fa-music me-1" style="color:#4caf50;"></i>Praise</button>
+                        <span class="mx-2" style="width:1px;height:24px;background:var(--border-color);"></span>
+                        <div class="input-group input-group-sm" style="max-width: 240px;">
+                            <span class="input-group-text"><i class="fas fa-filter"></i></span>
+                            <input type="text" class="form-control" id="chapterFilterInput" placeholder="Filter verses...">
+                        </div>
+                    </div>
+
+                    <div class="row g-0" id="versesContainer">
+                        {% for verse in verses %}
+                            <div class="col-12 verse-item" id="verse-{{ loop.index }}" data-verse="{{ loop.index }}" data-reference="{{ book.name }} {{ selected_chapter }}:{{ loop.index }}">
+                                <div class="verse-content">
+                                    <span class="verse-number">{{ loop.index }}.</span>
+                                    <span class="verse-text" id="verse-text-{{ loop.index }}">{{ verse.text }}</span>
+                                </div>
+                                <button class="bookmark-btn" data-verse="{{ loop.index }}" data-reference="{{ book.name }} {{ selected_chapter }}:{{ loop.index }}" data-text="{{ verse.text }}" title="Bookmark this verse">
+                                    <i class="far fa-bookmark"></i>
+                                </button>
+                                <div class="verse-actions">
+                                    <button class="verse-action-btn note-btn" data-verse="{{ loop.index }}" data-reference="{{ book.name }} {{ selected_chapter }}:{{ loop.index }}" data-text="{{ verse.text }}" title="Add a note">
+                                        <i class="fas fa-pen-nib"></i>
+                                    </button>
+                                    <button class="verse-action-btn share-btn" data-verse="{{ loop.index }}" data-reference="{{ book.name }} {{ selected_chapter }}:{{ loop.index }}" data-text="{{ verse.text }}" title="Share this verse">
+                                        <i class="fas fa-share-nodes"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if selected_version in ['en-nasb', 'en-amp'] %}
+                    <div class="copyright-notice mt-4">
+                        <i class="fas fa-copyright"></i>
+                        <small>
+                            Scripture quotations taken from the
+                            {% if selected_version == 'en-nasb' %}
+                            (NASB®) New American Standard Bible® , Copyright © 2020
+                            {% elif selected_version == 'en-amp' %}
+                            Amplified® Bible (AMP)
+                            {% endif %},
+                            Copyright © The Lockman Foundation.
+                            Used by permission. All rights reserved.
+                            <a href="https://www.lockman.org/" target="_blank" rel="noopener noreferrer">
+                                www.Lockman.org
+                            </a>
+                        </small>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Chapter Navigation -->
+                    <div class="chapter-navigation">
+                        <button id="prevChapterBtn" class="chapter-nav-btn" title="Previous Chapter">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span class="chapter-indicator">
+                            Chapter {{ selected_chapter }} of {{ book.chapters }}
+                        </span>
+                        <button id="nextChapterBtn" class="chapter-nav-btn" title="Next Chapter">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <form id="chapterNavForm" method="POST" action="{{ url_for('reader.books', book_slug=book.slug) }}" style="display:none;">
+                        <input type="hidden" name="chapter" id="chapterNavInput" value="{{ selected_chapter }}">
+                        <input type="hidden" name="version" value="{{ selected_version }}">
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container text-center">
+            <p class="mt-3">&copy; {{ current_year }} MyPersonal Bible App • Made with reverence for the Holy Scriptures</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app-common.js') }}"></script>
+
+    <!-- Chapter text data -->
+    {% if chapter_text and selected_chapter %}
+    <script>
+        const CHAPTER_TEXT = {{ chapter_text|tojson|safe }};
+        const BOOK_NAME = "{{ book.name }}";
+        const BOOK_SLUG = "{{ book.slug }}";
+        const CHAPTER_NUM = {{ selected_chapter }};
+        const SELECTED_VERSION = "{{ selected_version|default('en-kjv') }}";
+        const MAX_CHAPTERS = {{ book.chapters }};
+        const USER_AUTHENTICATED = {{ 'true' if user else 'false' }};
+    </script>
+    {% else %}
+    <script>
+        const USER_AUTHENTICATED = {{ 'true' if user else 'false' }};
+    </script>
+    {% endif %}
+
+    <script>
+
+        // ========== READING STREAK TRACKER ==========
+        const STREAK_LOG_KEY = 'bibleReadingLog';
+
+        // Ported 1:1 from compute_streak() in main.py so local and server
+        // numbers never disagree once synced.
+        function computeStreakFromLog(readingLog) {
+            if (!readingLog || readingLog.length === 0) {
+                return { current_streak: 0, longest_streak: 0, last_read: null, total_days_read: 0 };
+            }
+            const uniqueDates = Array.from(new Set(readingLog)).sort();
+            const dates = uniqueDates.map((d) => new Date(d + 'T00:00:00Z'));
+            const msPerDay = 24 * 60 * 60 * 1000;
+
+            let longestStreak = 1;
+            let run = 1;
+            for (let i = 1; i < dates.length; i++) {
+                const diffDays = Math.round((dates[i] - dates[i - 1]) / msPerDay);
+                run = diffDays === 1 ? run + 1 : 1;
+                longestStreak = Math.max(longestStreak, run);
+            }
+
+            const lastRead = dates[dates.length - 1];
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const today = new Date(todayStr + 'T00:00:00Z');
+            const gapFromToday = Math.round((today - lastRead) / msPerDay);
+
+            let currentStreak;
+            if (gapFromToday > 1) {
+                currentStreak = 0;
+            } else {
+                currentStreak = 1;
+                for (let i = dates.length - 1; i > 0; i--) {
+                    const diffDays = Math.round((dates[i] - dates[i - 1]) / msPerDay);
+                    if (diffDays === 1) {
+                        currentStreak += 1;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            return {
+                current_streak: currentStreak,
+                longest_streak: longestStreak,
+                last_read: uniqueDates[uniqueDates.length - 1],
+                total_days_read: uniqueDates.length
+            };
+        }
+
+        function getLocalReadingLog() {
+            try {
+                return JSON.parse(localStorage.getItem(STREAK_LOG_KEY) || '[]');
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function addTodayToLocalLog() {
+            const log = getLocalReadingLog();
+            const today = new Date().toISOString().slice(0, 10);
+            if (!log.includes(today)) {
+                log.push(today);
+                localStorage.setItem(STREAK_LOG_KEY, JSON.stringify(log));
+            }
+            return computeStreakFromLog(log);
+        }
+
+        function renderStreakBadge(streak) {
+            if (!streak) return;
+            const isZero = streak.current_streak === 0 && streak.total_days_read === 0;
+            document.querySelectorAll('.streak-badge').forEach((badge) => {
+                badge.classList.toggle('streak-badge-zero', isZero);
+                if (isZero) {
+                    badge.innerHTML = '<span class="streak-badge-emoji">&#128214;</span>';
+                    badge.title = 'Read a chapter today to start your streak';
+                } else {
+                    badge.innerHTML = '<span class="streak-badge-emoji">&#128293;</span><span class="streak-badge-text">' + streak.current_streak + '</span>';
+                    badge.title = streak.current_streak + '-day reading streak';
+                }
+            });
+            document.querySelectorAll('.streak-popover-longest').forEach((el) => {
+                el.textContent = streak.longest_streak || 0;
+            });
+            document.querySelectorAll('.streak-popover-total').forEach((el) => {
+                el.textContent = streak.total_days_read || 0;
+            });
+        }
+
+        async function initStreakBadge() {
+            if (USER_AUTHENTICATED) {
+                try {
+                    const res = await fetch('/api/sync');
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.streak) {
+                            renderStreakBadge(data.streak);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    // fall through to local computation
+                }
+            }
+            renderStreakBadge(computeStreakFromLog(getLocalReadingLog()));
+        }
+
+        document.querySelectorAll('.streak-badge-wrapper').forEach((wrapper) => {
+            const badge = wrapper.querySelector('.streak-badge');
+            const popover = wrapper.querySelector('.streak-popover');
+            if (!badge || !popover) return;
+            badge.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.streak-popover.open').forEach((p) => {
+                    if (p !== popover) p.classList.remove('open');
+                });
+                popover.classList.toggle('open');
+            });
+        });
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.streak-popover.open').forEach((p) => p.classList.remove('open'));
+        });
+
+        initStreakBadge();
+
+        // Log today's read for the streak tracker once a chapter has
+        // actually rendered. Silent - no toast (routine background call).
+        async function logChapterRead() {
+            let streak;
+            if (USER_AUTHENTICATED) {
+                try {
+                    const res = await fetch('/api/log-reading', { method: 'POST' });
+                    if (res.status === 401) {
+                        streak = addTodayToLocalLog();
+                    } else {
+                        const data = await res.json();
+                        // Mirror today's date locally even on the success path, the
+                        // same way bookmarks/highlights are mirrored - so if the
+                        // server's copy is ever lost (e.g. a redeploy on a host
+                        // without persistent storage), the next Sync Now can
+                        // restore it from the browser instead of losing it for good.
+                        addTodayToLocalLog();
+                        streak = (data && data.streak) ? data.streak : computeStreakFromLog(getLocalReadingLog());
+                    }
+                } catch (e) {
+                    streak = addTodayToLocalLog();
+                }
+            } else {
+                streak = addTodayToLocalLog();
+            }
+            renderStreakBadge(streak);
+        }
+
+        if (typeof CHAPTER_NUM !== 'undefined' && CHAPTER_NUM) {
+            logChapterRead();
+        }
+
+        // ========== RECORD READING PROGRESS (powers Continue Reading) ==========
+        if (typeof BOOK_SLUG !== 'undefined' && typeof BOOK_NAME !== 'undefined' && typeof CHAPTER_NUM !== 'undefined' && CHAPTER_NUM) {
+            (function () {
+                try {
+                    const key = 'reading_progress_' + BOOK_SLUG + '_' + CHAPTER_NUM;
+                    localStorage.setItem(key, JSON.stringify({
+                        book: BOOK_NAME,
+                        slug: BOOK_SLUG,
+                        chapter: CHAPTER_NUM,
+                        timestamp: new Date().toISOString()
+                    }));
+                    // Keep only the 300 most recent entries so localStorage stays tidy
+                    const all = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k && k.startsWith('reading_progress_')) {
+                            try { all.push({ key: k, ts: JSON.parse(localStorage.getItem(k)).timestamp || '' }); } catch (e) {}
+                        }
+                    }
+                    if (all.length > 300) {
+                        all.sort(function (a, b) { return b.ts > a.ts ? 1 : -1; });
+                        all.slice(300).forEach(function (e) { localStorage.removeItem(e.key); });
+                    }
+                } catch (e) {}
+            })();
+        }
+
+        // Breadcrumb book switcher function
+        function navigateToBook(bookSlug) {
+            if (bookSlug) {
+                window.location.href = "/books/" + bookSlug;
+            }
+        }
+
+        // Sync function
+        function showSyncToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'sync-toast';
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'sync-alt'} me-2"></i>${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function getAllReadingProgress() {
+            const progress = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('reading_progress_')) {
+                    try {
+                        progress[key] = JSON.parse(localStorage.getItem(key));
+                    } catch (e) {}
+                }
+            }
+            return progress;
+        }
+        
+        async function syncNow() {
+            if (!USER_AUTHENTICATED) {
+                showSyncToast('Please sign in to sync your data', 'warning');
+                return;
+            }
+            
+            showSyncToast('Syncing your data...');
+            
+            try {
+                const localData = {
+                    bookmarks: JSON.parse(localStorage.getItem('bibleBookmarks') || '[]'),
+                    highlights: JSON.parse(localStorage.getItem('bibleHighlights') || '{}'),
+                    highlightColors: JSON.parse(localStorage.getItem('bibleHighlightColors') || '{}'),
+                    highlightLabels: JSON.parse(localStorage.getItem('bibleHighlightLabels') || '{}'),
+                    memoryState: JSON.parse(localStorage.getItem('bibleMemoryState') || '{}'),
+                    notes: JSON.parse(localStorage.getItem('bibleNotes') || '[]'),
+                    progress: getAllReadingProgress(),
+                    readingLog: JSON.parse(localStorage.getItem(STREAK_LOG_KEY) || '[]'),
+                    font_size: localStorage.getItem('bibleFontSize'),
+                    theme: localStorage.getItem('bibleAppTheme')
+                };
+                
+                const response = await fetch('/api/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(localData)
+                });
+                
+                if (response.ok) {
+                    const syncResponse = await fetch('/api/sync');
+                    const serverData = await syncResponse.json();
+                    
+                    if (serverData.bookmarks) {
+                        localStorage.setItem('bibleBookmarks', JSON.stringify(serverData.bookmarks));
+                        if (typeof updateBookmarksList === 'function') {
+                            bookmarks = serverData.bookmarks;
+                            updateBookmarksList();
+                            updateBookmarkCount();
+                            updateBookmarkButtons();
+                        }
+                    }
+                    if (serverData.highlights) {
+                        localStorage.setItem('bibleHighlights', JSON.stringify(serverData.highlights));
+                    }
+                    if (serverData.highlightColors) {
+                        localStorage.setItem('bibleHighlightColors', JSON.stringify(serverData.highlightColors));
+                    }
+                    if (serverData.highlightLabels) {
+                        localStorage.setItem('bibleHighlightLabels', JSON.stringify(serverData.highlightLabels));
+                    }
+                    if (serverData.memoryState) {
+                        localStorage.setItem('bibleMemoryState', JSON.stringify(serverData.memoryState));
+                    }
+                    if (serverData.notes) {
+                        localStorage.setItem('bibleNotes', JSON.stringify(serverData.notes));
+                    }
+                    if (serverData.readingLog) {
+                        localStorage.setItem(STREAK_LOG_KEY, JSON.stringify(serverData.readingLog));
+                        renderStreakBadge(computeStreakFromLog(serverData.readingLog));
+                    }
+                    if (serverData.font_size) {
+                        localStorage.setItem('bibleFontSize', serverData.font_size);
+                    }
+                    if (serverData.theme) {
+                        localStorage.setItem('bibleAppTheme', serverData.theme);
+                    }
+                    
+                    showSyncToast('Sync completed successfully!', 'success');
+                } else {
+                    showSyncToast('Sync failed. Please try again.', 'danger');
+                }
+            } catch (error) {
+                console.error('Sync error:', error);
+                showSyncToast('Sync failed. Please try again.', 'danger');
+            }
+        }
+
+        (function() {
+            // ========== DARK MODE (System preference aware) ==========
+            const themeToggle = document.getElementById('themeToggle');
+            const themeToggleMobile = document.getElementById('themeToggleMobile');
+            const themeIcon = document.getElementById('themeIcon');
+            const themeIconMobile = document.getElementById('themeIconMobile');
+            const htmlElement = document.documentElement;
+            
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            
+            if (savedTheme) {
+                htmlElement.setAttribute('data-theme', savedTheme);
+                updateThemeUI(savedTheme);
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const themeToApply = prefersDark ? 'dark' : 'light';
+                htmlElement.setAttribute('data-theme', themeToApply);
+                updateThemeUI(themeToApply);
+            }
+            
+            function toggleTheme() {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('bibleAppTheme', newTheme);
+                updateThemeUI(newTheme);
+            }
+            
+            function updateThemeUI(theme) {
+                if (themeIcon) {
+                    themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                    if (themeToggle) themeToggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+                }
+                if (themeIconMobile) {
+                    themeIconMobile.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                }
+            }
+            
+            if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+            if (themeToggleMobile) themeToggleMobile.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleTheme();
+            });
+            
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('bibleAppTheme')) {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    htmlElement.setAttribute('data-theme', newTheme);
+                    updateThemeUI(newTheme);
+                }
+            });
+
+            // ========== HELP BUTTON ==========
+            const helpButton = document.getElementById('helpDropdownLink');
+            
+            function goToHome(e) {
+                if (e) e.preventDefault();
+                window.location.href = "{{ url_for('main.index') }}";
+            }
+            
+            if (helpButton) helpButton.addEventListener('click', goToHome);
+
+            // ========== READING PROGRESS TRACKER ==========
+            const progressBar = document.getElementById('readingProgressBar');
+            
+            function updateReadingProgress() {
+                if (progressBar) {
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+                    const progress = (scrollTop / scrollHeight) * 100;
+                    progressBar.style.width = progress + '%';
+                }
+            }
+            
+            window.addEventListener('scroll', updateReadingProgress);
+            window.addEventListener('resize', updateReadingProgress);
+
+            // ========== FONT SIZE ADJUSTER ==========
+            const verseTexts = document.querySelectorAll('.verse-text');
+            const fontSizeIndicator = document.getElementById('fontSizeIndicator');
+            let currentFontSize = parseFloat(localStorage.getItem('bibleFontSize')) || 1.2;
+            const baseFontSize = 1.2;
+            
+            function updateFontSize() {
+                verseTexts.forEach(text => {
+                    text.style.fontSize = currentFontSize + 'rem';
+                });
+                localStorage.setItem('bibleFontSize', currentFontSize);
+                
+                const percentage = Math.round((currentFontSize / baseFontSize) * 100);
+                if (fontSizeIndicator) fontSizeIndicator.textContent = percentage + '%';
+            }
+            
+            document.getElementById('fontSizeUp')?.addEventListener('click', () => {
+                if (currentFontSize < 2.0) { currentFontSize += 0.1; updateFontSize(); }
+            });
+            
+            document.getElementById('fontSizeDown')?.addEventListener('click', () => {
+                if (currentFontSize > 0.9) { currentFontSize -= 0.1; updateFontSize(); }
+            });
+            
+            document.getElementById('fontSizeReset')?.addEventListener('click', () => {
+                currentFontSize = baseFontSize; updateFontSize();
+            });
+            
+            updateFontSize();
+
+            // ========== BOOKMARKS SYSTEM ==========
+            let bookmarks = JSON.parse(localStorage.getItem('bibleBookmarks')) || [];
+            const bookmarksPanel = document.getElementById('bookmarksPanel');
+            const bookmarksToggle = document.getElementById('bookmarksToggle');
+            const bookmarksList = document.getElementById('bookmarksList');
+            const bookmarkCount = document.getElementById('bookmarkCount');
+            
+            function saveBookmarks() {
+                localStorage.setItem('bibleBookmarks', JSON.stringify(bookmarks));
+                updateBookmarksList();
+                updateBookmarkCount();
+                updateBookmarkButtons();
+            }
+            
+            function addBookmark(verse, reference, text) {
+                const exists = bookmarks.find(b => b.reference === reference);
+                if (!exists) {
+                    bookmarks.push({
+                        id: Date.now(), verse, reference,
+                        text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+                        book: typeof BOOK_NAME !== 'undefined' ? BOOK_NAME : '',
+                        chapter: typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : 0,
+                        timestamp: new Date().toISOString()
+                    });
+                    saveBookmarks();
+                    showToast('Verse bookmarked!');
+                }
+            }
+            
+            function removeBookmark(id) {
+                bookmarks = bookmarks.filter(b => b.id !== id);
+                saveBookmarks();
+                showToast('Bookmark removed');
+            }
+            
+            function updateBookmarksList() {
+                if (!bookmarksList) return;
+                if (bookmarks.length === 0) {
+                    bookmarksList.innerHTML = '<p class="text-center text-muted p-3">No bookmarks yet. Click the bookmark icon on any verse to save it.</p>';
+                    return;
+                }
+                bookmarksList.innerHTML = bookmarks.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                    .map(bookmark => `
+                        <div class="bookmark-item" onclick="window.location.href='/books/${bookmark.book.toLowerCase().replace(/ /g, '-')}'; document.getElementById('chapterSelect').value='${bookmark.chapter}'; document.querySelector('form').submit();">
+                            <span class="delete-bookmark" onclick="event.stopPropagation(); removeBookmark(${bookmark.id})"><i class="fas fa-times"></i></span>
+                            <div class="bookmark-reference">${bookmark.reference}</div>
+                            <div class="bookmark-text">"${bookmark.text}"</div>
+                        </div>
+                    `).join('');
+            }
+            
+            function updateBookmarkCount() {
+                if (!bookmarkCount) return;
+                if (bookmarks.length > 0) {
+                    bookmarkCount.style.display = 'inline';
+                    bookmarkCount.textContent = bookmarks.length;
+                } else {
+                    bookmarkCount.style.display = 'none';
+                }
+            }
+            
+            function updateBookmarkButtons() {
+                document.querySelectorAll('.bookmark-btn').forEach(btn => {
+                    const reference = btn.dataset.reference;
+                    const isBookmarked = bookmarks.find(b => b.reference === reference);
+                    const icon = btn.querySelector('i');
+                    if (isBookmarked) {
+                        btn.classList.add('bookmarked');
+                        if (icon) icon.className = 'fas fa-bookmark';
+                    } else {
+                        btn.classList.remove('bookmarked');
+                        if (icon) icon.className = 'far fa-bookmark';
+                    }
+                });
+            }
+            
+            window.removeBookmark = removeBookmark;
+            
+            document.querySelectorAll('.bookmark-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const reference = btn.dataset.reference;
+                    const existingBookmark = bookmarks.find(b => b.reference === reference);
+                    if (existingBookmark) {
+                        removeBookmark(existingBookmark.id);
+                    } else {
+                        addBookmark(btn.dataset.verse, btn.dataset.reference, btn.dataset.text);
+                    }
+                });
+            });
+            
+            if (bookmarksToggle) {
+                bookmarksToggle.addEventListener('click', () => {
+                    if (bookmarksPanel) bookmarksPanel.classList.toggle('open');
+                });
+            }
+            
+            document.getElementById('closeBookmarksPanel')?.addEventListener('click', () => {
+                if (bookmarksPanel) bookmarksPanel.classList.remove('open');
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (bookmarksPanel && !bookmarksPanel.contains(e.target) && bookmarksToggle && !bookmarksToggle.contains(e.target)) {
+                    bookmarksPanel.classList.remove('open');
+                }
+            });
+            
+            if (typeof BOOK_NAME !== 'undefined') {
+                updateBookmarksList();
+                updateBookmarkCount();
+                updateBookmarkButtons();
+            }
+
+            // ========== VERSE HIGHLIGHTING (multi-color + labels) ==========
+            if (typeof BOOK_NAME !== 'undefined' && typeof CHAPTER_NUM !== 'undefined') {
+                let highlights = JSON.parse(localStorage.getItem('bibleHighlights')) || {};
+                let highlightColors = JSON.parse(localStorage.getItem('bibleHighlightColors')) || {};
+                let highlightLabels = JSON.parse(localStorage.getItem('bibleHighlightLabels')) || {};
+                const chapterKey = `${BOOK_NAME}_${CHAPTER_NUM}`;
+                let selectedColor = 'yellow'; // default highlight color
+                let selectedLabel = '';       // default: no label
+
+                const LABEL_META = {
+                    promise: { icon: 'fa-handshake', color: '#64b5f6' },
+                    warning: { icon: 'fa-triangle-exclamation', color: '#ff9800' },
+                    command: { icon: 'fa-scroll', color: '#9c27b0' },
+                    memorize: { icon: 'fa-brain', color: '#e91e63' },
+                    praise: { icon: 'fa-music', color: '#4caf50' },
+                };
+
+                function saveHighlights() {
+                    localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
+                    localStorage.setItem('bibleHighlightColors', JSON.stringify(highlightColors));
+                    localStorage.setItem('bibleHighlightLabels', JSON.stringify(highlightLabels));
+                }
+
+                function applyHighlightClass(el, color) {
+                    el.classList.remove('highlighted', 'hl-yellow', 'hl-green', 'hl-blue', 'hl-pink', 'hl-purple');
+                    if (color) el.classList.add('hl-' + color);
+                }
+
+                function setVerseColor(verseNum, color, save) {
+                    if (!highlightColors[chapterKey]) highlightColors[chapterKey] = {};
+                    if (color) {
+                        highlightColors[chapterKey][String(verseNum)] = color;
+                    } else {
+                        delete highlightColors[chapterKey][String(verseNum)];
+                    }
+                    if (!Object.keys(highlightColors[chapterKey]).length) delete highlightColors[chapterKey];
+                    if (save !== false) saveHighlights();
+                }
+
+                function setVerseLabel(verseNum, label, verseText, save) {
+                    if (!highlightLabels[chapterKey]) highlightLabels[chapterKey] = {};
+                    if (label) {
+                        highlightLabels[chapterKey][String(verseNum)] = {
+                            label: label,
+                            text: verseText,
+                            updated_at: new Date().toISOString()
+                        };
+                    } else {
+                        delete highlightLabels[chapterKey][String(verseNum)];
+                    }
+                    if (!Object.keys(highlightLabels[chapterKey]).length) delete highlightLabels[chapterKey];
+                    if (save !== false) saveHighlights();
+                }
+
+                function getVerseLabel(verseNum) {
+                    return ((highlightLabels[chapterKey] || {})[String(verseNum)] || {}).label || '';
+                }
+
+                function renderLabelBadge(verseNum) {
+                    const label = getVerseLabel(verseNum);
+                    const verseNumberEl = document.querySelector(`#verse-${verseNum} .verse-number`);
+                    if (!verseNumberEl) return;
+                    const existing = verseNumberEl.parentElement.querySelector('.verse-label-badge');
+                    if (existing) existing.remove();
+                    if (label && LABEL_META[label]) {
+                        const badge = document.createElement('span');
+                        badge.className = 'verse-label-badge';
+                        badge.title = label.charAt(0).toUpperCase() + label.slice(1);
+                        badge.innerHTML = `<i class="fas ${LABEL_META[label].icon}" style="color:${LABEL_META[label].color};"></i>`;
+                        verseNumberEl.parentElement.appendChild(badge);
+                    }
+                }
+
+                function handleVerseClick(verseElement, verseNum) {
+                    const chapterHighlights = highlights[chapterKey] || [];
+                    const isHighlighted = chapterHighlights.indexOf(verseNum) > -1;
+                    const verseText = (verseElement.querySelector('.verse-text') || {}).textContent || '';
+
+                    if (selectedColor === '') {
+                        // Eraser: remove highlight + label
+                        if (isHighlighted) {
+                            chapterHighlights.splice(chapterHighlights.indexOf(verseNum), 1);
+                            applyHighlightClass(verseElement, '');
+                            setVerseColor(verseNum, '', false);
+                        }
+                        if (getVerseLabel(verseNum)) {
+                            setVerseLabel(verseNum, '', '', false);
+                            renderLabelBadge(verseNum);
+                        }
+                    } else {
+                        if (!isHighlighted) {
+                            chapterHighlights.push(verseNum);
+                            applyHighlightClass(verseElement, selectedColor);
+                            setVerseColor(verseNum, selectedColor, false);
+                        }
+                        if (selectedLabel) {
+                            setVerseLabel(verseNum, selectedLabel, verseText, false);
+                            renderLabelBadge(verseNum);
+                        }
+                    }
+
+                    if (chapterHighlights.length > 0) {
+                        highlights[chapterKey] = chapterHighlights;
+                    } else {
+                        delete highlights[chapterKey];
+                    }
+                    saveHighlights();
+                }
+
+                // Restore highlights (with colors and label badges)
+                if (highlights[chapterKey]) {
+                    highlights[chapterKey].forEach(verseNum => {
+                        const verseElement = document.getElementById(`verse-${verseNum}`);
+                        if (verseElement) {
+                            const color = (highlightColors[chapterKey] || {})[String(verseNum)] || 'yellow';
+                            applyHighlightClass(verseElement, color);
+                        }
+                    });
+                }
+                Object.keys((highlightLabels[chapterKey] || {})).forEach(v => renderLabelBadge(v));
+
+                // Highlight color swatches
+                document.querySelectorAll('.hl-swatch').forEach(swatch => {
+                    swatch.addEventListener('click', () => {
+                        document.querySelectorAll('.hl-swatch').forEach(s => s.classList.remove('active'));
+                        swatch.classList.add('active');
+                        selectedColor = swatch.dataset.color;
+                    });
+                });
+
+                // Label chips
+                document.querySelectorAll('.hl-label-chip').forEach(chip => {
+                    chip.addEventListener('click', () => {
+                        document.querySelectorAll('.hl-label-chip').forEach(c => c.classList.remove('active'));
+                        chip.classList.add('active');
+                        selectedLabel = chip.dataset.label;
+                    });
+                });
+
+                document.querySelectorAll('.verse-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.closest('.bookmark-btn') && !e.target.closest('.verse-action-btn')) {
+                            handleVerseClick(item, parseInt(item.dataset.verse));
+                        }
+                    });
+                });
+            }
+
+            // ========== COMMENTARY TAB (Matthew Henry - public domain) ==========
+            if (typeof BOOK_SLUG !== 'undefined' && typeof CHAPTER_NUM !== 'undefined' && CHAPTER_NUM) {
+                const tabScripture = document.getElementById('tabScripture');
+                const tabCommentary = document.getElementById('tabCommentary');
+                const commentaryPanel = document.getElementById('commentaryPanel');
+                const commentaryLoading = document.getElementById('commentaryLoading');
+                const commentaryContent = document.getElementById('commentaryContent');
+                const commentaryEmpty = document.getElementById('commentaryEmpty');
+                const commentarySource = document.getElementById('commentarySource');
+                let commentaryLoaded = false;
+
+                function setTab(which) {
+                    const isCommentary = which === 'commentary';
+                    tabScripture.classList.toggle('btn-success', !isCommentary);
+                    tabScripture.classList.toggle('btn-outline-secondary', isCommentary);
+                    tabCommentary.classList.toggle('btn-success', isCommentary);
+                    tabCommentary.classList.toggle('btn-outline-secondary', !isCommentary);
+                    commentaryPanel.classList.toggle('d-none', !isCommentary);
+                    // show/hide the scripture tools + verses
+                    document.querySelectorAll('.verse-container > h3, .highlight-toolbar, #versesContainer, .copyright-notice, .chapter-navigation, .by-progress-meta').forEach(el => {});
+                    const scriptureEls = [document.getElementById('versesContainer'), document.querySelector('.highlight-toolbar')];
+                    scriptureEls.forEach(el => { if (el) el.style.display = isCommentary ? 'none' : ''; });
+                    if (isCommentary && !commentaryLoaded) loadCommentary();
+                }
+
+                function loadCommentary() {
+                    commentaryLoaded = true;
+                    commentaryLoading.classList.remove('d-none');
+                    commentaryEmpty.classList.add('d-none');
+                    commentaryContent.innerHTML = '';
+
+                    const cacheKey = 'mhcc_' + BOOK_SLUG + '_' + CHAPTER_NUM;
+                    const cached = localStorage.getItem(cacheKey);
+                    if (cached) {
+                        renderCommentary(JSON.parse(cached));
+                        return;
+                    }
+                    fetch('/api/commentary/' + BOOK_SLUG + '/' + CHAPTER_NUM)
+                        .then(function (res) { return res.json(); })
+                        .then(function (data) {
+                            localStorage.setItem(cacheKey, JSON.stringify(data));
+                            renderCommentary(data);
+                        })
+                        .catch(function () {
+                            commentaryLoading.classList.add('d-none');
+                            commentaryEmpty.classList.remove('d-none');
+                            commentaryEmpty.querySelector('p').textContent = 'Could not load the commentary. Please check your connection.';
+                        });
+                }
+
+                function renderCommentary(data) {
+                    commentaryLoading.classList.add('d-none');
+                    if (!data.available) {
+                        commentaryEmpty.classList.remove('d-none');
+                        return;
+                    }
+                    let html = '';
+                    if (data.outline) {
+                        const items = data.outline.split('\n').filter(function (l) { return l.trim(); });
+                        html += '<h6 style="font-family: Lora, serif;"><i class="fas fa-list me-2" style="color: var(--accent-text);"></i>Chapter Outline</h6><ul class="mb-4">' +
+                            items.map(function (i) { return '<li>' + i.replace(/^-\s*/, '') + '</li>'; }).join('') +
+                            '</ul>';
+                    }
+                    (data.sections || []).forEach(function (sec) {
+                        const paragraphs = sec.text.split('\n').filter(function (p) { return p.trim(); });
+                        html += '<h6 class="mt-3" style="font-family: Lora, serif; color: var(--text-secondary);">' + sec.title + '</h6>' +
+                            paragraphs.map(function (p) { return '<p style="line-height:1.9;">' + p + '</p>'; }).join('');
+                    });
+                    commentaryContent.innerHTML = html;
+                    commentarySource.innerHTML = '<i class="fas fa-book me-1"></i>' + (data.source || '');
+                }
+
+                tabScripture.addEventListener('click', function () { setTab('scripture'); });
+                tabCommentary.addEventListener('click', function () { setTab('commentary'); });
+            }
+
+            // ========== IN-CHAPTER VERSE FILTER ==========
+            const chapterFilterInput = document.getElementById('chapterFilterInput');
+            if (chapterFilterInput) {
+                chapterFilterInput.addEventListener('input', () => {
+                    const q = chapterFilterInput.value.trim().toLowerCase();
+                    document.querySelectorAll('#versesContainer .verse-item').forEach(item => {
+                        const text = (item.querySelector('.verse-text') || {}).textContent || '';
+                        item.style.display = (!q || text.toLowerCase().includes(q)) ? '' : 'none';
+                    });
+                });
+            }
+
+            // ========== PERSONAL VERSE NOTES ==========
+            let notes = JSON.parse(localStorage.getItem('bibleNotes')) || [];
+            const notesPanel = document.getElementById('notesPanel');
+            const notesToggle = document.getElementById('notesToggle');
+            const notesList = document.getElementById('notesList');
+            const noteCount = document.getElementById('noteCount');
+            const noteEditor = document.getElementById('noteEditor');
+            const noteEditorRef = document.getElementById('noteEditorRef');
+            const noteEditorText = document.getElementById('noteEditorText');
+            let editingNoteRef = null;
+
+            function saveNotes() {
+                localStorage.setItem('bibleNotes', JSON.stringify(notes));
+                updateNotesList();
+                updateNoteCount();
+                updateNoteButtons();
+            }
+
+            function updateNoteCount() {
+                if (!noteCount) return;
+                if (notes.length > 0) {
+                    noteCount.style.display = 'inline';
+                    noteCount.textContent = notes.length;
+                } else {
+                    noteCount.style.display = 'none';
+                }
+            }
+
+            function escapeHtml(s) {
+                const div = document.createElement('div');
+                div.textContent = s == null ? '' : String(s);
+                return div.innerHTML;
+            }
+
+            function updateNotesList() {
+                if (!notesList) return;
+                if (notes.length === 0) {
+                    notesList.innerHTML = '<p class="text-center text-muted p-3">No notes yet. Click the pen icon on any verse to write your thoughts.</p>';
+                    return;
+                }
+                notesList.innerHTML = notes.sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+                    .map(n => `
+                        <div class="note-item">
+                            <div class="note-reference">
+                                <span>${escapeHtml(n.reference)}</span>
+                                <span class="note-actions">
+                                    <button class="note-edit" data-ref="${escapeHtml(n.reference)}" title="Edit"><i class="fas fa-edit"></i></button>
+                                    <button class="note-del" data-id="${escapeHtml(n.id)}" title="Delete"><i class="fas fa-trash"></i></button>
+                                </span>
+                            </div>
+                            <div class="note-text">${escapeHtml(n.text)}</div>
+                            <div class="note-date"><i class="far fa-clock me-1"></i>${escapeHtml((n.updated_at || n.created_at || '').slice(0, 10))}</div>
+                        </div>
+                    `).join('');
+
+                notesList.querySelectorAll('.note-del').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        notes = notes.filter(n => n.id !== btn.dataset.id);
+                        saveNotes();
+                        showToast('Note deleted');
+                    });
+                });
+                notesList.querySelectorAll('.note-edit').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        openNoteEditor(btn.dataset.ref);
+                    });
+                });
+            }
+
+            function updateNoteButtons() {
+                document.querySelectorAll('.note-btn').forEach(btn => {
+                    const ref = btn.dataset.reference;
+                    const has = notes.some(n => n.reference === ref);
+                    btn.classList.toggle('has-note', has);
+                    btn.title = has ? 'Edit note' : 'Add a note';
+                });
+            }
+
+            function openNoteEditor(reference) {
+                editingNoteRef = reference;
+                const existing = notes.find(n => n.reference === reference);
+                noteEditorRef.textContent = reference;
+                noteEditorText.value = existing ? existing.text : '';
+                noteEditor.style.display = 'block';
+                document.getElementById('noteDeleteBtn').style.display = existing ? '' : 'none';
+                noteEditorText.focus();
+            }
+
+            function closeNoteEditor() {
+                noteEditor.style.display = 'none';
+                editingNoteRef = null;
+            }
+
+            document.getElementById('noteSaveBtn')?.addEventListener('click', () => {
+                const text = noteEditorText.value.trim();
+                if (!text || !editingNoteRef) { showToast('Write something first!'); return; }
+                const existing = notes.find(n => n.reference === editingNoteRef);
+                if (existing) {
+                    existing.text = text;
+                    existing.updated_at = new Date().toISOString();
+                } else {
+                    notes.push({
+                        id: Date.now(),
+                        reference: editingNoteRef,
+                        text: text,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    });
+                }
+                saveNotes();
+                closeNoteEditor();
+                showToast('Note saved!');
+            });
+
+            document.getElementById('noteDeleteBtn')?.addEventListener('click', () => {
+                notes = notes.filter(n => n.reference !== editingNoteRef);
+                saveNotes();
+                closeNoteEditor();
+                showToast('Note deleted');
+            });
+
+            document.getElementById('noteEditorClose')?.addEventListener('click', closeNoteEditor);
+
+            if (notesToggle) {
+                notesToggle.addEventListener('click', () => {
+                    notesPanel.classList.toggle('open');
+                    if (bookmarksPanel) bookmarksPanel.classList.remove('open');
+                });
+            }
+            document.getElementById('closeNotesPanel')?.addEventListener('click', () => {
+                if (notesPanel) notesPanel.classList.remove('open');
+            });
+
+            document.querySelectorAll('.note-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    openNoteEditor(btn.dataset.reference);
+                    if (notesPanel) notesPanel.classList.add('open');
+                });
+            });
+
+            document.querySelectorAll('.share-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (window.MPB && MPB.shareVerse) {
+                        MPB.shareVerse(btn.dataset.reference, btn.dataset.text);
+                    }
+                });
+            });
+
+            if (typeof BOOK_NAME !== 'undefined') {
+                updateNotesList();
+                updateNoteCount();
+                updateNoteButtons();
+            }
+
+            // ========== QUICK REFERENCE JUMP ==========
+            const quickRefInput = document.getElementById('quickRefInput');
+            const quickRefGoBtn = document.getElementById('quickRefGoBtn');
+            if (quickRefGoBtn && quickRefInput) {
+                quickRefGoBtn.addEventListener('click', () => {
+                    if (window.MPB && MPB.jumpToReference) MPB.jumpToReference(quickRefInput.value);
+                });
+                quickRefInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (window.MPB && MPB.jumpToReference) MPB.jumpToReference(quickRefInput.value);
+                    }
+                });
+            }
+
+            // ========== SCROLL TO REQUESTED VERSE (from quick jump) ==========
+            (function () {
+                const params = new URLSearchParams(window.location.search);
+                const verseParam = params.get('verse');
+                if (verseParam && typeof BOOK_NAME !== 'undefined') {
+                    setTimeout(() => {
+                        const target = document.getElementById('verse-' + verseParam);
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            target.style.boxShadow = '0 0 0 3px var(--accent-primary)';
+                            setTimeout(() => { target.style.boxShadow = ''; }, 3000);
+                        }
+                    }, 600);
+                }
+            })();
+
+            // ========== OFFLINE SUPPORT (Service Worker) ==========
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js').catch(() => {});
+                });
+            }
+
+            // ========== TOAST NOTIFICATION ==========
+            function showToast(message) {
+                const toast = document.createElement('div');
+                toast.className = 'toast-notification';
+                toast.innerHTML = `<i class="fas fa-check-circle me-2" style="color: var(--accent-text);"></i>${message}`;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            }
+
+            // ========== CHAPTER NAVIGATION ==========
+            if (typeof CHAPTER_NUM !== 'undefined' && typeof MAX_CHAPTERS !== 'undefined') {
+                document.getElementById('prevChapterBtn')?.addEventListener('click', () => {
+                    if (CHAPTER_NUM > 1) {
+                        document.getElementById('chapterNavInput').value = CHAPTER_NUM - 1;
+                        document.getElementById('chapterNavForm').submit();
+                    }
+                });
+                
+                document.getElementById('nextChapterBtn')?.addEventListener('click', () => {
+                    if (CHAPTER_NUM < MAX_CHAPTERS) {
+                        document.getElementById('chapterNavInput').value = CHAPTER_NUM + 1;
+                        document.getElementById('chapterNavForm').submit();
+                    }
+                });
+                
+                if (CHAPTER_NUM <= 1) {
+                    const prevBtn = document.getElementById('prevChapterBtn');
+                    if (prevBtn) prevBtn.disabled = true;
+                }
+                if (CHAPTER_NUM >= MAX_CHAPTERS) {
+                    const nextBtn = document.getElementById('nextChapterBtn');
+                    if (nextBtn) nextBtn.disabled = true;
+                }
+            }
+
+            // ========== VERSE JUMP ==========
+            const verseSelect = document.getElementById('verseSelect');
+            if (verseSelect) {
+                verseSelect.addEventListener('change', function() {
+                    const verse = this.value;
+                    if (verse) {
+                        const element = document.getElementById('verse-' + verse);
+                        if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+            }
+
+            // ========== AUDIO PLAYER (Web Speech API) ==========
+            const speechSynth = window.speechSynthesis;
+            let speechUtterance = null;
+            let isPaused = false;
+            let isSpeechPlaying = false;
+            let speechQueue = [];
+            let currentChunkIndex = 0;
+            let estimatedDuration = 0;
+            let speechStartTime = 0;
+            let pausedAt = 0;
+            let isDownloading = false;
+            let progressTimer = null;
+            let currentSpeed = 1.0;
+            let currentText = '';
+
+            const playBtn = document.getElementById('audioPlayBtn');
+            const skipBackBtn = document.getElementById('skipBackBtn');
+            const skipForwardBtn = document.getElementById('skipForwardBtn');
+            const downloadBtn = document.getElementById('audioDownloadBtn');
+            const progressContainer = document.getElementById('audioProgressContainer');
+            const audioProgress = document.getElementById('audioProgress');
+            const currentTimeSpan = document.getElementById('audioCurrentTime');
+            const durationSpan = document.getElementById('audioDuration');
+            const speedOptions = document.querySelectorAll('.speed-option');
+
+            function formatTime(seconds) {
+                if (isNaN(seconds) || seconds < 0) seconds = 0;
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            function estimateSpeakingTime(text) {
+                const words = text.trim().split(/\s+/).length;
+                return (words / 150) * 60;
+            }
+
+            function chunkTextForSpeech(text) {
+                const maxChunkSize = 200;
+                const chunks = [];
+                const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+                let currentChunk = '';
+                for (const sentence of sentences) {
+                    if ((currentChunk + ' ' + sentence).length > maxChunkSize && currentChunk) {
+                        chunks.push(currentChunk.trim());
+                        currentChunk = sentence;
+                    } else {
+                        currentChunk += (currentChunk ? ' ' : '') + sentence;
+                    }
+                }
+                if (currentChunk) chunks.push(currentChunk.trim());
+                return chunks.length ? chunks : [text];
+            }
+
+            function stopSpeech() {
+                if (speechSynth) {
+                    speechSynth.cancel();
+                }
+                speechUtterance = null;
+                isSpeechPlaying = false;
+                isPaused = false;
+                speechQueue = [];
+                currentChunkIndex = 0;
+                stopProgressTimer();
+            }
+
+            function updatePlayButtonState() {
+                if (playBtn) {
+                    const chapterNum = typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : '';
+                    if (isSpeechPlaying && !isPaused) {
+                        playBtn.innerHTML = '<i class="fas fa-pause me-2"></i>Pause Chapter ' + chapterNum;
+                        playBtn.classList.remove('btn-success');
+                        playBtn.classList.add('btn-warning');
+                    } else if (isPaused) {
+                        playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Resume Chapter ' + chapterNum;
+                        playBtn.classList.remove('btn-warning');
+                        playBtn.classList.add('btn-success');
+                    } else {
+                        playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Play Chapter ' + chapterNum;
+                        playBtn.classList.remove('btn-warning');
+                        playBtn.classList.add('btn-success');
+                    }
+                    playBtn.disabled = false;
+                }
+            }
+
+            function updateSpeechProgress() {
+                if (isSpeechPlaying && !isPaused && estimatedDuration > 0) {
+                    const elapsed = (Date.now() - speechStartTime) / 1000;
+                    let currentTime = pausedAt + elapsed;
+                    if (currentTime > estimatedDuration) currentTime = estimatedDuration;
+                    const percent = (currentTime / estimatedDuration) * 100;
+                    if (audioProgress) audioProgress.style.width = Math.min(percent, 100) + '%';
+                    if (currentTimeSpan) currentTimeSpan.textContent = formatTime(currentTime);
+                }
+            }
+
+            function startProgressTimer() {
+                if (progressTimer) clearInterval(progressTimer);
+                progressTimer = setInterval(updateSpeechProgress, 100);
+            }
+
+            function stopProgressTimer() {
+                if (progressTimer) { 
+                    clearInterval(progressTimer); 
+                    progressTimer = null; 
+                }
+            }
+
+            function speakNextChunk() {
+                if (!isSpeechPlaying || isPaused) return;
+                if (currentChunkIndex < speechQueue.length) {
+                    const chunk = speechQueue[currentChunkIndex];
+                    speechUtterance = new SpeechSynthesisUtterance(chunk);
+                    speechUtterance.rate = currentSpeed;
+                    speechUtterance.pitch = 1.0;
+                    speechUtterance.volume = 1.0;
+
+                    // Pick a voice matching the selected version's language
+                    const versionId = (typeof SELECTED_VERSION !== 'undefined') ? SELECTED_VERSION : 'en-kjv';
+                    let langCode = 'en-US';
+                    if (versionId.startsWith('fr')) langCode = 'fr-FR';
+                    else if (versionId.startsWith('yo')) langCode = 'yo-NG';
+                    else if (versionId.startsWith('ro')) langCode = 'ro-RO';
+                    else if (versionId.startsWith('pt')) langCode = 'pt-BR';
+                    speechUtterance.lang = langCode;
+
+                    const voices = speechSynth.getVoices();
+                    const matchingVoice = voices.find(v => v.lang === langCode && v.name.includes('Google')) ||
+                                          voices.find(v => v.lang === langCode) ||
+                                          voices.find(v => v.lang.startsWith(langCode.slice(0, 2))) ||
+                                          voices.find(v => v.lang === 'en-US');
+                    if (matchingVoice) speechUtterance.voice = matchingVoice;
+                    
+                    speechUtterance.onstart = () => { speechStartTime = Date.now(); };
+                    speechUtterance.onend = () => {
+                        currentChunkIndex++;
+                        if (currentChunkIndex < speechQueue.length && isSpeechPlaying && !isPaused) {
+                            speakNextChunk();
+                        } else if (currentChunkIndex >= speechQueue.length) {
+                            isSpeechPlaying = false;
+                            isPaused = false;
+                            stopProgressTimer();
+                            updatePlayButtonState();
+                            if (audioProgress) audioProgress.style.width = '0%';
+                            if (currentTimeSpan) currentTimeSpan.textContent = '0:00';
+                        }
+                    };
+                    speechUtterance.onerror = (e) => {
+                        console.log('Speech error:', e.error);
+                        if (e.error !== 'interrupted' && e.error !== 'canceled') {
+                            currentChunkIndex++;
+                            if (isSpeechPlaying && !isPaused) speakNextChunk();
+                        }
+                    };
+                    speechSynth.speak(speechUtterance);
+                }
+            }
+
+            function initSpeech() {
+                return new Promise((resolve) => {
+                    if (speechSynth.getVoices().length) resolve();
+                    else speechSynth.onvoiceschanged = () => resolve();
+                });
+            }
+
+            async function playChapterAudio() {
+                if (typeof CHAPTER_TEXT === 'undefined' || !CHAPTER_TEXT) {
+                    alert('No chapter text loaded');
+                    return;
+                }
+
+                if (isSpeechPlaying && !isPaused) {
+                    speechSynth.pause();
+                    isPaused = true;
+                    pausedAt += (Date.now() - speechStartTime) / 1000;
+                    stopProgressTimer();
+                    updatePlayButtonState();
+                    return;
+                }
+                
+                if (isSpeechPlaying && isPaused) {
+                    speechSynth.cancel();
+                    
+                    const currentChunk = speechQueue[currentChunkIndex];
+                    const wordsPerSecond = 150 * currentSpeed;
+                    const wordsElapsed = Math.floor((pausedAt * wordsPerSecond) / 60);
+                    const words = currentChunk.split(' ');
+                    const startWord = Math.min(wordsElapsed, words.length - 1);
+                    const remainingCurrentChunk = words.slice(startWord).join(' ');
+                    
+                    const newQueue = [remainingCurrentChunk, ...speechQueue.slice(currentChunkIndex + 1)].filter(c => c.trim());
+                    speechQueue = newQueue;
+                    currentChunkIndex = 0;
+                    
+                    isPaused = false;
+                    speechStartTime = Date.now();
+                    estimatedDuration = estimateSpeakingTime(speechQueue.join(' ')) / currentSpeed;
+                    
+                    speakNextChunk();
+                    startProgressTimer();
+                    updatePlayButtonState();
+                    return;
+                }
+                
+                stopSpeech();
+                currentText = CHAPTER_TEXT;
+                
+                try {
+                    await initSpeech();
+                    speechQueue = chunkTextForSpeech(CHAPTER_TEXT);
+                    currentChunkIndex = 0;
+                    estimatedDuration = estimateSpeakingTime(CHAPTER_TEXT) / currentSpeed;
+                    if (durationSpan) durationSpan.textContent = formatTime(estimatedDuration);
+                    
+                    isSpeechPlaying = true;
+                    isPaused = false;
+                    pausedAt = 0;
+                    speechStartTime = Date.now();
+                    
+                    speakNextChunk();
+                    startProgressTimer();
+                    updatePlayButtonState();
+                } catch (error) {
+                    console.error('Speech error:', error);
+                    alert('Speech synthesis failed. Please try again.');
+                    isSpeechPlaying = false;
+                    updatePlayButtonState();
+                }
+            }
+
+            async function downloadChapterAudio() {
+                if (typeof CHAPTER_TEXT === 'undefined' || !CHAPTER_TEXT) {
+                    alert('No chapter text loaded');
+                    return;
+                }
+                if (isDownloading) { 
+                    alert('Download already in progress'); 
+                    return; 
+                }
+
+                isDownloading = true;
+                if (downloadBtn) downloadBtn.disabled = true;
+                const originalHtml = downloadBtn ? downloadBtn.innerHTML : '';
+                if (downloadBtn) downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i><span style="color: var(--text-primary);">Generating MP3...</span>';
+
+                try {
+                    const filename = `${typeof BOOK_SLUG !== 'undefined' ? BOOK_SLUG : 'bible'}_Chapter${typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : ''}.mp3`;
+                    const response = await fetch('/api/download-audio', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: CHAPTER_TEXT, filename })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to generate audio');
+                    }
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; 
+                    a.download = filename;
+                    document.body.appendChild(a); 
+                    a.click(); 
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+
+                    if (downloadBtn) {
+                        downloadBtn.innerHTML = '<i class="fas fa-check me-2"></i><span style="color: var(--text-primary);">Downloaded!</span>';
+                        setTimeout(() => { downloadBtn.innerHTML = originalHtml; }, 3000);
+                    }
+                } catch (error) {
+                    console.error('Download error:', error);
+                    alert('Failed to download audio: ' + error.message);
+                    if (downloadBtn) downloadBtn.innerHTML = originalHtml;
+                } finally {
+                    if (downloadBtn) downloadBtn.disabled = false;
+                    isDownloading = false;
+                }
+            }
+
+            function seekTo(seconds) {
+                if (isSpeechPlaying) {
+                    const targetTime = Math.max(0, Math.min(seconds, estimatedDuration));
+                    const progress = targetTime / estimatedDuration;
+                    const targetChunk = Math.floor(progress * speechQueue.length);
+                    speechSynth.cancel();
+                    currentChunkIndex = Math.min(targetChunk, speechQueue.length - 1);
+                    pausedAt = targetTime;
+                    if (!isPaused) { 
+                        speechStartTime = Date.now(); 
+                        speakNextChunk(); 
+                    }
+                    updateSpeechProgress();
+                }
+            }
+
+            function skipSeconds(seconds) {
+                if (isSpeechPlaying && estimatedDuration > 0) {
+                    const currentTime = isPaused ? pausedAt : (pausedAt + (Date.now() - speechStartTime) / 1000);
+                    seekTo(currentTime + seconds);
+                }
+            }
+
+            if (playBtn) playBtn.addEventListener('click', playChapterAudio);
+            if (skipBackBtn) skipBackBtn.addEventListener('click', () => skipSeconds(-10));
+            if (skipForwardBtn) skipForwardBtn.addEventListener('click', () => skipSeconds(10));
+            
+            if (progressContainer) {
+                progressContainer.addEventListener('click', (e) => {
+                    if (isSpeechPlaying && estimatedDuration > 0) {
+                        const rect = progressContainer.getBoundingClientRect();
+                        const percent = (e.clientX - rect.left) / rect.width;
+                        seekTo(percent * estimatedDuration);
+                    }
+                });
+            }
+            
+            if (downloadBtn) downloadBtn.addEventListener('click', downloadChapterAudio);
+            
+            speedOptions.forEach(option => {
+                option.addEventListener('change', () => {
+                    const newSpeed = parseFloat(option.value);
+                    currentSpeed = newSpeed;
+                    
+                    if (speechUtterance && isSpeechPlaying) {
+                        speechSynth.cancel();
+                        
+                        const currentChunk = speechQueue[currentChunkIndex];
+                        const elapsedTime = isPaused ? pausedAt : (pausedAt + (Date.now() - speechStartTime) / 1000);
+                        const chunkDuration = estimateSpeakingTime(currentChunk) / (speechUtterance?.rate || 1.0);
+                        const progressInChunk = Math.min(elapsedTime / chunkDuration, 0.99);
+                        
+                        const words = currentChunk.split(' ');
+                        const wordsSpoken = Math.floor(words.length * progressInChunk);
+                        const remainingCurrentChunk = words.slice(wordsSpoken).join(' ');
+                        
+                        const newQueue = [remainingCurrentChunk, ...speechQueue.slice(currentChunkIndex + 1)].filter(c => c.trim());
+                        speechQueue = newQueue;
+                        currentChunkIndex = 0;
+                        
+                        estimatedDuration = estimateSpeakingTime(speechQueue.join(' ')) / currentSpeed;
+                        if (durationSpan) durationSpan.textContent = formatTime(estimatedDuration);
+                        
+                        if (!isPaused) {
+                            speechStartTime = Date.now();
+                            speakNextChunk();
+                        }
+                    } else if (speechUtterance) {
+                        speechUtterance.rate = currentSpeed;
+                    }
+                    
+                    showToast(`Playback speed set to ${newSpeed}x`);
+                });
+            });
+
+            window.addEventListener('beforeunload', () => { 
+                if (speechSynth) speechSynth.cancel(); 
+            });
+            if (speechSynth) speechSynth.getVoices();
+
+            updateReadingProgress();
+            
+            // Auto-sync if authenticated
+            if (USER_AUTHENTICATED) {
+                window.addEventListener('load', () => {
+                    setTimeout(() => {
+                        syncNow();
+                    }, 2000);
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

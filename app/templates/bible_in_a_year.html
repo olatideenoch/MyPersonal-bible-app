@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Prevent theme flash on page load - MUST be first -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Follow a 365-day Bible in a Year reading plan in MyPersonal Bible. Track your daily progress and never lose your place.">
+    <meta name="keywords" content="Bible in a year, Bible reading plan, daily Bible reading, Christian app, scripture reading tracker">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="MyPersonal Bible">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Bible in a Year - MyPersonal Bible">
+    <meta property="og:description" content="Follow a 365-day Bible in a Year reading plan and track your daily progress.">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="{{ url_for('static', filename='img/app-icon.jpg', _external=True) }}">
+    <meta property="og:site_name" content="MyPersonal Bible">
+    <link rel="canonical" href="{{ request.url }}">
+    
+    <!-- Favicon & App Icons -->
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    
+    <!-- PWA / Mobile -->
+    <meta name="theme-color" content="#3d2205">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title>Bible in a Year - MyPersonal Bible</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+        /* Light mode (default) variables */
+        :root {
+            --bg-primary: #faf6ee;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f2e8d0;
+            --text-primary: #1a0f00;
+            --text-secondary: #6b3f12;
+            --text-muted: #8a7256;
+            --accent-primary: #c9923a;
+            --accent-secondary: #9a6a1e;
+            --accent-text: #9a6a1e;
+            --accent-contrast: #ffffff; /* WCAG-safe gold for text/filled-buttons in light mode */
+            --card-bg: #ffffff;
+            --card-shadow: 0 10px 30px rgba(26,15,0,0.08);
+            --border-color: rgba(201, 146, 58, 0.15);
+            --navbar-bg: rgba(250, 246, 238, 0.95);
+            --footer-bg: #3d2205;
+            --footer-text: #e8d9bd;
+            --hero-overlay: linear-gradient(rgba(61, 34, 5, 0.75), rgba(154, 106, 30, 0.75));
+            --input-bg: #ffffff;
+            --input-border: #d8c7a1;
+            --btn-light-bg: #f2e8d0;
+            --btn-light-border: #e0d0ad;
+            --section-bg: #ffffff;
+            --filter-tab-bg: rgba(201, 146, 58, 0.08);
+            --filter-tab-active-bg: #9a6a1e;
+            --filter-tab-active-text: #ffffff;
+            --filter-search-bg: #ffffff;
+            --filter-search-border: rgba(201, 146, 58, 0.35);
+            --filter-card-bg: #ffffff;
+            --filter-count-color: #8a7256;
+            --btn-primary-bg: #9a6a1e;
+            --btn-primary-text: #ffffff;
+            --btn-primary-hover: #7d5518;
+            --btn-success-bg: #c9923a;
+            --btn-success-text: #1a0f00;
+            --btn-success-hover: #b17f2f;
+        }
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --bg-primary: #1a0f00;
+            --bg-secondary: #2a1a08;
+            --bg-tertiary: #3d2205;
+            --text-primary: #f2e8d0;
+            --text-secondary: #e8b86a;
+            --text-muted: #b8a082;
+            --accent-primary: #e8b86a;
+            --accent-secondary: #6b3f12;
+            --accent-text: #e8b86a;
+            --accent-contrast: #1a0f00; /* unchanged from --accent-primary in dark mode */
+            --card-bg: #2a1a08;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            --border-color: rgba(232, 184, 106, 0.2);
+            --navbar-bg: rgba(26, 15, 0, 0.95);
+            --footer-bg: #0f0800;
+            --footer-text: #b8a082;
+            --hero-overlay: linear-gradient(rgba(26, 15, 0, 0.85), rgba(154, 106, 30, 0.75));
+            --input-bg: #1a0f00;
+            --input-border: #6b3f12;
+            --btn-light-bg: #2a1a08;
+            --btn-light-border: #6b3f12;
+            --section-bg: #1a0f00;
+            --filter-tab-bg: rgba(232, 184, 106, 0.1);
+            --filter-tab-active-bg: #e8b86a;
+            --filter-tab-active-text: #1a0f00;
+            --filter-search-bg: #1a0f00;
+            --filter-search-border: rgba(232, 184, 106, 0.35);
+            --filter-card-bg: #2a1a08;
+            --filter-count-color: #b8a082;
+            --btn-primary-bg: #6b3f12;
+            --btn-primary-text: #f2e8d0;
+            --btn-primary-hover: #86541c;
+            --btn-success-bg: #e8b86a;
+            --btn-success-text: #1a0f00;
+            --btn-success-hover: #dba84f;
+        }
+        
+        /* Google Sign-In Button Styling */
+        .google-signin-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            text-decoration: none;
+        }
+        
+        .google-signin-btn:hover {
+            background: var(--accent-text);
+            color: var(--accent-contrast);
+            border-color: var(--accent-text);
+        }
+        
+        .user-profile-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 30px;
+            padding: 5px 12px 5px 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .user-profile-btn:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .user-profile-btn img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-primary);
+        }
+        
+        /* Sync Toast Notification */
+        .sync-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            z-index: 2000;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                bottom: -50px;
+                opacity: 0;
+            }
+            to {
+                bottom: 20px;
+                opacity: 1;
+            }
+        }
+        
+        /* App Icon Styling */
+        .navbar-brand img {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .navbar-brand:hover img {
+            transform: scale(1.05);
+        }
+        
+        [data-theme="dark"] .navbar-brand img {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.2s ease;
+        }
+
+        body {
+            font-family: 'Crimson Text', serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background-color: var(--navbar-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--card-shadow);
+        }
+        
+        .navbar-brand {
+            font-family: 'Lora', serif;
+            font-size: 1.8rem;
+            color: var(--text-secondary) !important;
+        }
+        
+        .nav-link {
+            color: var(--text-primary) !important;
+        }
+        
+        .nav-link:hover {
+            color: var(--accent-text) !important;
+        }
+
+        /* APK Download nav item styling */
+        .nav-link.apk-download-link {
+            color: var(--accent-text) !important;
+            font-weight: 600;
+        }
+        
+        .nav-link.apk-download-link:hover {
+            color: var(--text-secondary) !important;
+        }
+        
+        .nav-link.apk-download-link i {
+            color: var(--accent-text);
+        }
+        
+        .hero {
+            background: var(--hero-overlay), url('../static/img/bg.jpg') no-repeat center/cover;
+            color: white;
+            padding: 120px 0;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-family: 'Lora', serif;
+            font-size: 4rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .hero p {
+            font-size: 1.4rem;
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0.95;
+        }
+        
+        .section-title {
+            font-family: 'Lora', serif;
+            color: var(--text-secondary);
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title::after {
+            content: '';
+            width: 60px;
+            height: 3px;
+            background: var(--accent-primary);
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .verse-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .verse-text {
+            font-size: 1.8rem;
+            line-height: 2;
+            font-style: italic;
+            color: var(--text-primary);
+        }
+        
+        .reference {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--accent-text);
+            margin-top: 30px;
+        }
+        
+        .search-form {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        footer {
+            background: var(--footer-bg);
+            color: var(--footer-text);
+            padding: 50px 0 30px;
+            margin-top: 100px;
+        }
+        
+        footer a {
+            color: var(--footer-text);
+            text-decoration: none;
+        }
+
+        /* Form controls */
+        .form-control,
+        .form-select,
+        .input-group-text {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-primary);
+        }
+        
+        .form-control:focus,
+        .form-select:focus {
+            background-color: var(--input-bg);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
+        }
+        
+        .form-control::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+        
+        .input-group-text {
+            color: var(--text-muted);
+            background-color: var(--bg-tertiary);
+        }
+        
+        .btn-light {
+            background-color: var(--btn-light-bg);
+            border-color: var(--btn-light-border);
+            color: var(--text-primary);
+        }
+        
+        .btn-outline-secondary {
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+        
+        .btn-outline-secondary:hover {
+            background-color: var(--accent-text);
+            border-color: var(--accent-text);
+        }
+        
+        .btn-primary {
+            background-color: var(--btn-primary-bg);
+            border-color: var(--btn-primary-bg);
+            color: var(--btn-primary-text);
+        }
+        
+        .btn-primary:hover,
+        .btn-primary:focus,
+        .btn-primary:active {
+            background-color: var(--btn-primary-hover) !important;
+            border-color: var(--btn-primary-hover) !important;
+            color: var(--btn-primary-text) !important;
+        }
+        
+        .btn-primary:focus {
+            box-shadow: 0 0 0 0.25rem rgba(154, 106, 30, 0.35);
+        }
+        
+        .btn-success {
+            background-color: var(--btn-success-bg);
+            border-color: var(--btn-success-bg);
+            color: var(--btn-success-text);
+        }
+        
+        .btn-success:hover,
+        .btn-success:focus,
+        .btn-success:active {
+            background-color: var(--btn-success-hover) !important;
+            border-color: var(--btn-success-hover) !important;
+            color: var(--btn-success-text) !important;
+        }
+        
+        .btn-success:focus {
+            box-shadow: 0 0 0 0.25rem rgba(201, 146, 58, 0.35);
+        }
+        
+        .dropdown-menu {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+        }
+        
+        .dropdown-item {
+            color: var(--text-primary);
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--accent-text);
+            color: var(--accent-contrast);
+        }
+        
+        .dropdown-divider {
+            border-color: var(--border-color);
+        }
+        
+        .alert {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .bg-light {
+            background-color: var(--bg-tertiary) !important;
+        }
+        
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+        
+        .progress {
+            background-color: var(--bg-tertiary);
+        }
+        
+        .card {
+            background: var(--card-bg);
+            box-shadow: var(--card-shadow);
+            border-color: var(--border-color);
+        }
+
+        /* Quick Lookup Section */
+        #quick-lookup {
+            background-color: var(--section-bg) !important;
+        }
+        
+        #quick-lookup .card {
+            background: var(--card-bg) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        #quick-lookup .form-label {
+            color: var(--text-primary) !important;
+            font-weight: 500;
+        }
+        
+        #quick-lookup .form-select,
+        #quick-lookup .form-control {
+            background-color: var(--input-bg) !important;
+            border-color: var(--input-border) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        #quick-lookup .form-select option {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+        }
+        
+        .bg-white {
+            background-color: var(--section-bg) !important;
+        }
+
+        /* Navbar toggler */
+        .navbar-toggler {
+            border-color: var(--border-color) !important;
+        }
+        
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.25rem rgba(141, 155, 106, 0.25) !important;
+        }
+        
+        [data-theme="dark"] .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25) !important;
+        }
+        
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2860, 47, 47, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+        }
+        
+        [data-theme="dark"] .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+        }
+
+        /* Mobile menu - hamburger drops full width */
+        @media (min-width: 1200px) and (max-width: 1439px) {
+            .nav-link { font-size: 0.92rem; padding-left: 0.55rem !important; padding-right: 0.55rem !important; }
+            .navbar-brand { font-size: 1.55rem; }
+            .user-profile-btn span { display: none; }
+            .google-signin-btn span { display: none; }
+            .streak-badge-wrapper { display: none; }
+        }
+
+        @media (max-width: 1199px) {
+            .navbar-collapse {
+                background: var(--navbar-bg);
+                padding: 1rem;
+                border-radius: 0 0 15px 15px;
+                margin-top: 10px;
+                box-shadow: var(--card-shadow);
+                border: 1px solid var(--border-color);
+                border-top: none;
+                width: 100%;
+            }
+            
+            .navbar-nav .nav-item {
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .navbar-nav .nav-item:last-child {
+                border-bottom: none;
+            }
+            
+            .navbar-nav .nav-link {
+                padding: 12px 15px !important;
+                font-size: 1.1rem;
+                display: flex;
+                align-items: center;
+                width: 100%;
+            }
+            
+            .navbar-nav .nav-link i {
+                width: 28px;
+                color: var(--accent-text);
+            }
+            
+            .navbar-nav .nav-link:hover {
+                background: var(--bg-tertiary);
+                border-radius: 8px;
+            }
+        }
+
+        /* Desktop action buttons */
+        .theme-toggle-btn,
+        #helpButton {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle-btn:hover,
+        #helpButton:hover {
+            background: var(--accent-text);
+            color: var(--accent-contrast);
+            border-color: var(--accent-text);
+            transform: rotate(360deg);
+        }
+        
+        #helpButton:hover {
+            transform: scale(1.1);
+        }
+
+        /* ── BOOKS BROWSER WITH FILTERING ── */
+        .books-controls {
+            display: flex;
+            gap: 16px;
+            max-width: 1100px;
+            margin: 0 auto 24px;
+            flex-wrap: wrap;
+            padding: 0 16px;
+        }
+        
+        .books-search {
+            flex: 1;
+            min-width: 240px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--filter-search-bg);
+            border: 1.5px solid var(--filter-search-border);
+            border-radius: 10px;
+            padding: 12px 18px;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+        .books-search:focus-within {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(141, 155, 106, 0.15);
+        }
+        [data-theme="dark"] .books-search:focus-within {
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.15);
+        }
+        .books-search i {
+            color: var(--accent-text);
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .books-search input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-family: 'Crimson Text', serif;
+            font-size: 1rem;
+            color: var(--text-primary);
+            background: transparent;
+            min-width: 0;
+        }
+        .books-search input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+        
+        .books-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--filter-tab-bg);
+            border-radius: 10px;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+        .books-tab {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            font-family: 'Lora', serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: var(--text-primary);
+            cursor: pointer;
+            border-radius: 7px;
+            transition: all 0.25s;
+            white-space: nowrap;
+            opacity: 0.7;
+        }
+        .books-tab.active {
+            background: var(--filter-tab-active-bg);
+            color: var(--filter-tab-active-text);
+            opacity: 1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        .books-tab:hover:not(.active) {
+            opacity: 1;
+            background: rgba(141, 155, 106, 0.1);
+        }
+        [data-theme="dark"] .books-tab:hover:not(.active) {
+            background: rgba(233, 69, 96, 0.1);
+        }
+        
+        .books-count {
+            max-width: 1100px;
+            margin: 0 auto 20px;
+            padding: 0 16px;
+            font-size: 0.9rem;
+            color: var(--filter-count-color);
+            font-weight: 500;
+        }
+        .books-count strong {
+            color: var(--accent-text);
+            font-family: 'Lora', serif;
+        }
+        
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+        
+        .books-item {
+            background: var(--filter-card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px 18px 22px;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-primary);
+        }
+        .books-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        [data-theme="dark"] .books-item:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+        .books-item::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 2px;
+            background: var(--accent-primary);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+        .books-item:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .books-item-icon {
+            font-size: 2.2rem;
+            color: var(--accent-text);
+            margin-bottom: 4px;
+            line-height: 1;
+        }
+        
+        .books-item-name {
+            font-family: 'Lora', serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: var(--text-secondary);
+            line-height: 1.3;
+        }
+        .books-item-chapters {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+        
+        .books-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .books-empty-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+        .books-empty h3 {
+            font-family: 'Lora', serif;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+        .books-empty p {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 1199px) {
+            .navbar .container {
+                display: flex;
+                align-items: center;
+            }
+
+            .navbar-brand {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .navbar-mobile-actions {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                margin-right: 8px;
+            }
+
+            .navbar-toggler {
+                margin-left: 0;
+                flex-shrink: 0;
+            }
+        }
+
+        /* Mobile navbar - keep everything on one line */
+        @media (max-width: 1199px) {
+            .navbar-brand {
+                flex: 1;
+                margin-right: 4px;
+                font-size: 0.85rem !important;
+            }
+            
+            .navbar-brand img {
+                width: 28px !important;
+                height: 28px !important;
+            }
+            
+            .navbar-brand span {
+                font-size: 0.75rem !important;
+            }
+            
+            .user-profile-btn {
+                padding: 3px 6px;
+            }
+            
+            .user-profile-btn img {
+                width: 24px;
+                height: 24px;
+            }
+            
+            .google-signin-btn {
+                padding: 2px 5px;
+                font-size: 0.65rem;
+                line-height: 1.1;
+                text-align: center;
+                max-width: 42px;
+                flex-direction: column;
+                gap: 1px;
+                border-radius: 8px;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            .google-signin-btn i {
+                font-size: 0.8rem;
+            }
+            
+            .google-signin-btn span {
+                font-size: 0.55rem !important;
+                line-height: 1;
+            }
+            
+            .theme-toggle-btn {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .theme-toggle-btn i {
+                font-size: 0.85rem;
+            }
+            
+            .navbar-toggler {
+                padding: 4px 8px;
+            }
+            
+            .navbar-toggler-icon {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .gap-2 {
+                gap: 3px !important;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .navbar-brand span {
+                font-size: 0.65rem !important;
+            }
+            
+            .navbar-brand img {
+                width: 24px !important;
+                height: 24px !important;
+            }
+            
+            .google-signin-btn {
+                padding: 2px 4px;
+                max-width: 38px;
+            }
+            
+            .google-signin-btn i {
+                font-size: 0.7rem;
+            }
+            
+            .google-signin-btn span {
+                font-size: 0.5rem !important;
+            }
+            
+            .theme-toggle-btn {
+                width: 28px;
+                height: 28px;
+            }
+        }
+
+        /* Books responsive */
+        @media (max-width: 1024px) {
+            .books-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .books-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 12px; }
+            .books-controls { flex-direction: column; padding: 0 12px; }
+            .books-tabs { width: 100%; }
+            .books-tab { flex: 1; text-align: center; padding: 8px 6px; font-size: 0.72rem; }
+            .books-item { padding: 18px 12px 16px; }
+            .books-item-icon { font-size: 1.8rem; }
+            .books-item-name { font-size: 0.82rem; }
+            .books-item-chapters { font-size: 0.72rem; }
+            .books-count { padding: 0 12px; }
+        }
+        @media (max-width: 480px) {
+            .books-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 0 8px; }
+            .books-item { padding: 14px 10px 12px; }
+            .books-item-icon { font-size: 1.6rem; }
+            .books-item-name { font-size: 0.75rem; }
+            .books-item-chapters { font-size: 0.68rem; }
+            .books-tab { padding: 7px 4px; font-size: 0.62rem; letter-spacing: 0.02em; }
+            .books-search { padding: 10px 12px; }
+            .books-search input { font-size: 0.9rem; }
+            .books-controls { padding: 0 8px; }
+            .books-count { padding: 0 8px; font-size: 0.8rem; }
+        }
+
+        /* Welcome Modal */
+        .modal {
+            padding: 0 !important;
+        }
+        
+        .modal-dialog {
+            display: flex;
+            align-items: center;
+            min-height: calc(100% - 1rem);
+            margin: 0.5rem auto;
+        }
+        
+        .modal-dialog-centered {
+            display: flex;
+            align-items: center;
+            min-height: calc(100% - 1rem);
+        }
+        
+        @media (min-width: 576px) {
+            .modal-dialog,
+            .modal-dialog-centered {
+                min-height: calc(100% - 3.5rem);
+            }
+        }
+        
+        .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .modal.fade .modal-dialog,
+        .modal.show .modal-dialog {
+            transform: translate(0, 0);
+        }
+        
+        .modal-header {
+            border-bottom-color: var(--border-color);
+        }
+        
+        .modal-footer {
+            border-top-color: var(--border-color);
+        }
+        
+        [data-theme="dark"] .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+        
+        .feature-item {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--card-shadow);
+        }
+        
+        .feature-item i {
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-item:hover i {
+            transform: scale(1.1);
+        }
+        
+        .navigation-tips i {
+            color: var(--accent-text);
+            width: 20px;
+        }
+        
+        .announcement {
+            transition: all 0.3s ease;
+        }
+        
+        .announcement:hover {
+            box-shadow: var(--card-shadow);
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--accent-text);
+            border-color: var(--accent-text);
+        }
+        
+        .form-check-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
+        }
+
+        @media (max-width: 768px) {
+            .modal-dialog {
+                margin: 0.5rem;
+                width: auto;
+            }
+            
+            .modal-body {
+                padding: 1rem;
+            }
+            
+            .modal-title {
+                font-size: 1.4rem;
+            }
+            
+            .feature-item {
+                padding: 0.75rem !important;
+            }
+            
+            .feature-item i {
+                font-size: 1.5rem !important;
+            }
+            
+            .feature-item h6 {
+                font-size: 0.9rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .feature-item small {
+                font-size: 0.75rem;
+            }
+            
+            .navigation-tips .row > div {
+                font-size: 0.85rem;
+            }
+            
+            .modal-footer {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            
+            .modal-footer .form-check {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            
+            .modal-footer .btn {
+                width: 100%;
+            }
+            
+            .modal-content {
+                max-height: 90vh;
+            }
+            
+            .btn-close {
+                padding: 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .modal-title {
+                font-size: 1.2rem;
+            }
+            
+            .modal-header h3 {
+                font-size: 1.1rem;
+            }
+            
+            .feature-item {
+                padding: 0.5rem !important;
+            }
+            
+            .feature-item i {
+                font-size: 1.25rem !important;
+            }
+            
+            .lead {
+                font-size: 1rem;
+            }
+            
+            .navigation-tips .row > div {
+                width: 100%;
+            }
+            
+            .modal-body h5 {
+                font-size: 1rem;
+                margin-bottom: 0.75rem !important;
+            }
+            
+            .announcement {
+                padding: 0.75rem !important;
+            }
+        }
+        
+        @media (hover: none) and (pointer: coarse) {
+            .modal-footer .btn,
+            .btn-close,
+            #helpButton,
+            .theme-toggle-btn,
+            .google-signin-btn,
+            .user-profile-btn {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            .form-check-input {
+                min-height: 20px;
+                min-width: 20px;
+            }
+        }
+
+        .modal-dialog-scrollable .modal-content {
+            max-height: calc(100vh - 1rem);
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        body.modal-open {
+            position: fixed;
+            width: 100%;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+        
+        .audio-progress-container {
+            margin: 15px 0 10px 0;
+        }
+        
+        .audio-progress {
+            height: 4px;
+            background-color: var(--bg-tertiary);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        
+        .audio-progress-bar {
+            height: 4px;
+            background-color: var(--accent-primary);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        
+        .audio-time-display {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .highlight-note {
+            background: rgba(141,155,106,0.12);
+            border-left: 4px solid var(--accent-primary);
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .highlight-note {
+            background: rgba(233,69,96,0.12);
+            border-left-color: var(--accent-text);
+        }
+
+        .highlight-note .btn {
+            margin-top: 12px;
+        }
+
+        @media (min-width: 768px) {
+            .highlight-note .btn {
+                margin-top: 0;
+            }
+        }
+    
+        /* Page header banner (matches books.html) */
+        .page-header {
+            background: var(--hero-overlay), url('{{ url_for('static', filename='img/bg-1.jpg') }}') no-repeat center/cover;
+            color: white;
+            padding: 100px 0 60px;
+            text-align: center;
+        }
+        .head-center { margin-top: 20px; text-align: center; }
+        .page-header h1 {
+            font-family: 'Lora', serif;
+            font-size: 3.5rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        @media (max-width: 768px) { .page-header h1 { font-size: 2.5rem; } }
+        @media (max-width: 480px) { .page-header h1 { font-size: 2rem; } }
+
+        /* ===== Bible in a Year: sign-in prompt ===== */
+        .signin-prompt {
+            max-width: 480px;
+            margin: 40px auto;
+            text-align: center;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 50px 30px;
+            box-shadow: var(--card-shadow);
+        }
+        .signin-prompt i.fa-lock { font-size: 2.5rem; color: var(--accent-text); }
+        .signin-prompt h3 { font-family: 'Lora', serif; color: var(--text-primary); margin: 14px 0 10px; }
+        .signin-prompt p { color: var(--text-secondary); margin-bottom: 26px; }
+
+        /* ===== Bible in a Year: progress card ===== */
+        .by-progress-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+        }
+        .by-status-line { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; }
+        .by-progress-track {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            height: 14px;
+            overflow: hidden;
+        }
+        .by-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
+            border-radius: 10px;
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+        .by-progress-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .by-actions { margin-top: 22px; }
+        .by-start-btn {
+            background: var(--btn-primary-bg);
+            color: var(--btn-primary-text);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: background 0.2s ease;
+        }
+        .by-start-btn:hover { background: var(--btn-primary-hover); color: var(--btn-primary-text); }
+        .by-start-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* ===== Bible in a Year: day list ===== */
+        .by-days-wrapper {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+        }
+        .by-days-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .by-days-header h3 {
+            font-family: 'Lora', serif;
+            color: var(--text-primary);
+            font-size: 1.3rem;
+            margin: 0;
+        }
+        .by-days-list {
+            max-height: 620px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-right: 6px;
+        }
+        .by-day-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        .by-day-row:hover { background: var(--bg-tertiary); }
+        .by-day-row.completed { background: rgba(154, 106, 30, 0.08); border-color: var(--accent-secondary); }
+        .by-day-row.today { border-color: var(--accent-primary); border-width: 2px; }
+        .by-day-check {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--accent-secondary);
+        }
+        .by-day-number {
+            flex-shrink: 0;
+            width: 46px;
+            text-align: center;
+            font-weight: 700;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+        .by-day-label {
+            flex: 1;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .by-day-label:hover { color: var(--accent-text); }
+
+        .by-days-list::-webkit-scrollbar { width: 8px; }
+        .by-days-list::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 5px; }
+    
+        /* Small phones: shrink the brand + action icons so everything fits */
+        @media (max-width: 400px) {
+            .navbar-brand { font-size: 1rem; }
+            .navbar-brand img { width: 28px; height: 28px; }
+            .navbar-mobile-actions { gap: 6px !important; }
+            .navbar-mobile-actions .theme-toggle-btn { width: 34px; height: 34px; font-size: 0.9rem; }
+            .navbar-mobile-actions .user-profile-btn img { width: 28px; height: 28px; }
+            .google-signin-btn { padding: 6px 10px; }
+            .navbar-toggler { padding: 4px 8px; }
+        }
+        @media (max-width: 359px) {
+            .navbar .navbar-brand .brand-text { display: none; }
+        }
+
+
+        /* Cinzel display headings (matches the landing page identity) */
+        .navbar-brand, .page-header h1, .section-title, .hero h1, h1.display-font {
+            font-family: 'Cinzel', 'Lora', serif !important;
+            letter-spacing: 0.02em;
+        }
+
+
+.card, .card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
+            color: var(--text-primary);
+        }
+        .btn-outline-primary {
+            color: var(--accent-text);
+            border-color: var(--accent-primary);
+            background: transparent;
+        }
+        .btn-outline-primary:hover {
+            background-color: var(--accent-text);
+            border-color: var(--accent-text);
+            color: var(--accent-contrast);
+        }
+</style>
+</head>
+<body>
+
+    <!-- Navbar -->
+<!-- Navbar -->
+    <nav class="navbar navbar-expand-xl fixed-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index') }}">
+                <img src="{{ url_for('static', filename='img/app-icon.jpg') }}" 
+                    alt="MyPersonal Bible" 
+                    width="36" 
+                    height="36" 
+                    class="me-2 rounded-2"
+                    style="object-fit: cover;">
+                <span>MyPersonal Bible App</span>
+            </a>
+            
+            <!-- Mobile: Action icons -->
+            <div class="navbar-mobile-actions d-xl-none d-flex align-items-center gap-2">
+                {% if user %}
+                <div class="dropdown">
+                    <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% if user.picture %}
+                        <img src="{{ user.picture }}" alt="{{ user.name }}">
+                        {% else %}
+                        <i class="fas fa-user-circle"></i>
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('user.user_profile') }}"><i class="fas fa-user me-2"></i>View Profile</a></li>                     
+                        <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{{ url_for('user.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
+                    </ul>
+                </div>
+                {% else %}
+                <a href="{{ url_for('user.google_login') }}" class="google-signin-btn">
+                    <i class="fab fa-google"></i>
+                    <span style="font-size: 0.8rem;">Sign In</span>
+                </a>
+                {% endif %}
+                
+                <button class="theme-toggle-btn" id="themeToggleMobile" title="Toggle dark mode">
+                    <i class="fas fa-moon" id="themeIconMobile"></i>
+                </button>
+                
+                
+            </div>
+            
+            <!-- Hamburger button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Nav links FIRST -->
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}#daily">
+                            <i class="fas fa-calendar-day d-xl-none me-2"></i>Daily Verse
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}#search">
+                            <i class="fas fa-search d-xl-none me-2"></i>Search
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}#books">
+                            <i class="fas fa-book d-xl-none me-2"></i>Books
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('study.bible_in_a_year') }}">
+                            <i class="fas fa-calendar-check d-xl-none me-2"></i>Bible in a Year
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="studyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-graduation-cap d-xl-none me-2"></i>Study
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="studyDropdown">
+                            <li><a class="dropdown-item" href="#" id="helpDropdownLink"><i class="fas fa-question-circle me-2"></i>Help &amp; Features</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('user.continue_reading_page') }}"><i class="fas fa-book-open-reader me-2"></i>Continue Reading</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('study.reading_plans_page') }}"><i class="fas fa-list-check me-2"></i>Reading Plans</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('study.devotional_page') }}"><i class="fas fa-book-open-reader me-2"></i>Daily Devotional</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('study.topics_page') }}"><i class="fas fa-lightbulb me-2"></i>Bible Topics</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('reader.compare_page') }}"><i class="fas fa-columns me-2"></i>Compare Versions</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('study.quiz_page') }}"><i class="fas fa-question-circle me-2"></i>Bible Quiz</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('study.prayer_journal_page') }}"><i class="fas fa-hands-praying me-2"></i>Prayer Journal</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('study.memorize_page') }}"><i class="fas fa-brain me-2"></i>Memorize Verses</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://mypersonalbible.onrender.com" target="_blank">
+                            <i class="fas fa-globe d-xl-none me-2"></i>About Us
+                        </a>
+                    </li>                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.contact') }}">
+                            <i class="fas fa-envelope d-xl-none me-2"></i>Contact
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link apk-download-link" href="{{ url_for('main.install_guide') }}">
+                            <i class="fas fa-download me-2"></i>Download APK
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Desktop: Action icons AFTER nav links -->
+                <div class="d-none d-xl-flex align-items-center gap-2 ms-3">
+                    {% if user %}
+                    <div class="dropdown">
+                        <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            {% if user.picture %}
+                            <img src="{{ user.picture }}" alt="{{ user.name }}">
+                            {% else %}
+                            <i class="fas fa-user-circle"></i>
+                            {% endif %}
+                            <span class="ms-1">{{ user.name.split(' ')[0] }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('user.user_profile') }}"><i class="fas fa-user me-2"></i>View Profile</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="syncNow(); return false;"><i class="fas fa-sync-alt me-2"></i>Sync Now</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('user.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a></li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <a href="{{ url_for('user.google_login') }}" class="google-signin-btn">
+                        <i class="fab fa-google"></i>
+                        <span style="font-size: 0.8rem;">Sign In</span>
+                    </a>
+                    {% endif %}
+                    
+                    <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                    </button>
+                    
+                    
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1 class="head-center">Bible in a Year</h1>
+            <p class="mt-3 lead">A 365-day reading plan through the whole Bible</p>
+        </div>
+    </section>
+
+    <div class="container" style="padding: 40px 0 80px;">
+
+        {% if not user %}
+        <div class="signin-prompt">
+            <i class="fas fa-lock mb-2"></i>
+            <h3>Sign in to track your progress</h3>
+            <p>Bible in a Year progress is saved to your account so it's available on any device.</p>
+            <a href="{{ url_for('user.google_login') }}" class="google-signin-btn" style="display:inline-flex; position: static; padding: 10px 20px;">
+                <i class="fab fa-google"></i>
+                <span style="font-size: 0.85rem;">Sign in with Google</span>
+            </a>
+        </div>
+        {% else %}
+        <div id="byLoading" class="text-center py-5">
+            <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--accent-text);"></i>
+            <p class="mt-3">Loading your plan...</p>
+        </div>
+
+        <div id="byContent" style="display:none;">
+            <div class="by-progress-card">
+                <div class="by-status-line" id="byStatusLine">&mdash;</div>
+                <div class="by-progress-track">
+                    <div class="by-progress-fill" id="byProgressFill"></div>
+                </div>
+                <div class="by-progress-meta">
+                    <span id="byProgressText">0 / 365 days</span>
+                    <span id="byPercentText">0%</span>
+                </div>
+                <div class="by-actions">
+                    <button class="btn by-start-btn" id="byStartBtn">
+                        <i class="fas fa-play me-2"></i><span id="byStartBtnText">Start the Plan</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="by-days-wrapper">
+                <div class="by-days-header">
+                    <h3><i class="fas fa-list-check me-2"></i>365-Day Plan</h3>
+                    <span class="text-muted small">Check off a day as you read it, or tap the reading to open it</span>
+                </div>
+                <div class="by-days-list" id="byDaysList"></div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+<footer>
+        <div class="container text-center">
+            <p class="mt-3">&copy; {{ current_year }} MyPersonal Bible App • Made with reverence for the Holy Scriptures</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const USER_AUTHENTICATED = {{ 'true' if user else 'false' }};
+
+        // ========== THEME TOGGLE + HELP BUTTON (same behavior as index.html/books.html) ==========
+        (function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const themeToggleMobile = document.getElementById('themeToggleMobile');
+            const themeIcon = document.getElementById('themeIcon');
+            const themeIconMobile = document.getElementById('themeIconMobile');
+            const htmlElement = document.documentElement;
+
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            if (savedTheme) {
+                htmlElement.setAttribute('data-theme', savedTheme);
+                updateThemeUI(savedTheme);
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const themeToApply = prefersDark ? 'dark' : 'light';
+                htmlElement.setAttribute('data-theme', themeToApply);
+                updateThemeUI(themeToApply);
+            }
+
+            function toggleTheme() {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('bibleAppTheme', newTheme);
+                updateThemeUI(newTheme);
+            }
+
+            function updateThemeUI(theme) {
+                if (themeIcon) {
+                    themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                    if (themeToggle) themeToggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+                }
+                if (themeIconMobile) {
+                    themeIconMobile.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                }
+            }
+
+            if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+            if (themeToggleMobile) themeToggleMobile.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleTheme();
+            });
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('bibleAppTheme')) {
+                    const newTheme = e.matches ? 'dark' : 'light';
+                    htmlElement.setAttribute('data-theme', newTheme);
+                    updateThemeUI(newTheme);
+                }
+            });
+
+            const helpButton = document.getElementById('helpDropdownLink');
+            function goToHome(e) {
+                if (e) e.preventDefault();
+                window.location.href = "{{ url_for('main.index') }}";
+            }
+            if (helpButton) helpButton.addEventListener('click', goToHome);
+        })();
+
+        // ========== SYNC (kept for the header "Sync Now" menu item - reuses the same pattern as other pages) ==========
+        function showSyncToast(msg, type = 'info') {
+            const t = document.createElement('div');
+            t.className = 'sync-toast';
+            t.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'sync-alt'} me-2"></i>${msg}`;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        function getAllReadingProgress() {
+            const p = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('reading_progress_')) {
+                    try { p[k] = JSON.parse(localStorage.getItem(k)); } catch (e) {}
+                }
+            }
+            return p;
+        }
+
+        async function syncNow() {
+            if (!USER_AUTHENTICATED) {
+                showSyncToast('Please sign in to sync your data', 'warning');
+                return;
+            }
+            showSyncToast('Syncing your data...');
+            try {
+                const ld = {
+                    bookmarks: JSON.parse(localStorage.getItem('bibleBookmarks') || '[]'),
+                    highlights: JSON.parse(localStorage.getItem('bibleHighlights') || '{}'),
+                    progress: getAllReadingProgress(),
+                    readingLog: JSON.parse(localStorage.getItem('bibleReadingLog') || '[]'),
+                    font_size: localStorage.getItem('bibleFontSize'),
+                    theme: localStorage.getItem('bibleAppTheme')
+                };
+                const r = await fetch('/api/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ld)
+                });
+                if (r.ok) {
+                    const sr = await fetch('/api/sync');
+                    const sd = await sr.json();
+                    if (sd.bookmarks) localStorage.setItem('bibleBookmarks', JSON.stringify(sd.bookmarks));
+                    if (sd.highlights) localStorage.setItem('bibleHighlights', JSON.stringify(sd.highlights));
+                    if (sd.readingLog) localStorage.setItem('bibleReadingLog', JSON.stringify(sd.readingLog));
+                    if (sd.font_size) localStorage.setItem('bibleFontSize', sd.font_size);
+                    if (sd.theme) localStorage.setItem('bibleAppTheme', sd.theme);
+                    showSyncToast('Sync completed!', 'success');
+                } else {
+                    showSyncToast('Sync failed.', 'danger');
+                }
+            } catch (e) {
+                showSyncToast('Sync failed.', 'danger');
+            }
+        }
+
+        // ========== BIBLE IN A YEAR ==========
+        {% if user %}
+        (function initBibleYear() {
+            let plan = [];
+            let progress = null;
+
+            const loadingEl = document.getElementById('byLoading');
+            const contentEl = document.getElementById('byContent');
+            const statusLineEl = document.getElementById('byStatusLine');
+            const progressFillEl = document.getElementById('byProgressFill');
+            const progressTextEl = document.getElementById('byProgressText');
+            const percentTextEl = document.getElementById('byPercentText');
+            const startBtn = document.getElementById('byStartBtn');
+            const startBtnText = document.getElementById('byStartBtnText');
+            const daysListEl = document.getElementById('byDaysList');
+
+            function statusLineHtml(p) {
+                if (p.status === 'not_started') return 'Ready when you are &mdash; start the plan below.';
+                if (p.status === 'completed') return '&#127881; Plan complete &mdash; you have read the whole Bible!';
+                if (p.status === 'on_track') return '&#128994; On track &mdash; today is day ' + p.expected_day + '.';
+                const behind = Math.abs(p.days_ahead_behind);
+                return '&#128993; ' + behind + ' day' + (behind === 1 ? '' : 's') + ' behind &mdash; today is day ' + p.expected_day + '.';
+            }
+
+            function renderProgress() {
+                statusLineEl.innerHTML = statusLineHtml(progress);
+                progressFillEl.style.width = progress.percent_complete + '%';
+                progressTextEl.textContent = progress.completed_count + ' / ' + progress.total_days + ' days';
+                percentTextEl.textContent = progress.percent_complete + '%';
+                startBtnText.textContent = progress.completed_count > 0 ? 'Restart Plan' : 'Start the Plan';
+            }
+
+            function escapeHtml(str) {
+                return String(str).replace(/[&<>"']/g, (c) => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                }[c]));
+            }
+
+            function dayRowHtml(dayEntry, completedSet, todayDay) {
+                const isCompleted = completedSet.has(dayEntry.day);
+                const isToday = todayDay === dayEntry.day;
+                const firstReading = dayEntry.readings[0];
+                const chapterUrl = '/books/' + firstReading.slug + '?chapter=' + firstReading.start;
+                let cls = 'by-day-row';
+                if (isCompleted) cls += ' completed';
+                if (isToday) cls += ' today';
+                return '<div class="' + cls + '" data-day="' + dayEntry.day + '">' +
+                    '<input type="checkbox" class="by-day-check" id="byDayCheck' + dayEntry.day + '" ' + (isCompleted ? 'checked' : '') + ' data-day="' + dayEntry.day + '">' +
+                    '<span class="by-day-number">Day ' + dayEntry.day + '</span>' +
+                    '<a class="by-day-label" href="' + chapterUrl + '">' + escapeHtml(dayEntry.label) + '</a>' +
+                    '</div>';
+            }
+
+            function renderDays() {
+                const completedSet = new Set(progress.completed_days || []);
+                daysListEl.innerHTML = plan.map((d) => dayRowHtml(d, completedSet, progress.expected_day)).join('');
+                daysListEl.querySelectorAll('.by-day-check').forEach((cb) => {
+                    cb.addEventListener('change', onToggleDay);
+                });
+            }
+
+            async function onToggleDay(e) {
+                const day = parseInt(e.target.dataset.day, 10);
+                const completed = e.target.checked;
+                const row = e.target.closest('.by-day-row');
+                e.target.disabled = true;
+                try {
+                    const res = await fetch('/api/bible-year/mark', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ day: day, completed: completed })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        progress = data.progress;
+                        row.classList.toggle('completed', completed);
+                        renderProgress();
+                    } else {
+                        e.target.checked = !completed;
+                    }
+                } catch (err) {
+                    console.error('Failed to update day', err);
+                    e.target.checked = !completed;
+                } finally {
+                    e.target.disabled = false;
+                }
+            }
+
+            async function onStartPlan() {
+                if (progress && progress.completed_count > 0) {
+                    const ok = confirm('Restart the plan from Day 1? Your current progress (' + progress.completed_count + ' days) will be cleared.');
+                    if (!ok) return;
+                }
+                startBtn.disabled = true;
+                try {
+                    const res = await fetch('/api/bible-year/start', { method: 'POST' });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        progress = data.progress;
+                        renderProgress();
+                        renderDays();
+                        setTimeout(scrollToToday, 50);
+                    }
+                } catch (err) {
+                    console.error('Failed to start plan', err);
+                } finally {
+                    startBtn.disabled = false;
+                }
+            }
+
+            function scrollToToday() {
+                if (!progress || !progress.expected_day) return;
+                const row = daysListEl.querySelector('.by-day-row[data-day="' + progress.expected_day + '"]');
+                if (row) row.scrollIntoView({ block: 'center' });
+            }
+
+            async function loadAll() {
+                try {
+                    const [planRes, progressRes] = await Promise.all([
+                        fetch('/api/bible-year/plan'),
+                        fetch('/api/bible-year/progress')
+                    ]);
+                    const planData = await planRes.json();
+                    const progressData = await progressRes.json();
+                    plan = planData.plan || [];
+                    progress = progressData.progress;
+
+                    loadingEl.style.display = 'none';
+                    contentEl.style.display = 'block';
+                    renderProgress();
+                    renderDays();
+                    setTimeout(scrollToToday, 50);
+                } catch (e) {
+                    console.error('Failed to load Bible in a Year data', e);
+                    loadingEl.innerHTML = '<p class="text-danger">Could not load your plan. Please refresh the page.</p>';
+                }
+            }
+
+            startBtn.addEventListener('click', onStartPlan);
+            loadAll();
+        })();
+        {% endif %}
+    </script>
+</body>
+</html>

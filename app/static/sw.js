@@ -6,7 +6,7 @@
      - Static assets (CDN css/js/fonts): cache-first
    Bump CACHE_VERSION when deploying a new version.
    ============================================================ */
-const CACHE_VERSION = 'mpb-v1';
+const CACHE_VERSION = 'mpb-v7';
 const RUNTIME_CACHE = CACHE_VERSION + '-runtime';
 const STATIC_CACHE = CACHE_VERSION + '-static';
 
@@ -87,5 +87,51 @@ self.addEventListener('fetch', (event) => {
                               }))
                 )
             )
+    );
+});
+
+/* ============================================================
+   Web Push - Daily Verse Reminders
+   The server sends a JSON payload {title, body, url}. This shows
+   the notification and opens the app when the user taps it.
+   ============================================================ */
+
+self.addEventListener('push', (event) => {
+    let payload = { title: 'MyPersonal Bible', body: 'Your daily verse is waiting for you.', url: '/' };
+    try {
+        if (event.data) {
+            const data = event.data.json();
+            if (data && typeof data === 'object') payload = Object.assign(payload, data);
+        }
+    } catch (e) { /* non-JSON payload - use defaults */ }
+
+    event.waitUntil(
+        self.registration.showNotification(payload.title, {
+            body: payload.body,
+            icon: '/static/img/app-icon.jpg',
+            badge: '/static/img/app-icon.jpg',
+            tag: 'daily-verse',   // replaces yesterday's notification instead of stacking
+            renotify: true,
+            data: { url: payload.url || '/' },
+        })
+    );
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const target = (event.notification.data && event.notification.data.url) || '/';
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+            // Reuse an open tab if one exists
+            for (const client of windowClients) {
+                if ('focus' in client) {
+                    if (client.navigate) {
+                        return client.navigate(target).then((c) => c.focus());
+                    }
+                    return client.focus();
+                }
+            }
+            return clients.openWindow(target);
+        })
     );
 });

@@ -1,0 +1,44 @@
+<!-- Shared footer for study pages -->
+<footer>
+    <div class="container">
+        <div class="row g-4 text-center text-md-start">
+            <div class="col-md-4">
+                <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2 mb-3">
+                    <img src="{{ url_for('static', filename='img/app-icon.jpg') }}" alt="MyPersonal Bible" width="38" height="38" style="border-radius: 8px; object-fit: cover;">
+                    <h5 class="mb-0" style="font-family: 'Cinzel', 'Lora', serif;">MyPersonal Bible</h5>
+                </div>
+                <p class="small mb-0" style="opacity: 0.85;">A personal place to read, study and grow closer to God's Word — free, private and available anywhere.</p>
+            </div>
+            <div class="col-6 col-md-2">
+                <h6 class="mb-3" style="font-family: 'Cinzel', 'Lora', serif;">Read</h6>
+                <div><a href="{{ url_for('main.index') }}">Home</a></div>
+                <div><a href="{{ url_for('user.continue_reading_page') }}">Continue Reading</a></div>
+                <div><a href="{{ url_for('reader.compare_page') }}">Compare Versions</a></div>
+            </div>
+            <div class="col-6 col-md-2">
+                <h6 class="mb-3" style="font-family: 'Cinzel', 'Lora', serif;">Study</h6>
+                <div><a href="{{ url_for('study.reading_plans_page') }}">Reading Plans</a></div>
+                <div><a href="{{ url_for('study.bible_in_a_year') }}">Bible in a Year</a></div>
+                <div><a href="{{ url_for('study.memorize_page') }}">Memorize Verses</a></div>
+                <div><a href="{{ url_for('study.quiz_page') }}">Bible Quiz</a></div>
+            </div>
+            <div class="col-6 col-md-2">
+                <h6 class="mb-3" style="font-family: 'Cinzel', 'Lora', serif;">Grow</h6>
+                <div><a href="{{ url_for('study.devotional_page') }}">Daily Devotional</a></div>
+                <div><a href="{{ url_for('study.topics_page') }}">Bible Topics</a></div>
+                <div><a href="{{ url_for('study.prayer_journal_page') }}">Prayer Journal</a></div>
+            </div>
+            <div class="col-6 col-md-2">
+                <h6 class="mb-3" style="font-family: 'Cinzel', 'Lora', serif;">Get in Touch</h6>
+                <div><a href="https://mypersonalbible.onrender.com" target="_blank" rel="noopener">About Us</a></div>
+                <div><a href="{{ url_for('main.contact') }}">Contact Us</a></div>
+                <div><a href="{{ url_for('main.install_guide') }}">Install App</a></div>
+            </div>
+        </div>
+        <hr style="border-color: rgba(232, 217, 189, 0.2); margin: 30px 0 20px;">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+            <p class="mb-0 small">&copy; {{ current_year }} MyPersonal Bible App &bull; Made with reverence for the Holy Scriptures</p>
+            <p class="mb-0 small" style="opacity: 0.7;">✝ Soli Deo Gloria</p>
+        </div>
+    </div>
+</footer>

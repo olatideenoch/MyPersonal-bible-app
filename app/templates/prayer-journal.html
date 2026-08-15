@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Prevent theme flash on page load - MUST be first -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('bibleAppTheme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A private prayer journal to write down your prayers, track answered prayers and see God's faithfulness over time.">
+    <meta name="robots" content="index, follow">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Prayer Journal - MyPersonal Bible">
+    <meta property="og:description" content="A private prayer journal to track your prayers and see God's faithfulness.">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="{{ url_for('static', filename='img/app-icon.jpg', _external=True) }}">
+    <link rel="canonical" href="{{ request.url }}">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/app-icon.jpg') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#3d2205">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Prayer Journal - MyPersonal Bible</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <style>
+        .prayer-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin-bottom: 12px;
+            transition: all 0.25s ease;
+        }
+        .prayer-item.answered {
+            border-left: 4px solid #4caf50;
+            opacity: 0.8;
+        }
+        .prayer-item.answered .prayer-text {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+        .prayer-actions button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        .prayer-actions button:hover { background: var(--bg-tertiary); color: var(--accent-text); }
+        .prayer-actions button.answered-btn:hover { color: #4caf50; }
+        .prayer-actions button.delete-btn:hover { color: #e53935; }
+        .prayer-filter-chip {
+            border: 1.5px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-radius: 30px;
+            padding: 5px 16px;
+            cursor: pointer;
+            margin: 3px;
+            transition: all 0.2s ease;
+        }
+        .prayer-filter-chip:hover { border-color: var(--accent-primary); }
+        .prayer-filter-chip.active {
+            background: var(--accent-text);
+            border-color: var(--accent-text);
+            color: var(--accent-contrast);
+        }
+        .stat-pill {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 8px 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+        @media (max-width: 575px) {
+            .prayer-item { padding: 12px 14px; }
+            .stat-pill { padding: 6px 12px; font-size: 0.82rem; }
+        }
+    
+        /* Cinzel display headings (matches the landing page identity) */
+        .navbar-brand, .page-header h1, .section-title, .hero h1, h1.display-font {
+            font-family: 'Cinzel', 'Lora', serif !important;
+            letter-spacing: 0.02em;
+        }
+
+</style>
+</head>
+<body>
+    {% include '_nav.html' %}
+
+    <main style="padding-top: 76px;">
+        <div class="page-header reveal">
+            <div class="container">
+                <h1><i class="fas fa-hands-praying me-2"></i>Prayer Journal</h1>
+                <p class="mt-3">Bring your requests to God in writing — and watch how faithfully He answers over time.</p>
+            </div>
+        </div>
+
+        <div class="container col-lg-7 col-11 py-5">
+            {% if not user %}
+            <div class="alert text-center">
+                <i class="fas fa-info-circle me-2"></i>Your prayers are saved on this device. <a href="{{ url_for('user.google_login') }}" style="color: var(--accent-text);">Sign in</a> to sync them across all your devices.
+            </div>
+            {% endif %}
+
+            <!-- Add prayer -->
+            <div class="card p-4 mb-4 reveal">
+                <form id="prayerForm">
+                    <label class="form-label" for="prayerInput" style="font-family: 'Lora', serif;">
+                        <i class="fas fa-feather me-2" style="color: var(--accent-text);"></i>What's on your heart today?
+                    </label>
+                    <textarea class="form-control" id="prayerInput" rows="3" placeholder="Write your prayer request here..." required></textarea>
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane me-1"></i>Add Prayer</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Stats -->
+            <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+                <span class="stat-pill"><i class="fas fa-list" style="color: var(--accent-text);"></i><strong id="statTotal">0</strong> total</span>
+                <span class="stat-pill"><i class="fas fa-hourglass-half" style="color: #c9923a;"></i><strong id="statActive">0</strong> praying</span>
+                <span class="stat-pill"><i class="fas fa-circle-check" style="color: #4caf50;"></i><strong id="statAnswered">0</strong> answered</span>
+                {% if user %}
+                <button class="stat-pill border-0" id="syncPrayersBtn" title="Sync now" style="cursor: pointer;">
+                    <i class="fas fa-sync-alt" style="color: var(--accent-text);"></i>Sync
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- Filter -->
+            <div class="text-center mb-3" id="prayerFilters">
+                <button class="prayer-filter-chip active" data-filter="all">All</button>
+                <button class="prayer-filter-chip" data-filter="active">Praying</button>
+                <button class="prayer-filter-chip" data-filter="answered">Answered</button>
+            </div>
+
+            <!-- Prayers list -->
+            <div id="prayersList"></div>
+        </div>
+    </main>
+
+    {% include '_footer.html' %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app-common.js') }}"></script>
+    <script>
+        (function () {
+            'use strict';
+            const KEY = 'biblePrayers';
+            const AUTHENTICATED = {{ 'true' if user else 'false' }};
+            let filter = 'all';
+
+            function getPrayers() {
+                try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; }
+            }
+            function savePrayers(list) {
+                localStorage.setItem(KEY, JSON.stringify(list));
+                render();
+            }
+            function mergePrayers(local, remote) {
+                const map = {};
+                (local || []).concat(remote || []).forEach(function (p) {
+                    const key = p.id || p.created_at;
+                    if (!key) return;
+                    const stamp = p.updated_at || p.created_at || '';
+                    if (!map[key] || stamp > (map[key].updated_at || map[key].created_at || '')) map[key] = p;
+                });
+                return Object.keys(map).map(function (k) { return map[k]; })
+                    .sort(function (a, b) { return (b.created_at || '') > (a.created_at || '') ? 1 : -1; });
+            }
+
+            async function loadServerPrayers() {
+                if (!AUTHENTICATED) return;
+                try {
+                    const res = await fetch('/api/sync');
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.prayers) {
+                            const merged = mergePrayers(getPrayers(), data.prayers);
+                            savePrayers(merged);
+                            await fetch('/api/sync', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ prayers: merged })
+                            });
+                        }
+                    }
+                } catch (e) { /* offline */ }
+            }
+
+            function render() {
+                const prayers = getPrayers();
+                const filtered = prayers.filter(function (p) {
+                    if (filter === 'answered') return p.answered;
+                    if (filter === 'active') return !p.answered;
+                    return true;
+                });
+
+                document.getElementById('statTotal').textContent = prayers.length;
+                document.getElementById('statActive').textContent = prayers.filter(function (p) { return !p.answered; }).length;
+                document.getElementById('statAnswered').textContent = prayers.filter(function (p) { return p.answered; }).length;
+
+                const list = document.getElementById('prayersList');
+                if (!filtered.length) {
+                    list.innerHTML = '<div class="text-center py-5 text-muted"><i class="fas fa-hands-praying fa-2x mb-3 d-block"></i>' +
+                        (prayers.length ? 'No prayers in this view.' : 'No prayers yet. Write your first prayer above — God is listening.') +
+                        '</div>';
+                    return;
+                }
+
+                list.innerHTML = filtered.map(function (p) {
+                    const date = (p.created_at || '').slice(0, 10);
+                    const answeredDate = p.answered_at ? (p.answered_at || '').slice(0, 10) : '';
+                    return '<div class="prayer-item ' + (p.answered ? 'answered' : '') + '">' +
+                        '<div class="d-flex justify-content-between align-items-start gap-3">' +
+                        '<div class="flex-grow-1">' +
+                        '<p class="prayer-text mb-1" style="font-size:1.1rem;">' + escapeHtml(p.text) + '</p>' +
+                        '<small class="text-muted"><i class="far fa-calendar me-1"></i>' + date +
+                        (p.answered && answeredDate ? ' &bull; <span style="color:#4caf50;">Answered ' + answeredDate + '</span>' : '') +
+                        '</small>' +
+                        '</div>' +
+                        '<div class="prayer-actions d-flex">' +
+                        '<button class="answered-btn" data-id="' + p.id + '" title="' + (p.answered ? 'Mark as praying again' : 'Mark as answered') + '">' +
+                        '<i class="fas ' + (p.answered ? 'fa-rotate-left' : 'fa-circle-check') + '"></i></button>' +
+                        '<button class="delete-btn" data-id="' + p.id + '" title="Delete"><i class="fas fa-trash"></i></button>' +
+                        '</div></div></div>';
+                }).join('');
+
+                list.querySelectorAll('.answered-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () { toggleAnswered(btn.dataset.id); });
+                });
+                list.querySelectorAll('.delete-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () { deletePrayer(btn.dataset.id); });
+                });
+            }
+
+            function escapeHtml(s) {
+                const div = document.createElement('div');
+                div.textContent = s;
+                return div.innerHTML;
+            }
+
+            function persist(list) {
+                savePrayers(list);
+                if (AUTHENTICATED) {
+                    fetch('/api/sync', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ prayers: list })
+                    }).catch(function () {});
+                }
+            }
+
+            function addPrayer(text) {
+                const prayers = getPrayers();
+                const now = new Date().toISOString();
+                prayers.unshift({
+                    id: 'p' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+                    text: text,
+                    created_at: now,
+                    updated_at: now,
+                    answered: false,
+                    answered_at: null
+                });
+                persist(prayers);
+                MPB.showToast('Prayer added — God hears you.', 'success');
+            }
+
+            function toggleAnswered(id) {
+                const prayers = getPrayers();
+                const p = prayers.find(function (x) { return x.id === id; });
+                if (!p) return;
+                p.answered = !p.answered;
+                p.answered_at = p.answered ? new Date().toISOString() : null;
+                p.updated_at = new Date().toISOString();
+                persist(prayers);
+                MPB.showToast(p.answered ? 'Praise God — marked as answered! 🎉' : 'Moved back to praying', p.answered ? 'success' : 'info');
+            }
+
+            function deletePrayer(id) {
+                if (!confirm('Delete this prayer?')) return;
+                persist(getPrayers().filter(function (x) { return x.id !== id; }));
+                MPB.showToast('Prayer deleted', 'info');
+            }
+
+            document.getElementById('prayerForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const input = document.getElementById('prayerInput');
+                const text = input.value.trim();
+                if (!text) return;
+                addPrayer(text);
+                input.value = '';
+                input.focus();
+            });
+
+            document.querySelectorAll('#prayerFilters .prayer-filter-chip').forEach(function (chip) {
+                chip.addEventListener('click', function () {
+                    filter = chip.dataset.filter;
+                    document.querySelectorAll('#prayerFilters .prayer-filter-chip').forEach(function (c) {
+                        c.classList.toggle('active', c === chip);
+                    });
+                    render();
+                });
+            });
+
+            const syncBtn = document.getElementById('syncPrayersBtn');
+            if (syncBtn) {
+                syncBtn.addEventListener('click', async function () {
+                    if (!AUTHENTICATED) { MPB.showToast('Please sign in to sync', 'warning'); return; }
+                    await loadServerPrayers();
+                    MPB.showToast('Prayers synced!', 'success');
+                });
+            }
+
+            render();
+            if (AUTHENTICATED) loadServerPrayers();
+        })();
+    </script>
+</body>
+</html>

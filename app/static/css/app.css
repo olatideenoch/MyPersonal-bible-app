@@ -13,6 +13,7 @@
     --accent-primary: #c9923a;
     --accent-secondary: #9a6a1e;
     --accent-text: #9a6a1e;
+    --accent-contrast: #ffffff; /* text that sits ON accent backgrounds */
     --card-bg: #ffffff;
     --card-shadow: 0 10px 30px rgba(26,15,0,0.08);
     --border-color: rgba(201, 146, 58, 0.15);
@@ -44,6 +45,7 @@
     --accent-primary: #e8b86a;
     --accent-secondary: #6b3f12;
     --accent-text: #e8b86a;
+    --accent-contrast: #1a0f00; /* dark text on light-gold accents in dark mode */
     --card-bg: #2a1a08;
     --card-shadow: 0 10px 30px rgba(0,0,0,0.4);
     --border-color: rgba(232, 184, 106, 0.2);
@@ -147,7 +149,7 @@ main {
 
 .theme-toggle-btn:hover {
     background: var(--accent-text);
-    color: white;
+    color: var(--accent-contrast);
     border-color: var(--accent-text);
 }
 
@@ -195,7 +197,7 @@ main {
 
 .google-signin-btn:hover {
     background: var(--accent-text);
-    color: white;
+    color: var(--accent-contrast);
     border-color: var(--accent-text);
 }
 
@@ -247,6 +249,20 @@ main {
     border-color: var(--border-color);
 }
 
+.card, .card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
+    color: var(--text-primary);
+}
+.btn-outline-primary {
+    color: var(--accent-text);
+    border-color: var(--accent-primary);
+    background: transparent;
+}
+.btn-outline-primary:hover {
+    background-color: var(--accent-text);
+    border-color: var(--accent-text);
+    color: var(--accent-contrast);
+}
+
 .tool-card {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -260,6 +276,9 @@ main {
 .tool-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 18px 40px rgba(26, 15, 0, 0.16);
+}
+[data-theme="dark"] .tool-card:hover {
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.6);
 }
 
 .tool-card .tool-icon {
@@ -363,7 +382,7 @@ main {
 
 .dropdown-item:hover {
     background-color: var(--accent-text);
-    color: white;
+    color: var(--accent-contrast);
 }
 
 .dropdown-divider {
@@ -440,8 +459,35 @@ footer a {
     text-decoration: none;
 }
 
+
+/* ---------- Display typography (Cinzel) + scroll reveal ---------- */
+.navbar-brand, .page-header h1, .section-title, .hero h1 {
+    font-family: 'Cinzel', 'Lora', serif !important;
+    letter-spacing: 0.02em;
+}
+
+.reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.reveal-visible {
+    opacity: 1;
+    transform: none;
+}
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+@media (prefers-reduced-motion: reduce) {
+    .reveal {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+}
+
 /* ---------- Mobile nav ---------- */
-@media (max-width: 991px) {
+@media (max-width: 1199px) {
     .navbar-collapse {
         background: var(--navbar-bg);
         padding: 1rem;
@@ -452,4 +498,62 @@ footer a {
         border-top: none;
     }
     .page-header h1 { font-size: 2.2rem; }
+}
+
+/* ---------- Responsive refinements (all study pages) ---------- */
+@media (max-width: 767px) {
+    .page-header { padding: 46px 0 40px; }
+    .page-header h1 { font-size: 1.9rem; }
+    .page-header p { font-size: 1.05rem; }
+    .stat-pill { padding: 6px 13px; font-size: 0.85rem; }
+    .tool-card { padding: 18px; }
+    .card.p-4, .tool-card.p-4 { padding: 18px !important; }
+}
+
+@media (max-width: 575px) {
+    .page-header h1 { font-size: 1.65rem; }
+    .page-header p { font-size: 1rem; }
+    .section-title { font-size: 1.4rem; }
+}
+
+/* Keep the fuller navbar (with Study dropdown + bell) on one line on
+   mid-size desktops by tightening link spacing. */
+@media (min-width: 1200px) and (max-width: 1439px) {
+    .navbar .nav-link {
+        font-size: 0.92rem;
+        padding-left: 0.55rem !important;
+        padding-right: 0.55rem !important;
+    }
+    .navbar-brand { font-size: 1.55rem; }
+    .navbar .user-profile-btn span { display: none; }
+    .navbar .google-signin-btn span { display: none; }
+}
+
+/* Small phones: icon-only sign-in button so the mobile row stays single-line */
+@media (max-width: 575px) {
+    .navbar .google-signin-btn span { display: none; }
+    .navbar .user-profile-btn span { display: none; }
+}
+
+/* Small phones: shrink the brand + action icons so everything fits */
+@media (max-width: 575px) {
+    .navbar-brand { font-size: 0.9rem; letter-spacing: 0; }
+    .navbar-brand img { width: 28px; height: 28px; }
+    .navbar-mobile-actions { gap: 6px !important; }
+    .navbar-mobile-actions .theme-toggle-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 0.9rem;
+    }
+    .navbar-mobile-actions .user-profile-btn img { width: 28px; height: 28px; }
+    .navbar .google-signin-btn { padding: 6px 10px; }
+    .navbar-toggler { padding: 4px 8px; }
+}
+/* Tablets (mobile layout, 576-991px): slightly smaller brand */
+@media (min-width: 576px) and (max-width: 991px) {
+    .navbar .navbar-brand { font-size: 1.2rem; }
+}
+/* Very narrow screens: icon-only brand so the row never wraps */
+@media (max-width: 379px) {
+    .navbar .navbar-brand .brand-text { display: none; }
 }
