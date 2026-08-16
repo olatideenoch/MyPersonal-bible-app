@@ -684,11 +684,7 @@ footer a {
     }
 }
 /* /* Mobile navbar - keep everything on one line */
-@media (max-width: 1199px) {
-    /* .navbar .container {
-        flex-wrap: nowrap;
-    } */
-    
+@media (max-width: 1199px) {    
     .navbar-brand {
         flex: 1;
         margin-right: 4px;
