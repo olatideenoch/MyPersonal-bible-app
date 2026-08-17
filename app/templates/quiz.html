@@ -217,7 +217,10 @@
 
             function showScreen(name) {
                 ['quizStart', 'quizPlay', 'quizResult'].forEach(function (id) {
-                    document.getElementById(id).style.display = id === name ? '' : 'none';
+                    // Set the visible screen to 'block' explicitly: an empty
+                    // string only removes the inline style, which lets the
+                    // CSS rule `#quizPlay { display: none; }` keep it hidden.
+                    document.getElementById(id).style.display = (id === name) ? 'block' : 'none';
                 });
             }
 
