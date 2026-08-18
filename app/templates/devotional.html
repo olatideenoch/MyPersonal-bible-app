@@ -119,20 +119,34 @@
             <!-- Day picker -->
             <div class="card p-3 mb-4 reveal">
                 <div class="text-center mb-2">
-                    <button class="btn btn-outline-secondary btn-sm me-2" onclick="window.location.href='{{ url_for("study.devotional_page", day=selected_day-1 if selected_day>1 else 31) }}'">
+                    {% if selected_day > 1 %}
+                    <button class="btn btn-outline-secondary btn-sm me-2" onclick="window.location.href='{{ url_for("study.devotional_page", day=selected_day-1) }}'">
                         <i class="fas fa-chevron-left me-1"></i>Prev
                     </button>
+                    {% else %}
+                    <button class="btn btn-outline-secondary btn-sm me-2" disabled>
+                        <i class="fas fa-chevron-left me-1"></i>Prev
+                    </button>
+                    {% endif %}
                     <span class="badge-soft" style="font-size: 1rem;">Day {{ devotional.day }} of 31</span>
-                    <button class="btn btn-outline-secondary btn-sm ms-2" onclick="window.location.href='{{ url_for("study.devotional_page", day=selected_day+1 if selected_day<31 else 1) }}'">
+                    {% if selected_day < today_day %}
+                    <button class="btn btn-outline-secondary btn-sm ms-2" onclick="window.location.href='{{ url_for("study.devotional_page", day=selected_day+1) }}'">
                         Next<i class="fas fa-chevron-right ms-1"></i>
                     </button>
+                    {% else %}
+                    <button class="btn btn-outline-secondary btn-sm ms-2" disabled>
+                        Next<i class="fas fa-chevron-right ms-1"></i>
+                    </button>
+                    {% endif %}
                 </div>
                 <div class="text-center" style="max-height: 120px; overflow-y: auto;">
                     {% for d in devotionals %}
+                    {% if d.day <= today_day %}
                     <a class="day-chip {% if d.day == selected_day %}active{% endif %} {% if d.day == today_day %}today{% endif %}"
                        href="{{ url_for('study.devotional_page', day=d.day) }}" title="{{ d.title }}">
                         {{ d.day }}
                     </a>
+                    {% endif %}
                     {% endfor %}
                 </div>
                 <div class="text-center mt-2">
@@ -144,6 +158,13 @@
                         {% endif %}
                     </small>
                 </div>
+                {% if today_day < 31 %}
+                <div class="text-center mt-2">
+                    <small class="text-muted">
+                        <i class="fas fa-lock me-1"></i>Future devotionals unlock one per day. Today is Day {{ today_day }}.
+                    </small>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Devotional -->

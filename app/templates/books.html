@@ -1234,6 +1234,19 @@
             box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
         }
 
+        /* Placeholder text stays visible in dark mode */
+        .form-control::placeholder,
+        textarea::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        [data-theme="dark"] .form-control::placeholder,
+        [data-theme="dark"] textarea::placeholder {
+            color: var(--text-muted);
+            opacity: 0.85;
+        }
+
         .input-group-text { color: var(--text-muted); }
 
         /* Theme toggle button (desktop) */
@@ -1529,19 +1542,6 @@
             letter-spacing: 0.02em;
         }
 
-        /* Placeholder text stays visible in dark mode */
-        .form-control::placeholder,
-        textarea::placeholder {
-            color: var(--text-muted);
-            opacity: 0.7;
-        }
-
-        [data-theme="dark"] .form-control::placeholder,
-        [data-theme="dark"] textarea::placeholder {
-            color: var(--text-muted);
-            opacity: 0.85;
-        }
-
 
 .card, .card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
             color: var(--text-primary);
@@ -1685,7 +1685,7 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}#daily">Daily Verse</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('main.index') }}#search">Search</a></li>
                     <li class="nav-item"><a class="nav-link active" href="{{ url_for('reader.books', book_slug=book.slug) }}">Books</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('study.bible_in_a_year') }}">Bible in a Year</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('main.about') }}">About Us</a></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="studyDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-graduation-cap d-xl-none me-2"></i>Study
@@ -1697,6 +1697,7 @@
                             <li><a class="dropdown-item" href="{{ url_for('user.continue_reading_page') }}"><i class="fas fa-book-open-reader me-2"></i>Continue Reading</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('study.reading_plans_page') }}"><i class="fas fa-list-check me-2"></i>Reading Plans</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('study.bible_in_a_year') }}"><i class="fas fa-calendar-check me-2"></i>Bible in a Year</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('study.devotional_page') }}"><i class="fas fa-book-open-reader me-2"></i>Daily Devotional</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('study.topics_page') }}"><i class="fas fa-lightbulb me-2"></i>Bible Topics</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('reader.compare_page') }}"><i class="fas fa-columns me-2"></i>Compare Versions</a></li>

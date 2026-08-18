@@ -125,6 +125,16 @@ def contact():
         user=user
     )
 
+@bp.route('/about')
+def about():
+    """About Us page: the story, mission and features of MyPersonal Bible."""
+    user = session.get('user')
+    return render_template(
+        'about.html',
+        current_year=dt.datetime.now().year,
+        user=user
+    )
+
 @bp.route('/install')
 def install_guide():
     user = session.get('user')

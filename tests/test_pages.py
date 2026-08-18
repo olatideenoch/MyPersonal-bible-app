@@ -5,6 +5,7 @@ PAGES = [
     "/",
     "/search",
     "/contact",
+    "/about",
     "/install",
     "/bible-in-a-year",
     "/plans",
@@ -28,6 +29,30 @@ def test_page_renders(client, path):
         assert response.status_code == 503
     else:
         assert response.status_code == 200, f"{path} returned {response.status_code}"
+
+
+def test_devotional_future_days_clamped(client):
+    """Users can only read today's devotional and past days, never future ones."""
+    import datetime as dt
+    today_day = dt.date.today().day
+    # requesting the last day of the cycle must clamp to today (unless today IS day 31)
+    resp = client.get("/devotional?day=31")
+    assert resp.status_code == 200
+    body = resp.get_data(as_text=True)
+    expected = "Day %d of 31" % min(31, today_day)
+    assert expected in body
+    # day chips for future days must not be rendered (ignore the canonical
+    # link, which echoes the requested URL)
+    import re
+    chip_days = [int(m.group(1)) for m in re.finditer(r'/devotional\?day=(\d+)', body)
+                 if m.start() > 0 and body[m.start() - 1] == '"']
+    assert chip_days, "expected day chips in the picker"
+    assert max(chip_days) <= today_day
+    assert len(chip_days) == today_day
+    # day 0 is invalid and falls back to today's devotional
+    resp0 = client.get("/devotional?day=0")
+    assert resp0.status_code == 200
+    assert ("Day %d of 31" % today_day) in resp0.get_data(as_text=True)
 
 
 def test_meta_routes(client):

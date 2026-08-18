@@ -20,6 +20,7 @@ def sitemap_xml():
     pages = [
         url_for("main.index", _external=True),
         url_for("main.contact", _external=True),
+        url_for("main.about", _external=True),
         url_for("main.install_guide", _external=True),
         url_for("main.search", _external=True),
         url_for("study.reading_plans_page", _external=True),

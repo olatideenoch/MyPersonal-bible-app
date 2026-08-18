@@ -15,20 +15,20 @@
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Contact MyPersonal Bible for questions, feedback, or support. Reach out about Bible reading, audio playback, or app ideas.">
-    <meta name="keywords" content="contact, Bible app support, Christian app feedback, Bible reader questions">
+    <meta name="description" content="About MyPersonal Bible: a free, web-first Bible platform with 14 versions, audio, devotionals, reading plans and more - free forever.">
+    <meta name="keywords" content="about MyPersonal Bible, free Bible app, Bible reader, scripture audio, Christian app">
     <meta name="robots" content="index, follow">
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="author" content="MyPersonal Bible">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Contact - MyPersonal Bible">
-    <meta property="og:description" content="Contact MyPersonal Bible for questions, feedback, or support. Reach out about Bible reading, audio playback, or app ideas.">
+    <meta property="og:title" content="About Us - MyPersonal Bible">
+    <meta property="og:description" content="About MyPersonal Bible: a free, web-first Bible platform with 14 versions, audio, devotionals, reading plans and more.">
     <meta property="og:url" content="{{ request.url }}">
     <meta property="og:image" content="{{ url_for('static', filename='img/app-icon.jpg', _external=True) }}">
     <meta property="og:site_name" content="MyPersonal Bible">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Contact - MyPersonal Bible">
-    <meta name="twitter:description" content="Contact MyPersonal Bible for questions, feedback, or support. Reach out about Bible reading, audio playback, or app ideas.">
+    <meta name="twitter:title" content="About Us - MyPersonal Bible">
+    <meta name="twitter:description" content="About MyPersonal Bible: a free, web-first Bible platform with 14 versions, audio, devotionals, reading plans and more.">
     <meta name="twitter:image" content="{{ url_for('static', filename='img/app-icon.jpg', _external=True) }}">
     <link rel="canonical" href="{{ request.url }}">
     
@@ -43,7 +43,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <title>Contact - MyPersonal Bible</title>
+    <title>About Us - MyPersonal Bible</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -52,19 +52,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lora:wght@500&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <script>
-    // Auto-open support modal if URL contains ?open=support
-    (function() {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('open') === 'support') {
-            document.addEventListener('DOMContentLoaded', function() {
-                const supportModal = new bootstrap.Modal(document.getElementById('supportModal'));
-                supportModal.show();
-            });
-        }
-    })();
-</script>
-    
+
     <style>
         /* Light mode (default) variables */
         :root {
@@ -485,6 +473,91 @@
             padding: 40px;
             box-shadow: var(--card-shadow);
             border: 1px solid var(--border-color);
+        }
+
+        /* ===== About page ===== */
+        .about-card {
+            background: var(--card-bg);
+            border-radius: 18px;
+            padding: 40px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+        .about-card h2, .about-card h3 {
+            font-family: 'Lora', serif;
+            color: var(--text-secondary);
+        }
+        .about-card p, .about-card li {
+            color: var(--text-primary);
+            line-height: 1.8;
+        }
+        .about-quote {
+            background: var(--bg-tertiary);
+            border-left: 4px solid var(--accent-primary);
+            border-radius: 10px;
+            padding: 18px 22px;
+            font-family: 'Lora', serif;
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+        }
+        .about-feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+        .about-feature {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 18px;
+            text-align: center;
+        }
+        .about-feature i {
+            font-size: 1.5rem;
+            color: var(--accent-text);
+            margin-bottom: 8px;
+        }
+        .about-feature .feat-title {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+        .about-feature .feat-sub {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            margin-top: 4px;
+        }
+        .about-stat-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: center;
+        }
+        .about-stat {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px 22px;
+            text-align: center;
+            min-width: 130px;
+            box-shadow: var(--card-shadow);
+        }
+        .about-stat .stat-num {
+            font-family: 'Lora', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--accent-text);
+            line-height: 1.2;
+        }
+        .about-stat .stat-lbl {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+        @media (max-width: 576px) {
+            .about-card { padding: 24px 18px; }
+            .about-stat { min-width: 100px; padding: 12px 14px; }
+            .about-stat .stat-num { font-size: 1.3rem; }
         }
 
         /* Form controls */
@@ -1043,84 +1116,111 @@
     <!-- Page Header -->
     <section class="page-header">
         <div class="container">
-            <h1 class="head-center">Get in Touch</h1>
-            <p class="mt-3 lead">Have feedback or want to discuss sponsorship? Reach out directly via email.</p>
+            <h1 class="head-center">About Us</h1>
+            <p class="mt-3 lead">MyPersonal Bible is a free, web-first Bible platform. One Bible, every device, free forever.</p>
         </div>
     </section>
 
-    <!-- Contact Form -->
+    <!-- About Content -->
     <section class="py-5">
         <div class="container col-11 col-md-10 col-lg-8">
-            <div class="contact-card mx-auto">
-                
-                <!-- Status Message (if any from backend) -->
-                {% if status_message %}
-                    <div class="alert alert-{{ status_type }} alert-dismissible fade show" role="alert">
-                        <h4 class="alert-heading">
-                            {% if status_type == 'success' %}
-                                <i class="fas fa-check-circle me-2"></i>Thank you!
-                            {% elif status_type == 'danger' %}
-                                <i class="fas fa-exclamation-circle me-2"></i>Oops!
-                            {% else %}
-                                <i class="fas fa-info-circle me-2"></i>Heads up
-                            {% endif %}
-                        </h4>
-                        <p>{{ status_message }}</p>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endif %}
+            <div class="about-card mx-auto">
 
-                <h2 class="text-center section-title mb-4">Send a Message</h2>
-                <form method="POST" action="{{ url_for('main.contact') }}">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="name" class="form-label">
-                                <i class="fas fa-user me-1"></i>Your Name
-                            </label>
-                            <input type="text" class="form-control" id="name" name="name" value="{{ form_data.name }}" placeholder="Enter your name">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="email" class="form-label">
-                                <i class="fas fa-envelope me-1"></i>Email Address
-                            </label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ form_data.email }}" placeholder="you@example.com" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="subject" class="form-label">
-                                <i class="fas fa-tag me-1"></i>Subject
-                            </label>
-                            <select class="form-select" id="subject" name="subject">
-                                <option value="" {% if not form_data.subject %}selected{% endif %}>Choose one...</option>
-                                <option value="Feedback" {% if form_data.subject == 'Feedback' %}selected{% endif %}>Feedback</option>
-                                <option value="Sponsorship" {% if form_data.subject == 'Sponsorship' %}selected{% endif %}>Sponsorship</option>
-                                <option value="Bug Report" {% if form_data.subject == 'Bug Report' %}selected{% endif %}>Bug Report</option>
-                                <option value="Feature Request" {% if form_data.subject == 'Feature Request' %}selected{% endif %}>Feature Request</option>
-                                <option value="Other" {% if form_data.subject == 'Other' %}selected{% endif %}>Other</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label for="message" class="form-label">
-                                <i class="fas fa-message me-1"></i>Message
-                            </label>
-                            <textarea class="form-control" id="message" name="message" rows="6" placeholder="Write your message here..." required>{{ form_data.message }}</textarea>
-                        </div>
-                        <div class="col-12 text-end">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-paper-plane me-2"></i>Send Message
-                            </button>
-                        </div>
-                    </div>
-                </form>
+                <h2 class="text-center section-title mb-4">Our Story</h2>
+                <p>
+                    MyPersonal Bible began with a simple problem: a phone broke, and there was no
+                    free, complete Bible app that could be used instantly from a browser, on any
+                    device, without an installation. So we built one.
+                </p>
+                <p>
+                    We are not here to compete with the big Bible apps. We are a complement: a free,
+                    web-first home for Scripture that opens in seconds on any phone, tablet or
+                    computer, with your notes, highlights, plans and progress synced to your Google
+                    account and waiting on every device.
+                </p>
+                <div class="about-quote mt-4 mb-4">
+                    &ldquo;Thy word is a lamp unto my feet, and a light unto my path.&rdquo;
+                    <div class="mt-2" style="font-size: 0.9rem; color: var(--text-muted);">Psalm 119:105</div>
+                </div>
 
-                <!-- Support button and email fallback -->
-                <div class="mt-4 text-center">
-                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#supportModal">
-                        <i class="fas fa-heart me-2"></i>Support MyPersonal Bible
-                    </button>
+                <h3 class="mt-4 mb-3 text-center">What You Get, Free</h3>
+                <div class="about-stat-row mb-4">
+                    <div class="about-stat"><div class="stat-num">66</div><div class="stat-lbl">Books of the Bible</div></div>
+                    <div class="about-stat"><div class="stat-num">31K+</div><div class="stat-lbl">Verses</div></div>
+                    <div class="about-stat"><div class="stat-num">14</div><div class="stat-lbl">Bible Versions</div></div>
+                    <div class="about-stat"><div class="stat-num">$0</div><div class="stat-lbl">Free Forever</div></div>
                 </div>
-                <div class="mt-3 text-center text-muted">
-                    <p>Prefer to email directly? Reach us at <a href="mailto:mypersonalbibleapp@gmail.com">mypersonalbibleapp@gmail.com</a>.</p>
+
+                <div class="about-feature-grid">
+                    <div class="about-feature">
+                        <i class="fas fa-headphones"></i>
+                        <div class="feat-title">Chapter Audio</div>
+                        <div class="feat-sub">Listen to any chapter with auto-scroll and live verse highlight, speed control and MP3 download.</div>
+                    </div>
+                    <div class="about-feature">
+                        <i class="fas fa-book-open-reader"></i>
+                        <div class="feat-title">Daily Devotionals</div>
+                        <div class="feat-sub">A verse, reflection, prayer and action step every single day.</div>
+                    </div>
+                    <div class="about-feature">
+                        <i class="fas fa-list-check"></i>
+                        <div class="feat-title">Reading Plans</div>
+                        <div class="feat-sub">8 guided plans plus a custom plan builder, and a full Bible-in-a-Year journey.</div>
+                    </div>
+                    <div class="about-feature">
+                        <i class="fas fa-highlighter"></i>
+                        <div class="feat-title">Notes &amp; Highlights</div>
+                        <div class="feat-sub">Bookmark, highlight, label and annotate verses, synced across devices.</div>
+                    </div>
+                    <div class="about-feature">
+                        <i class="fas fa-brain"></i>
+                        <div class="feat-title">Memorize Verses</div>
+                        <div class="feat-sub">A spaced-repetition memory system that grows with you.</div>
+                    </div>
+                    <div class="about-feature">
+                        <i class="fas fa-hands-praying"></i>
+                        <div class="feat-title">Prayer Journal</div>
+                        <div class="feat-sub">Write your prayers and mark them answered.</div>
+                    </div>
+                    <div class="about-feature">
+                        <i class="fas fa-question-circle"></i>
+                        <div class="feat-title">Bible Quiz</div>
+                        <div class="feat-sub">176 questions across the whole Bible to test and grow your knowledge.</div>
+                    </div>
+                    <div class="about-feature">
+                        <i class="fas fa-language"></i>
+                        <div class="feat-title">Your Languages</div>
+                        <div class="feat-sub">English, Français, Yor&ugrave;b&aacute; and more, with Matthew Henry commentary.</div>
+                    </div>
                 </div>
+
+                <h3 class="mt-5 mb-3 text-center">Why Free?</h3>
+                <p>
+                    God&rsquo;s word should not sit behind a paywall. MyPersonal Bible runs on free
+                    hosting and free Bible APIs, and it will stay free. Your reading time and
+                    chapters build a personal dashboard: streaks, a year of activity, and a
+                    reading graph you can look back on with joy.
+                </p>
+
+                <h3 class="mt-4 mb-3 text-center">Our Vision</h3>
+                <p>
+                    We are building toward native apps, an offline-first experience, community and
+                    shared reading together. In the meantime, this web app works like a native app:
+                    installable, offline-capable, with daily verse reminders right on your phone.
+                </p>
+
+                <div class="text-center mt-5">
+                    <a class="btn btn-success me-2 mb-2" href="{{ url_for('main.index') }}#books">
+                        <i class="fas fa-book me-2"></i>Start Reading
+                    </a>
+                    <a class="btn btn-outline-primary me-2 mb-2" href="{{ url_for('main.contact') }}">
+                        <i class="fas fa-envelope me-2"></i>Contact Us
+                    </a>
+                    <a class="btn btn-outline-primary mb-2" href="https://mypersonalbible.onrender.com" target="_blank" rel="noopener">
+                        <i class="fas fa-globe me-2"></i>Our Website
+                    </a>
+                </div>
+
             </div>
         </div>
     </section>

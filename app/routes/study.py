@@ -228,7 +228,11 @@ def devotional_page():
     # Day-of-month -> devotional (31-day cycle)
     day_num = ((today.day - 1) % 31) + 1
     selected_day = request.args.get('day', type=int) or day_num
-    if selected_day < 1 or selected_day > 31:
+    if selected_day < 1:
+        selected_day = 1
+    # Never allow devotionals for days later in the month than today:
+    # users can only read today's devotional and past days.
+    if selected_day > day_num:
         selected_day = day_num
     devotional = DAILY_DEVOTIONALS[selected_day - 1]
     return render_template('devotional.html', user=user, current_year=today.year,
