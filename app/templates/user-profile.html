@@ -120,7 +120,7 @@
         }
         .navbar-brand:hover img { transform: scale(1.05); }
         [data-theme="dark"] .navbar-brand img { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
-        .nav-link { color: var(--text-primary) !important; }
+        .nav-link { color: var(--text-primary) !important; white-space: nowrap; }
         .nav-link:hover { color: var(--accent-text) !important; }
         .nav-link.apk-download-link { color: var(--accent-text) !important; font-weight: 600; }
         .nav-link.apk-download-link:hover { color: var(--text-secondary) !important; }
@@ -507,12 +507,11 @@
             .navbar-brand { font-size: 1.5rem; }
             .user-profile-btn span { display: none; }
             .google-signin-btn span { display: none; }
-            .streak-badge-wrapper { display: none; }
+            /* streak badge stays visible beside the profile picture */
             .theme-toggle-btn { width: 36px; height: 36px; font-size: 0.95rem; }
         }
         @media (min-width: 1600px) {
             .nav-link { font-size: 0.95rem; padding-left: 0.55rem !important; padding-right: 0.55rem !important; }
-            .streak-badge-wrapper { display: block; }
         }
 
         /* ===== Year tabs ===== */
@@ -837,6 +836,16 @@
                 <a href="{{ url_for('main.index') }}#books" class="btn-primary">Start Reading</a>
             </div>
 
+            <!-- Daily activity: last 14 days (chapters + minutes in app) -->
+            <div class="dash-card">
+                <h3><i class="fas fa-calendar-day"></i>Daily Activity &mdash; Last 14 Days</h3>
+                <p class="text-muted small mb-2">Chapters you read and time you spent in the app, day by day.</p>
+                <canvas id="pfDailyChart" height="120"></canvas>
+                <div class="d-flex flex-wrap justify-content-center gap-3 mt-2 small text-muted">
+                    <span id="pfDailySummary"></span>
+                </div>
+            </div>
+
             <div id="pfYearSection" style="display:none;">
                 <!-- Year selector -->
                 <div class="year-tabs" id="pfYearTabs"></div>
@@ -853,10 +862,6 @@
                         <h3><i class="fas fa-chart-column"></i>Monthly Activity</h3>
                         <canvas id="pfMonthlyChart" height="220"></canvas>
                     </div>
-                    <div class="dash-col dash-card">
-                        <h3><i class="fas fa-calendar-week"></i>Days of the Week</h3>
-                        <canvas id="pfWeekdayChart" height="220"></canvas>
-                    </div>
                 </div>
             </div>
 
@@ -871,6 +876,21 @@
                     <span id="pfBibleYearText">0 / 365 days</span>
                     <span id="pfBibleYearPercent">0%</span>
                 </div>
+            </div>
+
+            <!-- Preferred version -->
+            <div class="dash-card">
+                <h3><i class="fas fa-book-bible"></i>My Preferred Bible Version</h3>
+                <p class="text-muted small">This version is used everywhere by default &mdash; the daily verse,
+                every chapter you open, quick lookups and random verses. If a version can't be loaded
+                somewhere, the app falls back automatically.</p>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <select class="form-select" id="preferredVersionSelect" style="max-width: 340px;"></select>
+                    <button class="btn btn-primary" id="savePreferredVersionBtn">
+                        <i class="fas fa-save me-1"></i>Save Preference
+                    </button>
+                </div>
+                <div id="preferredVersionStatus" class="small mt-2"></div>
             </div>
 
             <!-- Achievements -->
@@ -1026,7 +1046,7 @@
             let analytics = null;
             let selectedYear = null;
             let monthlyChart = null;
-            let weekdayChart = null;
+            let dailyChart = null;
 
             const loadingEl = document.getElementById('pfLoading');
             const contentEl = document.getElementById('pfContent');
@@ -1127,29 +1147,98 @@
                     }
                 });
 
-                const weekdayCtx = document.getElementById('pfWeekdayChart').getContext('2d');
-                if (weekdayChart) weekdayChart.destroy();
-                weekdayChart = new Chart(weekdayCtx, {
+            }
+
+            // ── Daily activity: chapters read + minutes in the app, per day ──
+            function drawDailyChart() {
+                const canvas = document.getElementById('pfDailyChart');
+                if (!canvas) return;
+                const accent = cssVar('--accent-primary') || '#c9923a';
+                const accentDark = cssVar('--accent-secondary') || '#9a6a1e';
+                const gridColor = cssVar('--chart-grid') || 'rgba(0,0,0,0.08)';
+                const textColor = cssVar('--text-muted') || '#8a7256';
+                const days = (analytics && analytics.daily_activity) ? analytics.daily_activity : [];
+
+                const ctx = canvas.getContext('2d');
+                if (dailyChart) dailyChart.destroy();
+                dailyChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: WEEKDAY_NAMES,
-                        datasets: [{
-                            label: 'Days read',
-                            data: y.weekday,
-                            backgroundColor: accentDark,
-                            borderRadius: 6,
-                            maxBarThickness: 34
-                        }]
+                        labels: days.map(function (d) { return d.weekday + ' ' + d.label; }),
+                        datasets: [
+                            {
+                                label: 'Chapters read',
+                                data: days.map(function (d) { return d.chapters; }),
+                                backgroundColor: accent,
+                                borderRadius: 5,
+                                maxBarThickness: 26,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Minutes in app',
+                                type: 'line',
+                                data: days.map(function (d) { return d.minutes; }),
+                                borderColor: accentDark,
+                                backgroundColor: accentDark,
+                                pointBackgroundColor: accentDark,
+                                pointRadius: 3,
+                                borderWidth: 2,
+                                tension: 0.35,
+                                yAxisID: 'y1'
+                            }
+                        ]
                     },
                     options: {
                         responsive: true,
-                        plugins: { legend: { display: false } },
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { display: true, labels: { color: textColor, usePointStyle: true } },
+                            tooltip: {
+                                callbacks: {
+                                    afterBody: function (items) {
+                                        const idx = items[0] && items[0].dataIndex;
+                                        if (idx == null) return '';
+                                        const d = days[idx];
+                                        return 'Chapters: ' + d.chapters + ' · Time: ' + formatMinutes(d.minutes);
+                                    }
+                                }
+                            }
+                        },
                         scales: {
-                            x: { grid: { display: false }, ticks: { color: textColor } },
-                            y: { beginAtZero: true, precision: 0, grid: { color: gridColor }, ticks: { color: textColor, precision: 0 } }
+                            x: { grid: { display: false }, ticks: { color: textColor, maxRotation: 45, autoSkip: true, maxTicksLimit: 8 } },
+                            y: {
+                                beginAtZero: true, precision: 0, position: 'left',
+                                title: { display: true, text: 'Chapters', color: textColor },
+                                grid: { color: gridColor }, ticks: { color: textColor, precision: 0 }
+                            },
+                            y1: {
+                                beginAtZero: true, position: 'right',
+                                title: { display: true, text: 'Minutes', color: textColor },
+                                grid: { drawOnChartArea: false }, ticks: { color: textColor }
+                            }
                         }
                     }
                 });
+
+                // Summary line
+                const summaryEl = document.getElementById('pfDailySummary');
+                if (summaryEl) {
+                    const totChapters = days.reduce(function (a, d) { return a + d.chapters; }, 0);
+                    const totMinutes = days.reduce(function (a, d) { return a + d.minutes; }, 0);
+                    summaryEl.innerHTML =
+                        '<span><strong style="color: var(--accent-text);">' + totChapters + '</strong> chapters · </span>' +
+                        '<span><strong style="color: var(--accent-text);">' + formatMinutes(totMinutes) + '</strong> in the app — last 14 days</span>';
+                }
+            }
+
+            function formatMinutes(mins) {
+                mins = Math.round(mins || 0);
+                if (mins >= 60) {
+                    const h = Math.floor(mins / 60);
+                    const m = mins % 60;
+                    return m ? h + 'h ' + m + 'm' : h + 'h';
+                }
+                return mins + 'm';
             }
 
             window.pfRedrawCharts = function() {
@@ -1194,6 +1283,55 @@
                     ).join('');
             }
 
+            // ── Preferred Bible version selector ──
+            async function initVersionPreference() {
+                const select = document.getElementById('preferredVersionSelect');
+                const saveBtn = document.getElementById('savePreferredVersionBtn');
+                const status = document.getElementById('preferredVersionStatus');
+                if (!select || !saveBtn) return;
+
+                let versions = [];
+                try {
+                    const res = await fetch('/api/versions');
+                    const data = await res.json();
+                    versions = data.versions || [];
+                } catch (e) { /* keep empty */ }
+
+                select.innerHTML = versions.map(function (v) {
+                    return '<option value="' + v.id + '">' + v.version + '</option>';
+                }).join('');
+
+                const current = localStorage.getItem('biblePreferredVersion') || 'en-kjv';
+                if (Array.from(select.options).some(function (o) { return o.value === current; })) {
+                    select.value = current;
+                }
+                function setStatus(msg, ok) {
+                    status.innerHTML = '<i class="fas fa-' + (ok ? 'check-circle' : 'info-circle') + ' me-1" style="color:' + (ok ? 'var(--accent-text)' : 'var(--text-muted)') + ';"></i>' + msg;
+                }
+                setStatus('This version applies to the daily verse, all chapters you open, quick lookups and random verses.', false);
+
+                saveBtn.addEventListener('click', async function () {
+                    const pref = select.value;
+                    localStorage.setItem('biblePreferredVersion', pref);
+                    // sync to the account when signed in (falls back to KJV anywhere it can't load)
+                    try {
+                        const res = await fetch('/api/sync', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ preferred_version: pref })
+                        });
+                        if (res.ok || res.status === 401) {
+                            setStatus('Preference saved! It applies from your next chapter load.', true);
+                        } else {
+                            setStatus('Saved on this device. Sign in to keep it across devices.', true);
+                        }
+                    } catch (e) {
+                        setStatus('Saved on this device (offline).', true);
+                    }
+                });
+            }
+            initVersionPreference();
+
             window.pfLoadAnalytics = async function() {
                 try {
                     const res = await fetch('/api/profile/analytics');
@@ -1206,6 +1344,7 @@
                     renderStatGrid();
                     renderBibleYear();
                     renderAchievements();
+                    drawDailyChart();
 
                     if (analytics.years && analytics.years.length) {
                         emptyStateEl.style.display = 'none';

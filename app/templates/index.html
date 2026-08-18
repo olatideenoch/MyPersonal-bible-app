@@ -242,6 +242,7 @@
         
         .nav-link {
             color: var(--text-primary) !important;
+            white-space: nowrap;
         }
         
         .nav-link:hover {
@@ -1508,12 +1509,11 @@
             .navbar-brand { font-size: 1.5rem; }
             .user-profile-btn span { display: none; }
             .google-signin-btn span { display: none; }
-            .streak-badge-wrapper { display: none; }
+            /* streak badge stays visible beside the profile picture */
             .theme-toggle-btn { width: 36px; height: 36px; font-size: 0.95rem; }
         }
         @media (min-width: 1600px) {
             .nav-link { font-size: 0.95rem; padding-left: 0.55rem !important; padding-right: 0.55rem !important; }
-            .streak-badge-wrapper { display: block; }
         }
 
         /* Small phones: icon-only sign-in button so the mobile row stays single-line */
@@ -2464,6 +2464,8 @@
                     highlights: JSON.parse(localStorage.getItem('bibleHighlights') || '{}'),
                     progress: getAllReadingProgress(),
                     readingLog: JSON.parse(localStorage.getItem(STREAK_LOG_KEY) || '[]'),
+                    dailyActivity: JSON.parse(localStorage.getItem('bibleDailyActivity') || '{}'),
+                    preferred_version: localStorage.getItem('biblePreferredVersion'),
                     font_size: localStorage.getItem('bibleFontSize'),
                     theme: localStorage.getItem('bibleAppTheme')
                 };
@@ -2527,7 +2529,11 @@
                 o.textContent = v.version;
                 qlVersion.appendChild(o);
             });
-            if (qlVersion.options.length > 1) qlVersion.selectedIndex = 1;
+            if (qlVersion.options.length > 1) {
+                const pref = (window.MPB && MPB.getPreferredVersion) ? MPB.getPreferredVersion('en-kjv') : 'en-kjv';
+                const idx = Array.from(qlVersion.options).findIndex(function (o) { return o.value === pref; });
+                qlVersion.selectedIndex = idx > 0 ? idx : 1;
+            }
         }
         
         function parseVerseRange(raw) {
@@ -3188,6 +3194,27 @@
             });
         });
 
+        // ========== DAILY VERSE IN PREFERRED VERSION ==========
+        (function () {
+            const refEl = document.getElementById('dailyVerseRef');
+            const textEl = document.getElementById('dailyVerseText');
+            if (!refEl || !textEl) return;
+            const reference = refEl.textContent.replace(/[\u2014\u2013-]/g, '').trim();
+            const parsed = (window.MPB && MPB.parseReference) ? MPB.parseReference(reference) : null;
+            if (!parsed || !parsed.verse) return;  // ranges / odd refs keep the default text
+            const pref = (window.MPB && MPB.getPreferredVersion) ? MPB.getPreferredVersion('en-kjv') : 'en-kjv';
+            if (pref === 'en-kjv') return;         // daily verse already arrives in KJV
+            fetch('/api/verse/' + encodeURIComponent(parsed.slug) + '/' + parsed.chapter + '/' + parsed.verse +
+                  '?version=' + encodeURIComponent(pref))
+                .then(function (res) { return res.ok ? res.json() : null; })
+                .then(function (data) {
+                    if (data && data.text) {
+                        textEl.textContent = '\"' + data.text + '\"';
+                    }
+                })
+                .catch(function () { /* keep the default text on any failure */ });
+        })();
+
         // ========== DAILY VERSE: SHARE + RANDOM VERSE ==========
         (function () {
             const dailyShareBtn = document.getElementById('dailyShareBtn');
@@ -3209,7 +3236,8 @@
                 if (!randomVerseBtn) return;
                 randomVerseBtn.disabled = true;
                 randomVerseBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Fetching...';
-                fetch('/api/random-verse')
+                const prefVersion = (window.MPB && MPB.getPreferredVersion) ? MPB.getPreferredVersion('en-kjv') : 'en-kjv';
+                fetch('/api/random-verse?version=' + encodeURIComponent(prefVersion))
                     .then(function (res) { return res.json(); })
                     .then(function (data) {
                         if (data.text) {

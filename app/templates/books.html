@@ -148,6 +148,15 @@
             border-color: var(--btn-success-hover) !important;
             color: var(--btn-success-text) !important;
         }
+        /* Bootstrap's .btn-success.active (green) has higher specificity than
+           plain .btn-success - override it so the active Scripture/Commentary
+           tab stays on the theme's gold in both light and dark mode. */
+        .btn-success.active,
+        .btn-check:checked + .btn-success {
+            background-color: var(--btn-success-bg) !important;
+            border-color: var(--btn-success-bg) !important;
+            color: var(--btn-success-text) !important;
+        }
 
         .btn-success:focus {
             box-shadow: 0 0 0 0.25rem rgba(201, 146, 58, 0.35);
@@ -287,7 +296,7 @@
             color: var(--text-secondary) !important;
         }
 
-        .nav-link { color: var(--text-primary) !important; }
+        .nav-link { color: var(--text-primary) !important; white-space: nowrap; }
         .nav-link:hover { color: var(--accent-text) !important; }
 
         /* Bootstrap text/close helpers mapped to the theme (dark mode safety) */
@@ -780,6 +789,22 @@
             background: var(--highlight-bg);
             border-left: 4px solid var(--highlight-border);
         }
+        /* Verse currently being read aloud */
+        .verse-item.audio-active {
+            background: var(--highlight-bg) !important;
+            border-left: 5px solid var(--accent-primary) !important;
+            box-shadow: inset 0 0 0 1px rgba(201, 146, 58, 0.35);
+            transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+        [data-theme="dark"] .verse-item.audio-active {
+            background: rgba(232, 184, 106, 0.16) !important;
+            border-left-color: #e8b86a !important;
+            box-shadow: inset 0 0 0 1px rgba(232, 184, 106, 0.4);
+        }
+        .verse-item.audio-active .verse-text {
+            color: var(--accent-text);
+        }
+
         /* Multi-color highlights */
         .verse-item.hl-yellow { background: rgba(255, 213, 79, 0.22); border-left: 4px solid #ffd54f; }
         .verse-item.hl-green { background: rgba(129, 199, 132, 0.22); border-left: 4px solid #81c784; }
@@ -881,12 +906,12 @@
             .navbar-brand { font-size: 1.5rem; }
             .user-profile-btn span { display: none; }
             .google-signin-btn span { display: none; }
-            .streak-badge-wrapper { display: none; }
+            /* streak badge stays visible beside the profile picture */
             .theme-toggle-btn { width: 36px; height: 36px; font-size: 0.95rem; }
         }
         @media (min-width: 1600px) {
             .nav-link { font-size: 0.95rem; padding-left: 0.55rem !important; padding-right: 0.55rem !important; }
-            .streak-badge-wrapper { display: block; }
+
         }
 
         .verse-content { flex: 1; min-width: 0; }
@@ -2162,6 +2187,58 @@
             logChapterRead();
         }
 
+        // ========== DAILY ACTIVITY TRACKING (chapters + minutes per day) ==========
+        (function () {
+            const DAILY_KEY = 'bibleDailyActivity';
+            function todayKey() { return new Date().toISOString().slice(0, 10); }
+            function loadDaily() {
+                try { return JSON.parse(localStorage.getItem(DAILY_KEY) || '{}'); } catch (e) { return {}; }
+            }
+            function saveDaily(d) {
+                const cutoff = new Date(Date.now() - 60 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+                Object.keys(d).forEach(function (k) { if (k < cutoff) delete d[k]; });
+                localStorage.setItem(DAILY_KEY, JSON.stringify(d));
+            }
+
+            // Count this chapter view (dedupe rapid reloads of the same chapter)
+            if (typeof BOOK_SLUG !== 'undefined' && typeof CHAPTER_NUM !== 'undefined' && CHAPTER_NUM) {
+                try {
+                    const now = new Date();
+                    const lastKey = localStorage.getItem('bibleLastChapterKey');
+                    const lastTime = parseInt(localStorage.getItem('bibleLastChapterTime') || '0', 10);
+                    const thisKey = BOOK_SLUG + '_' + CHAPTER_NUM;
+                    const isSame = (lastKey === thisKey) && (now.getTime() - lastTime) < 5 * 60 * 1000;
+                    if (!isSame) {
+                        const d = loadDaily();
+                        const k = todayKey();
+                        d[k] = d[k] || { chapters: 0, minutes: 0 };
+                        d[k].chapters = (d[k].chapters || 0) + 1;
+                        saveDaily(d);
+                        localStorage.setItem('bibleLastChapterKey', thisKey);
+                        localStorage.setItem('bibleLastChapterTime', String(now.getTime()));
+                    }
+                } catch (e) {}
+            }
+
+            // Heartbeat: accumulate time spent in the app while the tab is visible
+            let lastFlush = Date.now();
+            function flushTime() {
+                try {
+                    const elapsed = (Date.now() - lastFlush) / 60000;
+                    lastFlush = Date.now();
+                    if (elapsed < 0.03) return;
+                    const d = loadDaily();
+                    const k = todayKey();
+                    d[k] = d[k] || { chapters: 0, minutes: 0 };
+                    d[k].minutes = Math.round(((d[k].minutes || 0) + elapsed) * 10) / 10;
+                    saveDaily(d);
+                } catch (e) {}
+            }
+            setInterval(function () { if (!document.hidden) flushTime(); }, 30000);
+            document.addEventListener('visibilitychange', flushTime);
+            window.addEventListener('beforeunload', flushTime);
+        })();
+
         // ========== RECORD READING PROGRESS (powers Continue Reading) ==========
         if (typeof BOOK_SLUG !== 'undefined' && typeof BOOK_NAME !== 'undefined' && typeof CHAPTER_NUM !== 'undefined' && CHAPTER_NUM) {
             (function () {
@@ -2236,6 +2313,8 @@
                     notes: JSON.parse(localStorage.getItem('bibleNotes') || '[]'),
                     progress: getAllReadingProgress(),
                     readingLog: JSON.parse(localStorage.getItem(STREAK_LOG_KEY) || '[]'),
+                    dailyActivity: JSON.parse(localStorage.getItem('bibleDailyActivity') || '{}'),
+                    preferred_version: localStorage.getItem('biblePreferredVersion'),
                     font_size: localStorage.getItem('bibleFontSize'),
                     theme: localStorage.getItem('bibleAppTheme')
                 };
@@ -2377,11 +2456,22 @@
                 verseTexts.forEach(text => {
                     text.style.fontSize = currentFontSize + 'rem';
                 });
+                // The commentary panel scales with the same control
+                const commentaryContent = document.getElementById('commentaryContent');
+                if (commentaryContent) {
+                    commentaryContent.style.fontSize = currentFontSize + 'rem';
+                    commentaryContent.querySelectorAll('h5, h6').forEach(function (h) {
+                        h.style.fontSize = (1.05 * currentFontSize / baseFontSize) + 'rem';
+                    });
+                }
                 localStorage.setItem('bibleFontSize', currentFontSize);
                 
                 const percentage = Math.round((currentFontSize / baseFontSize) * 100);
                 if (fontSizeIndicator) fontSizeIndicator.textContent = percentage + '%';
             }
+            // used by the commentary loader so freshly loaded panels get the
+            // current font size applied immediately
+            window.updateReaderFontSize = updateFontSize;
             
             document.getElementById('fontSizeUp')?.addEventListener('click', () => {
                 if (currentFontSize < 2.0) { currentFontSize += 0.1; updateFontSize(); }
@@ -2728,6 +2818,7 @@
                     });
                     commentaryContent.innerHTML = html;
                     commentarySource.innerHTML = '<i class="fas fa-book me-1"></i>' + (data.source || '');
+                    if (window.updateReaderFontSize) window.updateReaderFontSize();
                 }
 
                 tabScripture.addEventListener('click', function () { setTab('scripture'); });
@@ -3000,6 +3091,52 @@
             let currentSpeed = 1.0;
             let currentText = '';
 
+            let currentActiveVerse = null;
+
+            // Build a verse-aware speech queue from the rendered verse list.
+            function buildVerseSpeechQueue() {
+                const queue = [];
+                document.querySelectorAll('#versesContainer .verse-item').forEach(function (item) {
+                    const num = parseInt(item.dataset.verse, 10);
+                    const textEl = item.querySelector('.verse-text');
+                    const text = textEl ? textEl.textContent.trim() : '';
+                    if (!text) return;
+                    chunkTextForSpeech(text).forEach(function (c) {
+                        queue.push({ verse: num, text: c });
+                    });
+                });
+                if (!queue.length && typeof CHAPTER_TEXT !== 'undefined' && CHAPTER_TEXT) {
+                    chunkTextForSpeech(CHAPTER_TEXT).forEach(function (c) {
+                        queue.push({ verse: 0, text: c });
+                    });
+                }
+                return queue;
+            }
+
+            // Highlight + auto-scroll to the verse currently being spoken.
+            function highlightActiveVerse(verseNum) {
+                if (verseNum === 0) return;
+                if (currentActiveVerse === verseNum) return;
+                if (currentActiveVerse !== null) {
+                    const prev = document.getElementById('verse-' + currentActiveVerse);
+                    if (prev) prev.classList.remove('audio-active');
+                }
+                currentActiveVerse = verseNum;
+                const el = document.getElementById('verse-' + verseNum);
+                if (el) {
+                    el.classList.add('audio-active');
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            function clearActiveVerse() {
+                if (currentActiveVerse !== null) {
+                    const prev = document.getElementById('verse-' + currentActiveVerse);
+                    if (prev) prev.classList.remove('audio-active');
+                }
+                currentActiveVerse = null;
+            }
+
             const playBtn = document.getElementById('audioPlayBtn');
             const skipBackBtn = document.getElementById('skipBackBtn');
             const skipForwardBtn = document.getElementById('skipForwardBtn');
@@ -3040,6 +3177,7 @@
             }
 
             function stopSpeech() {
+                clearActiveVerse();
                 if (speechSynth) {
                     speechSynth.cancel();
                 }
@@ -3098,7 +3236,8 @@
                 if (!isSpeechPlaying || isPaused) return;
                 if (currentChunkIndex < speechQueue.length) {
                     const chunk = speechQueue[currentChunkIndex];
-                    speechUtterance = new SpeechSynthesisUtterance(chunk);
+                    highlightActiveVerse(chunk.verse);
+                    speechUtterance = new SpeechSynthesisUtterance(chunk.text);
                     speechUtterance.rate = currentSpeed;
                     speechUtterance.pitch = 1.0;
                     speechUtterance.volume = 1.0;
@@ -3112,12 +3251,17 @@
                     else if (versionId.startsWith('pt')) langCode = 'pt-BR';
                     speechUtterance.lang = langCode;
 
-                    const voices = speechSynth.getVoices();
-                    const matchingVoice = voices.find(v => v.lang === langCode && v.name.includes('Google')) ||
-                                          voices.find(v => v.lang === langCode) ||
-                                          voices.find(v => v.lang.startsWith(langCode.slice(0, 2))) ||
-                                          voices.find(v => v.lang === 'en-US');
-                    if (matchingVoice) speechUtterance.voice = matchingVoice;
+                    let matchingVoice = null;
+                    try {
+                        const voices = speechSynth.getVoices();
+                        matchingVoice = voices.find(v => v.lang === langCode && v.name.includes('Google')) ||
+                                        voices.find(v => v.lang === langCode) ||
+                                        voices.find(v => v.lang.startsWith(langCode.slice(0, 2))) ||
+                                        voices.find(v => v.lang === 'en-US') || null;
+                    } catch (e) { matchingVoice = null; }
+                    if (matchingVoice) {
+                        try { speechUtterance.voice = matchingVoice; } catch (e) { /* keep default voice */ }
+                    }
                     
                     speechUtterance.onstart = () => { speechStartTime = Date.now(); };
                     speechUtterance.onend = () => {
@@ -3127,6 +3271,7 @@
                         } else if (currentChunkIndex >= speechQueue.length) {
                             isSpeechPlaying = false;
                             isPaused = false;
+                            clearActiveVerse();
                             stopProgressTimer();
                             updatePlayButtonState();
                             if (audioProgress) audioProgress.style.width = '0%';
@@ -3146,8 +3291,12 @@
 
             function initSpeech() {
                 return new Promise((resolve) => {
-                    if (speechSynth.getVoices().length) resolve();
-                    else speechSynth.onvoiceschanged = () => resolve();
+                    if (speechSynth.getVoices().length) { resolve(); return; }
+                    let done = false;
+                    const finish = function () { if (!done) { done = true; resolve(); } };
+                    speechSynth.onvoiceschanged = finish;
+                    // Safety net: never wait forever for a voices-changed event.
+                    setTimeout(finish, 400);
                 });
             }
 
@@ -3172,11 +3321,11 @@
                     const currentChunk = speechQueue[currentChunkIndex];
                     const wordsPerSecond = 150 * currentSpeed;
                     const wordsElapsed = Math.floor((pausedAt * wordsPerSecond) / 60);
-                    const words = currentChunk.split(' ');
+                    const words = currentChunk.text.split(' ');
                     const startWord = Math.min(wordsElapsed, words.length - 1);
                     const remainingCurrentChunk = words.slice(startWord).join(' ');
                     
-                    const newQueue = [remainingCurrentChunk, ...speechQueue.slice(currentChunkIndex + 1)].filter(c => c.trim());
+                    const newQueue = [{ verse: currentChunk.verse, text: remainingCurrentChunk }, ...speechQueue.slice(currentChunkIndex + 1)].filter(c => c.text.trim());
                     speechQueue = newQueue;
                     currentChunkIndex = 0;
                     
@@ -3195,7 +3344,7 @@
                 
                 try {
                     await initSpeech();
-                    speechQueue = chunkTextForSpeech(CHAPTER_TEXT);
+                    speechQueue = buildVerseSpeechQueue();
                     currentChunkIndex = 0;
                     estimatedDuration = estimateSpeakingTime(CHAPTER_TEXT) / currentSpeed;
                     if (durationSpan) durationSpan.textContent = formatTime(estimatedDuration);

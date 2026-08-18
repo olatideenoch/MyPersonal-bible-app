@@ -108,6 +108,7 @@ main {
 
 .nav-link {
     color: var(--text-primary) !important;
+    white-space: nowrap;
 }
 
 .nav-link:hover {

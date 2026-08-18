@@ -93,6 +93,8 @@
             customPlans: JSON.parse(localStorage.getItem('bibleCustomPlans') || '{}'),
             quizStats: JSON.parse(localStorage.getItem('bibleQuizStats') || 'null'),
             readingLog: JSON.parse(localStorage.getItem('bibleReadingLog') || '[]'),
+            dailyActivity: JSON.parse(localStorage.getItem('bibleDailyActivity') || '{}'),
+            preferred_version: localStorage.getItem('biblePreferredVersion'),
             progress: progress,
             font_size: localStorage.getItem('bibleFontSize'),
             theme: localStorage.getItem('bibleAppTheme')
@@ -126,6 +128,8 @@
                     if (serverData.plans) localStorage.setItem('biblePlans', JSON.stringify(serverData.plans));
                     if (serverData.quizStats) localStorage.setItem('bibleQuizStats', JSON.stringify(serverData.quizStats));
                     if (serverData.readingLog) localStorage.setItem('bibleReadingLog', JSON.stringify(serverData.readingLog));
+                    if (serverData.dailyActivity) localStorage.setItem('bibleDailyActivity', JSON.stringify(serverData.dailyActivity));
+                    if (serverData.preferred_version) localStorage.setItem('biblePreferredVersion', serverData.preferred_version);
                     if (serverData.progress) {
                         Object.keys(serverData.progress).forEach(function (k) {
                             try { localStorage.setItem(k, JSON.stringify(serverData.progress[k])); } catch (e) {}
@@ -612,6 +616,12 @@
         }
     }
 
+    /* ---------- Preferred Bible version ---------- */
+    function getPreferredVersion(fallback) {
+        const pref = localStorage.getItem('biblePreferredVersion');
+        return pref || (fallback || 'en-kjv');
+    }
+
     /* ---------- Expose API ---------- */
 
 
@@ -624,6 +634,7 @@
         shareVerse: shareVerse,
         parseReference: parseReference,
         jumpToReference: jumpToReference,
+        getPreferredVersion: getPreferredVersion,
         pushToggle: pushToggle,
         pushStatus: pushStatus
     };

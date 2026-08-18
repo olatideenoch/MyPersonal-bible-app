@@ -40,6 +40,8 @@ def load_user_sync_data(user_id: str) -> dict:
         "prayers": [],
         "quizStats": {"attempts": 0, "total_correct": 0, "total_answered": 0, "best_percentage": 0.0, "history": []},
         "font_size": None,
+        "preferred_version": None,
+        "dailyActivity": {},
         "theme": None,
         "last_sync": None
     }
@@ -206,6 +208,22 @@ def merge_sync_data(local_data: dict, server_data: dict) -> dict:
         }
 
     merged["quizStats"] = _merge_quiz_stats(server_data.get("quizStats"), local_data.get("quizStats"))
+
+    # Merge preferred version (local wins if set)
+    merged["preferred_version"] = local_data.get("preferred_version") or server_data.get("preferred_version")
+
+    # Merge daily activity (date -> {chapters, minutes}). Devices track
+    # independently, so take the max per field to avoid double counting.
+    merged["dailyActivity"] = {}
+    server_da = server_data.get("dailyActivity", {}) or {}
+    local_da = local_data.get("dailyActivity", {}) or {}
+    for date_key in set(server_da.keys()) | set(local_da.keys()):
+        s_entry = server_da.get(date_key, {}) or {}
+        l_entry = local_da.get(date_key, {}) or {}
+        merged["dailyActivity"][date_key] = {
+            "chapters": max(int(s_entry.get("chapters", 0) or 0), int(l_entry.get("chapters", 0) or 0)),
+            "minutes": round(max(float(s_entry.get("minutes", 0) or 0), float(l_entry.get("minutes", 0) or 0)), 1),
+        }
 
     merged["font_size"] = local_data.get("font_size") or server_data.get("font_size")
     merged["theme"] = local_data.get("theme") or server_data.get("theme")

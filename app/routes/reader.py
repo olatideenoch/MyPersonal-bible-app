@@ -19,6 +19,7 @@ from app.content import get_commentary, search_kjv
 from app.services.audio import text_to_speech_voicerss
 from app.services.daily_verse import get_daily_verse
 from app.utils import clean_text
+from app.services.storage import load_user_sync_data
 from app.config import Config
 
 bp = Blueprint('reader', __name__)
@@ -71,11 +72,24 @@ def books(book_slug):
         return f"Book '{book_slug}' not found", 404
 
     selected_chapter = request.form.get("chapter") or request.args.get("chapter")
-    selected_version = request.form.get("version") or request.args.get("version", "en-kjv")
+    selected_version = request.form.get("version") or request.args.get("version")
     verses = []
     chapter_text = ""
     error_message = None
     user = session.get('user')
+
+    # If no version was requested, honour the signed-in user's preferred
+    # version (falling back to KJV when none is set).
+    if not selected_version:
+        selected_version = "en-kjv"
+        if user:
+            try:
+                sync_data = load_user_sync_data(user['id'])
+                pref = sync_data.get("preferred_version")
+                if pref:
+                    selected_version = pref
+            except Exception as e:
+                print(f"Preferred version lookup error: {e}")
 
     if selected_chapter:
         try:

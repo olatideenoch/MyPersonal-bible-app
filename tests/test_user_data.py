@@ -133,3 +133,41 @@ def test_achievements_present(auth_client):
     assert "first_read" in ids
     assert "memorize_5" in ids  # memorization achievements
     assert "quiz_perfect" in ids
+
+
+def test_daily_activity_roundtrip(auth_client):
+    """dailyActivity syncs, merges (max per field) and feeds analytics."""
+    auth_client.post("/api/sync", json={
+        "dailyActivity": {
+            _today(): {"chapters": 4, "minutes": 22.0},
+            "2020-01-01": {"chapters": 1, "minutes": 5.0},
+        }
+    })
+    # a second copy with smaller values must not overwrite the larger ones
+    auth_client.post("/api/sync", json={
+        "dailyActivity": {_today(): {"chapters": 1, "minutes": 1.0}}
+    })
+    data = auth_client.get("/api/sync").get_json()
+    today_entry = data["dailyActivity"].get(_today())
+    assert today_entry == {"chapters": 4, "minutes": 22.0}, today_entry
+
+    analytics = auth_client.get("/api/profile/analytics").get_json()["analytics"]
+    da = analytics["daily_activity"]
+    assert len(da) == 14
+    assert da[-1]["date"] == _today()
+    assert da[-1]["chapters"] == 4
+    assert da[-1]["minutes"] == 22.0
+    assert da[-1]["label"]
+
+
+def test_preferred_version_roundtrip(auth_client):
+    auth_client.post("/api/sync", json={"preferred_version": "en-web"})
+    assert auth_client.get("/api/sync").get_json()["preferred_version"] == "en-web"
+
+    # books route falls back to the preferred version when none is requested
+    html = auth_client.get("/books/john?chapter=1").get_data(as_text=True)
+    assert "World English Bible (WEB)" in html
+
+    # explicit version still wins
+    html = auth_client.get("/books/john?chapter=1&version=en-kjv").get_data(as_text=True)
+    assert "King James Version (KJV)" in html

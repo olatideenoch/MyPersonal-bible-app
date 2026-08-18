@@ -119,6 +119,7 @@ def compute_profile_analytics(data: dict) -> dict:
             'years_active': 0,
         },
         'bible_year': compute_bible_year_progress(bible_year),
+        'daily_activity': [],
     }
 
     try:
@@ -202,6 +203,37 @@ def compute_profile_analytics(data: dict) -> dict:
         {"id": "memorize_mastered", "title": "Hidden in My Heart", "description": "Master a memorized verse", "icon": "fa-heart",
          "earned": earned(any((v.get('box') or 0) >= 5 for v in memory_state.values()))},
     ]
+
+    # ---- Daily activity (last 14 days: chapters read + minutes in app) ----
+    daily_activity_data = data.get('dailyActivity', {}) or {}
+    progress_data = data.get('progress', {}) or {}
+    # backfill chapter counts from per-chapter progress timestamps
+    progress_by_day = {}
+    for entry in progress_data.values():
+        if not isinstance(entry, dict):
+            continue
+        ts = entry.get('timestamp', '')
+        if ts:
+            try:
+                progress_by_day[ts[:10]] = progress_by_day.get(ts[:10], 0) + 1
+            except (TypeError, ValueError):
+                pass
+    today = dt.date.today()
+    daily_activity = []
+    for offset in range(13, -1, -1):
+        day = today - dt.timedelta(days=offset)
+        day_key = day.isoformat()
+        entry = daily_activity_data.get(day_key, {}) or {}
+        chapters = max(int(entry.get('chapters', 0) or 0), progress_by_day.get(day_key, 0))
+        minutes = round(float(entry.get('minutes', 0) or 0), 1)
+        daily_activity.append({
+            'date': day_key,
+            'label': day.strftime('%b %d'),
+            'weekday': day.strftime('%a'),
+            'chapters': chapters,
+            'minutes': minutes,
+        })
+    result['daily_activity'] = daily_activity
 
 
     if not unique_dates:
