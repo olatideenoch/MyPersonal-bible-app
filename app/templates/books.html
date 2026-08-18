@@ -1258,75 +1258,163 @@
             transform: rotate(360deg);
         }
 
-        /* Audio controls */
-        .audio-controls-container {
+        /* ===== Audio player (sits in the page by default) ===== */
+        .audio-player {
             background: var(--card-bg);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
             border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 12px 16px 10px;
+            margin: 20px 0 8px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.05);
         }
+        /* Docked (floating) state, toggled by the dock button */
+        .audio-player.docked {
+            position: fixed;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(680px, calc(100% - 24px));
+            z-index: 1030;
+            margin: 0;
+            background: var(--card-bg);
+            background: color-mix(in srgb, var(--card-bg) 94%, transparent);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        [data-theme="dark"] .audio-player.docked {
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+        body.has-audio-player.audio-docked { padding-bottom: 132px; }
+        body.has-audio-player.audio-docked .toast-notification { bottom: 200px; }
 
-        .audio-main-controls {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
+        .audio-player-top {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; margin-bottom: 8px;
         }
+        .audio-now-playing { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .audio-np-icon {
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--bg-tertiary); color: var(--accent-text);
+            font-size: 0.8rem; flex-shrink: 0;
+        }
+        .audio-np-text { display: flex; flex-direction: column; min-width: 0; }
+        .audio-np-title { font-weight: 700; font-size: 0.88rem; color: var(--text-primary); line-height: 1.2; }
+        .audio-np-sub {
+            font-size: 0.76rem; color: var(--text-muted);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .audio-player-top-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .audio-verse-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: color-mix(in srgb, var(--accent-text) 16%, transparent);
+            color: var(--accent-text);
+            font-weight: 700; font-size: 0.74rem;
+            border-radius: 999px; padding: 3px 11px; white-space: nowrap;
+        }
+        .audio-verse-badge[hidden] { display: none; }
 
-        .audio-play-section {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .audio-player-row { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+        .audio-transport { display: flex; align-items: center; gap: 10px; }
+
+        .audio-icon-btn {
+            width: 38px; height: 38px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 1px;
+            background: transparent; color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            font-size: 0.85rem; cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
         }
+        .audio-icon-btn:hover:not(:disabled) { background: var(--bg-tertiary); color: var(--accent-text); border-color: var(--accent-text); }
+        .audio-icon-btn:active:not(:disabled) { transform: scale(0.92); }
+        .audio-icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .audio-seek-num { font-size: 0.58rem; font-weight: 700; margin-top: 2px; }
 
         .audio-play-btn {
-            padding: 12px 30px;
-            font-size: 1.1rem;
-            white-space: nowrap;
+            width: 54px; height: 54px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--accent-text); color: var(--accent-contrast);
+            border: none; font-size: 1.1rem; cursor: pointer;
+            box-shadow: 0 6px 16px rgba(154, 106, 30, 0.35);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        [data-theme="dark"] .audio-play-btn { box-shadow: 0 6px 18px rgba(232, 184, 106, 0.35); }
+        .audio-play-btn:hover { transform: scale(1.06); }
+        .audio-play-btn:active { transform: scale(0.94); }
+        .audio-play-btn.playing { animation: audioPulse 2.2s ease-out infinite; }
+        @keyframes audioPulse {
+            0% { box-shadow: 0 0 0 0 rgba(154, 106, 30, 0.45); }
+            70% { box-shadow: 0 0 0 14px rgba(154, 106, 30, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(154, 106, 30, 0); }
+        }
+        [data-theme="dark"] .audio-play-btn.playing { animation-name: audioPulseDark; }
+        @keyframes audioPulseDark {
+            0% { box-shadow: 0 0 0 0 rgba(232, 184, 106, 0.5); }
+            70% { box-shadow: 0 0 0 14px rgba(232, 184, 106, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(232, 184, 106, 0); }
         }
 
-        .audio-time-display {
-            min-width: 100px;
-            text-align: center;
+        .audio-extras { display: flex; align-items: center; gap: 8px; }
+        .audio-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            border: 1px solid var(--border-color); background: transparent;
+            color: var(--text-primary); border-radius: 999px;
+            padding: 6px 14px; font-size: 0.78rem; font-weight: 600;
+            cursor: pointer; white-space: nowrap;
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+        .audio-chip:hover { background: var(--bg-tertiary); color: var(--accent-text); border-color: var(--accent-text); }
+        .audio-chip:disabled { opacity: 0.6; cursor: wait; }
+
+        .audio-player-progress { margin-top: 10px; }
+        .audio-progress-track {
+            position: relative; height: 22px;
+            display: flex; align-items: center;
+            cursor: pointer; touch-action: none;
+            border-radius: 8px;
+        }
+        .audio-progress-track:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+        .audio-progress-track::before {
+            content: ''; position: absolute; left: 0; right: 0; top: 50%;
+            transform: translateY(-50%);
+            height: 6px; border-radius: 999px; background: var(--bg-tertiary);
+        }
+        .audio-progress-fill {
+            position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            height: 6px; border-radius: 999px;
+            background: var(--accent-text);
+            width: 0%;
+        }
+        .audio-progress-thumb {
+            position: absolute; top: 50%; transform: translate(-50%, -50%);
+            width: 14px; height: 14px; border-radius: 50%;
+            background: var(--accent-text);
+            border: 3px solid var(--card-bg);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+            left: 0%;
+        }
+        .audio-times {
+            display: flex; justify-content: space-between; margin-top: 2px;
+            font-size: 0.72rem; color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+        .audio-icon-btn:focus-visible, .audio-play-btn:focus-visible, .audio-chip:focus-visible {
+            outline: 2px solid var(--accent-text); outline-offset: 2px;
+        }
+        @media (max-width: 576px) {
+            .audio-player { padding: 10px 12px 8px; }
+            .audio-player.docked { bottom: 8px; }
+            .audio-player-row { gap: 10px; }
+            .audio-transport { gap: 7px; }
+            .audio-icon-btn { width: 34px; height: 34px; font-size: 0.78rem; }
+            .audio-play-btn { width: 48px; height: 48px; font-size: 1rem; }
+            .audio-chip { padding: 5px 11px; font-size: 0.74rem; }
+            .audio-np-title { font-size: 0.8rem; }
+            .audio-np-icon { width: 28px; height: 28px; font-size: 0.72rem; }
         }
 
-        .audio-menu-section {
-            display: flex;
-            align-items: center;
-        }
-
-        .copyright-notice {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            margin-top: 20px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 14px 16px;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            line-height: 1.6;
-        }
-
-        .copyright-notice i {
-            color: var(--accent-text);
-            font-size: 1rem;
-            margin-top: 2px;
-            flex-shrink: 0;
-        }
-
-        .copyright-notice a {
-            color: var(--accent-text);
-            font-weight: 600;
-        }
-
-        @media (max-width: 768px) { .audio-controls-container { padding: 15px; } .audio-main-controls { gap: 10px; } .audio-play-btn { padding: 10px 20px; font-size: 1rem; } .audio-time-display { min-width: 80px; font-size: 0.85rem; } }
-        @media (max-width: 576px) { .audio-play-section { width: 100%; justify-content: center; } .audio-play-btn { padding: 10px 25px; width: auto; } .audio-menu-section { margin-top: 10px; justify-content: center; } .skip-buttons { display: flex; gap: 5px; } }
-
-        .progress { background-color: var(--bg-tertiary); cursor: pointer; }
         .dropdown-menu { background-color: var(--card-bg); border-color: var(--border-color); }
         .dropdown-item { color: var(--text-primary); }
         .dropdown-item:hover { background-color: var(--accent-text); color: var(--accent-contrast); }
@@ -1459,7 +1547,7 @@
     <script data-goatcounter="https://olatideenoch.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
 </head>
-<body>
+<body {% if chapter_text and selected_chapter %}class="has-audio-player"{% endif %}>
 
     {% include '_welcome_modal.html' %}
 
@@ -1810,66 +1898,48 @@
 
             <!-- Audio Controls -->
             {% if chapter_text and selected_chapter %}
-            <div class="audio-controls-container">
-                <div class="audio-main-controls">
-                    <div class="audio-play-section">
-                        <div class="skip-buttons">
-                            <button id="skipBackBtn" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-backward"></i>
-                            </button>
-                        </div>
-                        <button id="audioPlayBtn" class="btn btn-success rounded-pill audio-play-btn">
-                            <i class="fas fa-play me-2"></i>Play Chapter {{ selected_chapter }}
-                        </button>
-                        <div class="skip-buttons">
-                            <button id="skipForwardBtn" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-forward"></i>
-                            </button>
+            <div class="audio-player" id="audioPlayer" role="region" aria-label="Chapter audio player">
+                <div class="audio-player-top">
+                    <div class="audio-now-playing">
+                        <div class="audio-np-icon"><i class="fas fa-headphones"></i></div>
+                        <div class="audio-np-text">
+                            <span class="audio-np-title" id="audioNpTitle">Chapter Audio</span>
+                            <span class="audio-np-sub" id="audioNpSub">{{ book.name }} {{ selected_chapter }}</span>
                         </div>
                     </div>
-
-                    <div class="audio-time-display">
-                        <small class="text-muted"><span id="audioCurrentTime">0:00</span> / <span id="audioDuration">0:00</span></small>
-                    </div>
-
-                    <div class="audio-menu-section">
-                        <div class="dropdown">
-                            <button class="btn btn-outline-secondary" id="audioMenuBtn" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="audioMenuBtn">
-                                <li><h6 class="dropdown-header">Playback Speed</h6></li>
-                                <li>
-                                    <div class="dropdown-item">
-                                        <div class="btn-group btn-group-sm w-100" role="group">
-                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed050" value="0.5">
-                                            <label class="btn btn-outline-secondary" for="speed050">0.5x</label>
-                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed075" value="0.75">
-                                            <label class="btn btn-outline-secondary" for="speed075">0.75x</label>
-                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed100" value="1" checked>
-                                            <label class="btn btn-outline-secondary" for="speed100">1x</label>
-                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed125" value="1.25">
-                                            <label class="btn btn-outline-secondary" for="speed125">1.25x</label>
-                                            <input type="radio" class="btn-check speed-option" name="speed" id="speed150" value="1.5">
-                                            <label class="btn btn-outline-secondary" for="speed150">1.5x</label>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><button id="audioDownloadBtn" class="dropdown-item"><i class="fas fa-download me-2"></i> Download as MP3</button></li>
-                            </ul>
-                        </div>
+                    <div class="audio-player-top-right">
+                        <span class="audio-verse-badge" id="audioVerseBadge" hidden><i class="fas fa-book-open"></i>Verse <span id="audioVerseNum">1</span></span>
+                        <button id="audioStopBtn" class="audio-icon-btn" title="Stop audio" aria-label="Stop audio" hidden><i class="fas fa-xmark"></i></button>
+                        <button id="audioDockBtn" class="audio-icon-btn" title="Dock player to bottom of screen" aria-label="Dock player to bottom of screen"><i class="fas fa-angles-down"></i></button>
                     </div>
                 </div>
 
-                <div class="mt-3">
-                    <div class="progress" style="height: 6px;" id="audioProgressContainer">
-                        <div id="audioProgress" class="progress-bar bg-primary" role="progressbar" style="width: 0%;"></div>
+                <div class="audio-player-row">
+                    <div class="audio-transport">
+                        <button id="audioPrevChapterBtn" class="audio-icon-btn" title="Previous chapter" aria-label="Previous chapter"><i class="fas fa-backward-step"></i></button>
+                        <button id="skipBackBtn" class="audio-icon-btn" title="Back 10 seconds" aria-label="Back 10 seconds"><i class="fas fa-rotate-left"></i><span class="audio-seek-num">10</span></button>
+                        <button id="audioPlayBtn" class="audio-play-btn" aria-label="Play chapter audio"><i class="fas fa-play"></i></button>
+                        <button id="skipForwardBtn" class="audio-icon-btn" title="Forward 10 seconds" aria-label="Forward 10 seconds"><span class="audio-seek-num">10</span><i class="fas fa-rotate-right"></i></button>
+                        <button id="audioNextChapterBtn" class="audio-icon-btn" title="Next chapter" aria-label="Next chapter"><i class="fas fa-forward-step"></i></button>
+                    </div>
+                    <div class="audio-extras">
+                        <button id="audioSpeedBtn" class="audio-chip" title="Playback speed" aria-label="Playback speed">1x</button>
+                        <button id="audioDownloadBtn" class="audio-chip" title="Download chapter as MP3" aria-label="Download chapter as MP3"><i class="fas fa-download"></i><span>MP3</span></button>
+                    </div>
+                </div>
+
+                <div class="audio-player-progress">
+                    <div class="audio-progress-track" id="audioProgressContainer" role="slider" tabindex="0" aria-label="Seek position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <div class="audio-progress-fill" id="audioProgress"></div>
+                        <div class="audio-progress-thumb" id="audioProgressThumb"></div>
+                    </div>
+                    <div class="audio-times">
+                        <span id="audioCurrentTime">0:00</span>
+                        <span id="audioDuration">0:00</span>
                     </div>
                 </div>
             </div>
             {% endif %}
-
             <!-- Font Size Controls -->
             {% if verses %}
             <div class="font-size-controls-container">
@@ -3081,17 +3151,71 @@
             let speechUtterance = null;
             let isPaused = false;
             let isSpeechPlaying = false;
+            let audioEverStarted = false;
             let speechQueue = [];
             let currentChunkIndex = 0;
             let estimatedDuration = 0;
-            let speechStartTime = 0;
+            let chunkStartTime = 0;
             let pausedAt = 0;
+            let queueStartTime = 0;
             let isDownloading = false;
             let progressTimer = null;
             let currentSpeed = 1.0;
-            let currentText = '';
-
             let currentActiveVerse = null;
+            let isSeekDragging = false;
+
+            const SPEED_STEPS = [0.5, 0.75, 1, 1.25, 1.5, 2];
+
+            const playBtn = document.getElementById('audioPlayBtn');
+            const skipBackBtn = document.getElementById('skipBackBtn');
+            const skipForwardBtn = document.getElementById('skipForwardBtn');
+            const prevChapterBtn = document.getElementById('audioPrevChapterBtn');
+            const nextChapterBtn = document.getElementById('audioNextChapterBtn');
+            const stopBtn = document.getElementById('audioStopBtn');
+            const speedBtn = document.getElementById('audioSpeedBtn');
+            const downloadBtn = document.getElementById('audioDownloadBtn');
+            const progressContainer = document.getElementById('audioProgressContainer');
+            const audioProgress = document.getElementById('audioProgress');
+            const audioProgressThumb = document.getElementById('audioProgressThumb');
+            const currentTimeSpan = document.getElementById('audioCurrentTime');
+            const durationSpan = document.getElementById('audioDuration');
+            const npTitle = document.getElementById('audioNpTitle');
+            const verseBadge = document.getElementById('audioVerseBadge');
+            const verseNumSpan = document.getElementById('audioVerseNum');
+            const dockBtn = document.getElementById('audioDockBtn');
+
+            function formatTime(seconds) {
+                if (isNaN(seconds) || seconds < 0) seconds = 0;
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            function estimateSpeakingTime(text) {
+                const words = text.trim().split(/\s+/).length;
+                return (words / 150) * 60;
+            }
+
+            function queueText(queue) {
+                return queue.map(c => c.text).join(' ');
+            }
+
+            function chunkTextForSpeech(text) {
+                const maxChunkSize = 200;
+                const chunks = [];
+                const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+                let currentChunk = '';
+                for (const sentence of sentences) {
+                    if ((currentChunk + ' ' + sentence).length > maxChunkSize && currentChunk) {
+                        chunks.push(currentChunk.trim());
+                        currentChunk = sentence;
+                    } else {
+                        currentChunk += (currentChunk ? ' ' : '') + sentence;
+                    }
+                }
+                if (currentChunk) chunks.push(currentChunk.trim());
+                return chunks.length ? chunks : [text];
+            }
 
             // Build a verse-aware speech queue from the rendered verse list.
             function buildVerseSpeechQueue() {
@@ -3113,19 +3237,36 @@
                 return queue;
             }
 
+            function setProgressUI(percent) {
+                const pct = Math.max(0, Math.min(percent, 100));
+                if (audioProgress) audioProgress.style.width = pct + '%';
+                if (audioProgressThumb) audioProgressThumb.style.left = pct + '%';
+                if (progressContainer) progressContainer.setAttribute('aria-valuenow', String(Math.round(pct)));
+            }
+
+            function setCurrentTimeUI(seconds) {
+                if (currentTimeSpan) currentTimeSpan.textContent = formatTime(seconds);
+            }
+
             // Highlight + auto-scroll to the verse currently being spoken.
-            function highlightActiveVerse(verseNum) {
+            function highlightActiveVerse(verseNum, scroll) {
                 if (verseNum === 0) return;
-                if (currentActiveVerse === verseNum) return;
-                if (currentActiveVerse !== null) {
-                    const prev = document.getElementById('verse-' + currentActiveVerse);
-                    if (prev) prev.classList.remove('audio-active');
+                if (scroll === undefined) scroll = true;
+                if (currentActiveVerse !== verseNum) {
+                    if (currentActiveVerse !== null) {
+                        const prev = document.getElementById('verse-' + currentActiveVerse);
+                        if (prev) prev.classList.remove('audio-active');
+                    }
+                    currentActiveVerse = verseNum;
+                    const el = document.getElementById('verse-' + verseNum);
+                    if (el) {
+                        el.classList.add('audio-active');
+                        if (scroll) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
                 }
-                currentActiveVerse = verseNum;
-                const el = document.getElementById('verse-' + verseNum);
-                if (el) {
-                    el.classList.add('audio-active');
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (verseBadge && verseNumSpan) {
+                    verseNumSpan.textContent = verseNum;
+                    verseBadge.hidden = false;
                 }
             }
 
@@ -3135,88 +3276,113 @@
                     if (prev) prev.classList.remove('audio-active');
                 }
                 currentActiveVerse = null;
-            }
-
-            const playBtn = document.getElementById('audioPlayBtn');
-            const skipBackBtn = document.getElementById('skipBackBtn');
-            const skipForwardBtn = document.getElementById('skipForwardBtn');
-            const downloadBtn = document.getElementById('audioDownloadBtn');
-            const progressContainer = document.getElementById('audioProgressContainer');
-            const audioProgress = document.getElementById('audioProgress');
-            const currentTimeSpan = document.getElementById('audioCurrentTime');
-            const durationSpan = document.getElementById('audioDuration');
-            const speedOptions = document.querySelectorAll('.speed-option');
-
-            function formatTime(seconds) {
-                if (isNaN(seconds) || seconds < 0) seconds = 0;
-                const mins = Math.floor(seconds / 60);
-                const secs = Math.floor(seconds % 60);
-                return `${mins}:${secs.toString().padStart(2, '0')}`;
-            }
-
-            function estimateSpeakingTime(text) {
-                const words = text.trim().split(/\s+/).length;
-                return (words / 150) * 60;
-            }
-
-            function chunkTextForSpeech(text) {
-                const maxChunkSize = 200;
-                const chunks = [];
-                const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-                let currentChunk = '';
-                for (const sentence of sentences) {
-                    if ((currentChunk + ' ' + sentence).length > maxChunkSize && currentChunk) {
-                        chunks.push(currentChunk.trim());
-                        currentChunk = sentence;
-                    } else {
-                        currentChunk += (currentChunk ? ' ' : '') + sentence;
-                    }
-                }
-                if (currentChunk) chunks.push(currentChunk.trim());
-                return chunks.length ? chunks : [text];
+                if (verseBadge) verseBadge.hidden = true;
             }
 
             function stopSpeech() {
                 clearActiveVerse();
-                if (speechSynth) {
-                    speechSynth.cancel();
-                }
+                if (speechSynth) speechSynth.cancel();
                 speechUtterance = null;
                 isSpeechPlaying = false;
                 isPaused = false;
                 speechQueue = [];
                 currentChunkIndex = 0;
+                queueStartTime = 0;
+                pausedAt = 0;
                 stopProgressTimer();
             }
 
             function updatePlayButtonState() {
                 if (playBtn) {
-                    const chapterNum = typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : '';
                     if (isSpeechPlaying && !isPaused) {
-                        playBtn.innerHTML = '<i class="fas fa-pause me-2"></i>Pause Chapter ' + chapterNum;
-                        playBtn.classList.remove('btn-success');
-                        playBtn.classList.add('btn-warning');
+                        playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                        playBtn.classList.add('playing');
+                        playBtn.setAttribute('aria-label', 'Pause chapter audio');
                     } else if (isPaused) {
-                        playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Resume Chapter ' + chapterNum;
-                        playBtn.classList.remove('btn-warning');
-                        playBtn.classList.add('btn-success');
+                        playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                        playBtn.classList.remove('playing');
+                        playBtn.setAttribute('aria-label', 'Resume chapter audio');
                     } else {
-                        playBtn.innerHTML = '<i class="fas fa-play me-2"></i>Play Chapter ' + chapterNum;
-                        playBtn.classList.remove('btn-warning');
-                        playBtn.classList.add('btn-success');
+                        playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                        playBtn.classList.remove('playing');
+                        playBtn.setAttribute('aria-label', 'Play chapter audio');
                     }
+                    if (npTitle) npTitle.textContent = isPaused ? 'Paused' : (isSpeechPlaying ? 'Now Playing' : 'Chapter Audio');
+                    if (stopBtn) stopBtn.hidden = !(isSpeechPlaying || isPaused);
                     playBtn.disabled = false;
                 }
             }
 
+            function queueDuration() {
+                return estimateSpeakingTime(queueText(speechQueue)) / currentSpeed;
+            }
+
+            // Rebuild speechQueue so it starts partway through the CURRENT queue.
+            function rebuildFromQueueFraction(progress) {
+                if (!speechQueue.length) return;
+                const totalWords = speechQueue.reduce((s, c) => s + c.text.split(/\s+/).length, 0);
+                if (!totalWords) return;
+                const wordTarget = Math.min(totalWords - 1, Math.floor(totalWords * Math.max(0, Math.min(progress, 0.999))));
+                const newQueue = [];
+                let acc = 0;
+                let placed = false;
+                for (const chunk of speechQueue) {
+                    if (placed) { newQueue.push(chunk); continue; }
+                    const words = chunk.text.split(/\s+/);
+                    if (acc + words.length > wordTarget) {
+                        const rem = words.slice(wordTarget - acc).join(' ').trim();
+                        if (rem) newQueue.push({ verse: chunk.verse, text: rem });
+                        placed = true;
+                    }
+                    acc += words.length;
+                }
+                if (!newQueue.length) newQueue.push(speechQueue[speechQueue.length - 1]);
+                speechQueue = newQueue;
+                currentChunkIndex = 0;
+                queueStartTime = pausedAt;
+                estimatedDuration = pausedAt + queueDuration();
+                if (durationSpan) durationSpan.textContent = formatTime(estimatedDuration);
+            }
+
+            // Rebuild speechQueue from a fraction of the FULL chapter.
+            function rebuildFromChapterFraction(progress, targetTime) {
+                const fullQueue = buildVerseSpeechQueue();
+                if (!fullQueue.length) return;
+                const totalWords = fullQueue.reduce((s, c) => s + c.text.split(/\s+/).length, 0);
+                if (!totalWords) return;
+                const wordTarget = Math.min(totalWords - 1, Math.floor(totalWords * Math.max(0, Math.min(progress, 0.999))));
+                const newQueue = [];
+                let acc = 0;
+                let placed = false;
+                for (const chunk of fullQueue) {
+                    if (placed) { newQueue.push(chunk); continue; }
+                    const words = chunk.text.split(/\s+/);
+                    if (acc + words.length > wordTarget) {
+                        const rem = words.slice(wordTarget - acc).join(' ').trim();
+                        if (rem) newQueue.push({ verse: chunk.verse, text: rem });
+                        placed = true;
+                    }
+                    acc += words.length;
+                }
+                if (!newQueue.length) newQueue.push(fullQueue[fullQueue.length - 1]);
+                speechQueue = newQueue;
+                currentChunkIndex = 0;
+                queueStartTime = targetTime;
+                pausedAt = targetTime;
+                estimatedDuration = targetTime + queueDuration();
+                if (durationSpan) durationSpan.textContent = formatTime(estimatedDuration);
+            }
+
             function updateSpeechProgress() {
-                if (isSpeechPlaying && !isPaused && estimatedDuration > 0) {
-                    const elapsed = (Date.now() - speechStartTime) / 1000;
-                    let currentTime = pausedAt + elapsed;
-                    if (currentTime > estimatedDuration) currentTime = estimatedDuration;
-                    const percent = (currentTime / estimatedDuration) * 100;
-                    if (audioProgress) audioProgress.style.width = Math.min(percent, 100) + '%';
-                    if (currentTimeSpan) currentTimeSpan.textContent = formatTime(currentTime);
+                if (estimatedDuration <= 0) return;
+                let currentTime = pausedAt;
+                if (isSpeechPlaying && !isPaused) {
+                    currentTime += (Date.now() - chunkStartTime) / 1000;
+                }
+                if (currentTime > estimatedDuration) currentTime = estimatedDuration;
+                if (!isSeekDragging) {
+                    setCurrentTimeUI(currentTime);
+                    setProgressUI((currentTime / estimatedDuration) * 100);
                 }
             }
 
@@ -3226,10 +3392,39 @@
             }
 
             function stopProgressTimer() {
-                if (progressTimer) { 
-                    clearInterval(progressTimer); 
-                    progressTimer = null; 
+                if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
+            }
+
+            // Jump to a chapter-timeline position (seconds). Optionally start playback if idle.
+            function seekToTime(targetTime, startIfIdle) {
+                if (typeof CHAPTER_TEXT === 'undefined' || !CHAPTER_TEXT) return;
+                const fullEstimate = estimateSpeakingTime(CHAPTER_TEXT) / currentSpeed;
+                if (fullEstimate <= 0) return;
+                const clamped = Math.max(0, Math.min(targetTime, fullEstimate * 0.999));
+                if (!isSpeechPlaying) {
+                    if (!startIfIdle) return;
+                    audioEverStarted = true;
+                    isSpeechPlaying = true;
+                    isPaused = false;
                 }
+                if (speechSynth) speechSynth.cancel();
+                rebuildFromChapterFraction(clamped / fullEstimate, clamped);
+                if (isPaused) {
+                    // Show which verse playback will resume from, without scrolling.
+                    if (speechQueue.length) highlightActiveVerse(speechQueue[0].verse, false);
+                    updateSpeechProgress();
+                    return;
+                }
+                chunkStartTime = Date.now();
+                speakNextChunk();
+                if (!progressTimer) startProgressTimer();
+                updateSpeechProgress();
+            }
+
+            function skipSeconds(seconds) {
+                if (!isSpeechPlaying) return;
+                const currentTime = isPaused ? pausedAt : (pausedAt + (Date.now() - chunkStartTime) / 1000);
+                seekToTime(currentTime + seconds, false);
             }
 
             function speakNextChunk() {
@@ -3262,9 +3457,10 @@
                     if (matchingVoice) {
                         try { speechUtterance.voice = matchingVoice; } catch (e) { /* keep default voice */ }
                     }
-                    
-                    speechUtterance.onstart = () => { speechStartTime = Date.now(); };
+
+                    speechUtterance.onstart = () => { chunkStartTime = Date.now(); };
                     speechUtterance.onend = () => {
+                        pausedAt += (Date.now() - chunkStartTime) / 1000;
                         currentChunkIndex++;
                         if (currentChunkIndex < speechQueue.length && isSpeechPlaying && !isPaused) {
                             speakNextChunk();
@@ -3273,9 +3469,15 @@
                             isPaused = false;
                             clearActiveVerse();
                             stopProgressTimer();
+                            queueStartTime = 0;
+                            pausedAt = 0;
+                            if (typeof CHAPTER_TEXT !== 'undefined' && CHAPTER_TEXT) {
+                                estimatedDuration = estimateSpeakingTime(CHAPTER_TEXT) / currentSpeed;
+                                if (durationSpan) durationSpan.textContent = formatTime(estimatedDuration);
+                            }
+                            setProgressUI(0);
+                            setCurrentTimeUI(0);
                             updatePlayButtonState();
-                            if (audioProgress) audioProgress.style.width = '0%';
-                            if (currentTimeSpan) currentTimeSpan.textContent = '0:00';
                         }
                     };
                     speechUtterance.onerror = (e) => {
@@ -3309,51 +3511,43 @@
                 if (isSpeechPlaying && !isPaused) {
                     speechSynth.pause();
                     isPaused = true;
-                    pausedAt += (Date.now() - speechStartTime) / 1000;
+                    pausedAt += (Date.now() - chunkStartTime) / 1000;
                     stopProgressTimer();
                     updatePlayButtonState();
+                    updateSpeechProgress();
                     return;
                 }
-                
+
                 if (isSpeechPlaying && isPaused) {
-                    speechSynth.cancel();
-                    
-                    const currentChunk = speechQueue[currentChunkIndex];
-                    const wordsPerSecond = 150 * currentSpeed;
-                    const wordsElapsed = Math.floor((pausedAt * wordsPerSecond) / 60);
-                    const words = currentChunk.text.split(' ');
-                    const startWord = Math.min(wordsElapsed, words.length - 1);
-                    const remainingCurrentChunk = words.slice(startWord).join(' ');
-                    
-                    const newQueue = [{ verse: currentChunk.verse, text: remainingCurrentChunk }, ...speechQueue.slice(currentChunkIndex + 1)].filter(c => c.text.trim());
-                    speechQueue = newQueue;
-                    currentChunkIndex = 0;
-                    
                     isPaused = false;
-                    speechStartTime = Date.now();
-                    estimatedDuration = estimateSpeakingTime(speechQueue.join(' ')) / currentSpeed;
-                    
+                    audioEverStarted = true;
+                    if (speechSynth) speechSynth.cancel();
+                    const qd = queueDuration();
+                    const progInQueue = qd > 0 ? Math.min((pausedAt - queueStartTime) / qd, 0.999) : 0;
+                    rebuildFromQueueFraction(progInQueue);
+                    chunkStartTime = Date.now();
                     speakNextChunk();
                     startProgressTimer();
                     updatePlayButtonState();
                     return;
                 }
-                
+
                 stopSpeech();
-                currentText = CHAPTER_TEXT;
-                
+
                 try {
                     await initSpeech();
                     speechQueue = buildVerseSpeechQueue();
                     currentChunkIndex = 0;
+                    queueStartTime = 0;
+                    pausedAt = 0;
                     estimatedDuration = estimateSpeakingTime(CHAPTER_TEXT) / currentSpeed;
                     if (durationSpan) durationSpan.textContent = formatTime(estimatedDuration);
-                    
+
                     isSpeechPlaying = true;
                     isPaused = false;
-                    pausedAt = 0;
-                    speechStartTime = Date.now();
-                    
+                    audioEverStarted = true;
+                    chunkStartTime = Date.now();
+
                     speakNextChunk();
                     startProgressTimer();
                     updatePlayButtonState();
@@ -3370,15 +3564,15 @@
                     alert('No chapter text loaded');
                     return;
                 }
-                if (isDownloading) { 
-                    alert('Download already in progress'); 
-                    return; 
+                if (isDownloading) {
+                    alert('Download already in progress');
+                    return;
                 }
 
                 isDownloading = true;
                 if (downloadBtn) downloadBtn.disabled = true;
                 const originalHtml = downloadBtn ? downloadBtn.innerHTML : '';
-                if (downloadBtn) downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i><span style="color: var(--text-primary);">Generating MP3...</span>';
+                if (downloadBtn) downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
                 try {
                     const filename = `${typeof BOOK_SLUG !== 'undefined' ? BOOK_SLUG : 'bible'}_Chapter${typeof CHAPTER_NUM !== 'undefined' ? CHAPTER_NUM : ''}.mp3`;
@@ -3396,15 +3590,15 @@
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
-                    a.href = url; 
+                    a.href = url;
                     a.download = filename;
-                    document.body.appendChild(a); 
-                    a.click(); 
+                    document.body.appendChild(a);
+                    a.click();
                     document.body.removeChild(a);
                     window.URL.revokeObjectURL(url);
 
                     if (downloadBtn) {
-                        downloadBtn.innerHTML = '<i class="fas fa-check me-2"></i><span style="color: var(--text-primary);">Downloaded!</span>';
+                        downloadBtn.innerHTML = '<i class="fas fa-check"></i><span>Done</span>';
                         setTimeout(() => { downloadBtn.innerHTML = originalHtml; }, 3000);
                     }
                 } catch (error) {
@@ -3417,85 +3611,150 @@
                 }
             }
 
-            function seekTo(seconds) {
-                if (isSpeechPlaying) {
-                    const targetTime = Math.max(0, Math.min(seconds, estimatedDuration));
-                    const progress = targetTime / estimatedDuration;
-                    const targetChunk = Math.floor(progress * speechQueue.length);
-                    speechSynth.cancel();
-                    currentChunkIndex = Math.min(targetChunk, speechQueue.length - 1);
-                    pausedAt = targetTime;
-                    if (!isPaused) { 
-                        speechStartTime = Date.now(); 
-                        speakNextChunk(); 
+            function applySpeed(newSpeed) {
+                if (!SPEED_STEPS.includes(newSpeed) || newSpeed === currentSpeed) return;
+                const oldSpeed = currentSpeed;
+                currentSpeed = newSpeed;
+                if (speedBtn) speedBtn.textContent = newSpeed + 'x';
+
+                if (!isSpeechPlaying || !speechQueue.length) {
+                    if (typeof CHAPTER_TEXT !== 'undefined' && CHAPTER_TEXT) {
+                        estimatedDuration = estimateSpeakingTime(CHAPTER_TEXT) / currentSpeed;
+                        if (durationSpan) durationSpan.textContent = formatTime(estimatedDuration);
                     }
-                    updateSpeechProgress();
+                    showToast('Playback speed set to ' + newSpeed + 'x');
+                    return;
                 }
+
+                // Rebuild the queue at the current chapter position so the new rate applies mid-speech.
+                const currentTime = isPaused ? pausedAt : (pausedAt + (Date.now() - chunkStartTime) / 1000);
+                const fullEstimateOld = estimateSpeakingTime(CHAPTER_TEXT) / oldSpeed;
+                if (speechSynth) speechSynth.cancel();
+                rebuildFromChapterFraction(currentTime / fullEstimateOld, currentTime);
+                if (!isPaused) {
+                    chunkStartTime = Date.now();
+                    speakNextChunk();
+                    if (!progressTimer) startProgressTimer();
+                }
+                updateSpeechProgress();
+                showToast('Playback speed set to ' + newSpeed + 'x');
             }
 
-            function skipSeconds(seconds) {
-                if (isSpeechPlaying && estimatedDuration > 0) {
-                    const currentTime = isPaused ? pausedAt : (pausedAt + (Date.now() - speechStartTime) / 1000);
-                    seekTo(currentTime + seconds);
-                }
+            function goToChapter(delta) {
+                if (typeof CHAPTER_NUM === 'undefined' || typeof MAX_CHAPTERS === 'undefined') return;
+                const target = CHAPTER_NUM + delta;
+                if (target < 1 || target > MAX_CHAPTERS) return;
+                const input = document.getElementById('chapterNavInput');
+                const form = document.getElementById('chapterNavForm');
+                if (!input || !form) return;
+                input.value = target;
+                form.submit();
             }
 
             if (playBtn) playBtn.addEventListener('click', playChapterAudio);
             if (skipBackBtn) skipBackBtn.addEventListener('click', () => skipSeconds(-10));
             if (skipForwardBtn) skipForwardBtn.addEventListener('click', () => skipSeconds(10));
-            
-            if (progressContainer) {
-                progressContainer.addEventListener('click', (e) => {
-                    if (isSpeechPlaying && estimatedDuration > 0) {
-                        const rect = progressContainer.getBoundingClientRect();
-                        const percent = (e.clientX - rect.left) / rect.width;
-                        seekTo(percent * estimatedDuration);
-                    }
-                });
+            if (prevChapterBtn) prevChapterBtn.addEventListener('click', () => goToChapter(-1));
+            if (nextChapterBtn) nextChapterBtn.addEventListener('click', () => goToChapter(1));
+            if (typeof CHAPTER_NUM !== 'undefined' && typeof MAX_CHAPTERS !== 'undefined') {
+                if (prevChapterBtn) prevChapterBtn.disabled = CHAPTER_NUM <= 1;
+                if (nextChapterBtn) nextChapterBtn.disabled = CHAPTER_NUM >= MAX_CHAPTERS;
             }
-            
-            if (downloadBtn) downloadBtn.addEventListener('click', downloadChapterAudio);
-            
-            speedOptions.forEach(option => {
-                option.addEventListener('change', () => {
-                    const newSpeed = parseFloat(option.value);
-                    currentSpeed = newSpeed;
-                    
-                    if (speechUtterance && isSpeechPlaying) {
-                        speechSynth.cancel();
-                        
-                        const currentChunk = speechQueue[currentChunkIndex];
-                        const elapsedTime = isPaused ? pausedAt : (pausedAt + (Date.now() - speechStartTime) / 1000);
-                        const chunkDuration = estimateSpeakingTime(currentChunk) / (speechUtterance?.rate || 1.0);
-                        const progressInChunk = Math.min(elapsedTime / chunkDuration, 0.99);
-                        
-                        const words = currentChunk.split(' ');
-                        const wordsSpoken = Math.floor(words.length * progressInChunk);
-                        const remainingCurrentChunk = words.slice(wordsSpoken).join(' ');
-                        
-                        const newQueue = [remainingCurrentChunk, ...speechQueue.slice(currentChunkIndex + 1)].filter(c => c.trim());
-                        speechQueue = newQueue;
-                        currentChunkIndex = 0;
-                        
-                        estimatedDuration = estimateSpeakingTime(speechQueue.join(' ')) / currentSpeed;
-                        if (durationSpan) durationSpan.textContent = formatTime(estimatedDuration);
-                        
-                        if (!isPaused) {
-                            speechStartTime = Date.now();
-                            speakNextChunk();
-                        }
-                    } else if (speechUtterance) {
-                        speechUtterance.rate = currentSpeed;
-                    }
-                    
-                    showToast(`Playback speed set to ${newSpeed}x`);
-                });
+            if (speedBtn) speedBtn.addEventListener('click', () => {
+                const idx = SPEED_STEPS.indexOf(currentSpeed);
+                applySpeed(SPEED_STEPS[(idx + 1) % SPEED_STEPS.length]);
             });
 
-            window.addEventListener('beforeunload', () => { 
-                if (speechSynth) speechSynth.cancel(); 
+            // Dock toggle: keep the player in the page flow by default,
+            // and float it at the bottom of the screen while docked.
+            let isPlayerDocked = false;
+            function setPlayerDocked(docked) {
+                isPlayerDocked = docked;
+                const playerEl = document.getElementById('audioPlayer');
+                if (playerEl) playerEl.classList.toggle('docked', docked);
+                document.body.classList.toggle('audio-docked', docked);
+                if (dockBtn) {
+                    dockBtn.innerHTML = docked ? '<i class="fas fa-angles-up"></i>' : '<i class="fas fa-angles-down"></i>';
+                    dockBtn.title = docked ? 'Move player back to its place' : 'Dock player to bottom of screen';
+                    dockBtn.setAttribute('aria-label', dockBtn.title);
+                }
+                if (!docked && playerEl) {
+                    playerEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+            if (dockBtn) dockBtn.addEventListener('click', () => setPlayerDocked(!isPlayerDocked));
+            if (downloadBtn) downloadBtn.addEventListener('click', downloadChapterAudio);
+
+            if (stopBtn) stopBtn.addEventListener('click', () => {
+                stopSpeech();
+                setProgressUI(0);
+                setCurrentTimeUI(0);
+                if (typeof CHAPTER_TEXT !== 'undefined' && CHAPTER_TEXT) {
+                    estimatedDuration = estimateSpeakingTime(CHAPTER_TEXT) / currentSpeed;
+                    if (durationSpan) durationSpan.textContent = formatTime(estimatedDuration);
+                }
+                updatePlayButtonState();
+            });
+
+            // Seek bar: click, drag, and arrow-key support.
+            if (progressContainer) {
+                const fullEstimate = () => (typeof CHAPTER_TEXT !== 'undefined' && CHAPTER_TEXT)
+                    ? estimateSpeakingTime(CHAPTER_TEXT) / currentSpeed : 0;
+                let dragPreviewPct = null;
+                const previewSeek = (e) => {
+                    const rect = progressContainer.getBoundingClientRect();
+                    const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                    dragPreviewPct = pct;
+                    setProgressUI(pct * 100);
+                    setCurrentTimeUI(fullEstimate() * pct);
+                };
+                progressContainer.addEventListener('pointerdown', (e) => {
+                    if (typeof CHAPTER_TEXT === 'undefined' || !CHAPTER_TEXT) return;
+                    isSeekDragging = true;
+                    dragPreviewPct = null;
+                    try { progressContainer.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+                    previewSeek(e);
+                });
+                progressContainer.addEventListener('pointermove', (e) => { if (isSeekDragging) previewSeek(e); });
+                const endSeekDrag = () => {
+                    if (!isSeekDragging) return;
+                    isSeekDragging = false;
+                    if (dragPreviewPct !== null) {
+                        seekToTime(fullEstimate() * dragPreviewPct, true);
+                        dragPreviewPct = null;
+                    }
+                };
+                progressContainer.addEventListener('pointerup', endSeekDrag);
+                progressContainer.addEventListener('pointercancel', endSeekDrag);
+                progressContainer.addEventListener('keydown', (e) => {
+                    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+                    e.preventDefault();
+                    const est = fullEstimate();
+                    const cur = isSpeechPlaying ? (pausedAt + (isPaused ? 0 : (Date.now() - chunkStartTime) / 1000)) : 0;
+                    seekToTime(cur + (e.key === 'ArrowLeft' ? -5 : 5), true);
+                });
+            }
+
+            // Space toggles play/pause once audio has been used.
+            document.addEventListener('keydown', (e) => {
+                if (e.code !== 'Space' || !audioEverStarted) return;
+                if (e.target && typeof e.target.closest === 'function' && e.target.closest('input, textarea, select, button, a')) return;
+                e.preventDefault();
+                playChapterAudio();
+            });
+
+            // Show the estimated chapter duration immediately on load.
+            if (typeof CHAPTER_TEXT !== 'undefined' && CHAPTER_TEXT) {
+                estimatedDuration = estimateSpeakingTime(CHAPTER_TEXT) / currentSpeed;
+                if (durationSpan) durationSpan.textContent = formatTime(estimatedDuration);
+            }
+            updatePlayButtonState();
+
+            window.addEventListener('beforeunload', () => {
+                if (speechSynth) speechSynth.cancel();
             });
             if (speechSynth) speechSynth.getVoices();
+
 
             updateReadingProgress();
             
