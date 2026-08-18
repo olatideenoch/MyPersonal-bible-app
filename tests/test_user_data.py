@@ -153,7 +153,7 @@ def test_daily_activity_roundtrip(auth_client):
 
     analytics = auth_client.get("/api/profile/analytics").get_json()["analytics"]
     da = analytics["daily_activity"]
-    assert len(da) == 112
+    assert len(da) == 371
     assert da[-1]["date"] == _today()
     assert da[-1]["chapters"] == 4
     assert da[-1]["minutes"] == 22.0

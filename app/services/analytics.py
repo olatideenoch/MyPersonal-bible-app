@@ -205,9 +205,9 @@ def compute_profile_analytics(data: dict) -> dict:
          "earned": earned(any((v.get('box') or 0) >= 5 for v in memory_state.values()))},
     ]
 
-    # ---- Daily activity (last 16 weeks: chapters read + minutes in app) ----
-    # Feeds the GitHub-style contribution heatmap on the profile. The last
-    # entry is today, exposed separately as result['today'].
+    # ---- Daily activity (last 12 months: chapters read + minutes in app) ----
+    # Feeds the GitHub-style contribution heatmap on the profile (53 week
+    # columns x 7 days). The last entry is today, exposed as result['today'].
     daily_activity_data = data.get('dailyActivity', {}) or {}
     progress_data = data.get('progress', {}) or {}
     # backfill chapter counts from per-chapter progress timestamps
@@ -223,7 +223,7 @@ def compute_profile_analytics(data: dict) -> dict:
                 pass
     today = dt.date.today()
     daily_activity = []
-    for offset in range(111, -1, -1):
+    for offset in range(370, -1, -1):
         day = today - dt.timedelta(days=offset)
         day_key = day.isoformat()
         entry = daily_activity_data.get(day_key, {}) or {}
