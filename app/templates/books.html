@@ -2258,56 +2258,14 @@
         }
 
         // ========== DAILY ACTIVITY TRACKING (chapters + minutes per day) ==========
-        (function () {
-            const DAILY_KEY = 'bibleDailyActivity';
-            function todayKey() { return new Date().toISOString().slice(0, 10); }
-            function loadDaily() {
-                try { return JSON.parse(localStorage.getItem(DAILY_KEY) || '{}'); } catch (e) { return {}; }
-            }
-            function saveDaily(d) {
-                const cutoff = new Date(Date.now() - 60 * 24 * 3600 * 1000).toISOString().slice(0, 10);
-                Object.keys(d).forEach(function (k) { if (k < cutoff) delete d[k]; });
-                localStorage.setItem(DAILY_KEY, JSON.stringify(d));
-            }
-
-            // Count this chapter view (dedupe rapid reloads of the same chapter)
+        // Shared tracker from app-common.js: counts this chapter view (deduped
+        // within 5 minutes) and accrues minutes while the tab is visible.
+        if (window.MPB && window.MPB.startReadingTracker) {
+            window.MPB.startReadingTracker();
             if (typeof BOOK_SLUG !== 'undefined' && typeof CHAPTER_NUM !== 'undefined' && CHAPTER_NUM) {
-                try {
-                    const now = new Date();
-                    const lastKey = localStorage.getItem('bibleLastChapterKey');
-                    const lastTime = parseInt(localStorage.getItem('bibleLastChapterTime') || '0', 10);
-                    const thisKey = BOOK_SLUG + '_' + CHAPTER_NUM;
-                    const isSame = (lastKey === thisKey) && (now.getTime() - lastTime) < 5 * 60 * 1000;
-                    if (!isSame) {
-                        const d = loadDaily();
-                        const k = todayKey();
-                        d[k] = d[k] || { chapters: 0, minutes: 0 };
-                        d[k].chapters = (d[k].chapters || 0) + 1;
-                        saveDaily(d);
-                        localStorage.setItem('bibleLastChapterKey', thisKey);
-                        localStorage.setItem('bibleLastChapterTime', String(now.getTime()));
-                    }
-                } catch (e) {}
+                window.MPB.trackChapterRead(BOOK_SLUG, CHAPTER_NUM);
             }
-
-            // Heartbeat: accumulate time spent in the app while the tab is visible
-            let lastFlush = Date.now();
-            function flushTime() {
-                try {
-                    const elapsed = (Date.now() - lastFlush) / 60000;
-                    lastFlush = Date.now();
-                    if (elapsed < 0.03) return;
-                    const d = loadDaily();
-                    const k = todayKey();
-                    d[k] = d[k] || { chapters: 0, minutes: 0 };
-                    d[k].minutes = Math.round(((d[k].minutes || 0) + elapsed) * 10) / 10;
-                    saveDaily(d);
-                } catch (e) {}
-            }
-            setInterval(function () { if (!document.hidden) flushTime(); }, 30000);
-            document.addEventListener('visibilitychange', flushTime);
-            window.addEventListener('beforeunload', flushTime);
-        })();
+        }
 
         // ========== RECORD READING PROGRESS (powers Continue Reading) ==========
         if (typeof BOOK_SLUG !== 'undefined' && typeof BOOK_NAME !== 'undefined' && typeof CHAPTER_NUM !== 'undefined' && CHAPTER_NUM) {

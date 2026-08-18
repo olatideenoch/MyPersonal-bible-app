@@ -120,6 +120,7 @@ def compute_profile_analytics(data: dict) -> dict:
         },
         'bible_year': compute_bible_year_progress(bible_year),
         'daily_activity': [],
+        'today': None,
     }
 
     try:
@@ -204,7 +205,9 @@ def compute_profile_analytics(data: dict) -> dict:
          "earned": earned(any((v.get('box') or 0) >= 5 for v in memory_state.values()))},
     ]
 
-    # ---- Daily activity (last 14 days: chapters read + minutes in app) ----
+    # ---- Daily activity (last 16 weeks: chapters read + minutes in app) ----
+    # Feeds the GitHub-style contribution heatmap on the profile. The last
+    # entry is today, exposed separately as result['today'].
     daily_activity_data = data.get('dailyActivity', {}) or {}
     progress_data = data.get('progress', {}) or {}
     # backfill chapter counts from per-chapter progress timestamps
@@ -220,7 +223,7 @@ def compute_profile_analytics(data: dict) -> dict:
                 pass
     today = dt.date.today()
     daily_activity = []
-    for offset in range(13, -1, -1):
+    for offset in range(111, -1, -1):
         day = today - dt.timedelta(days=offset)
         day_key = day.isoformat()
         entry = daily_activity_data.get(day_key, {}) or {}
@@ -234,6 +237,13 @@ def compute_profile_analytics(data: dict) -> dict:
             'minutes': minutes,
         })
     result['daily_activity'] = daily_activity
+    result['today'] = daily_activity[-1] if daily_activity else {
+        'date': today.isoformat(),
+        'label': today.strftime('%b %d'),
+        'weekday': today.strftime('%a'),
+        'chapters': 0,
+        'minutes': 0,
+    }
 
 
     if not unique_dates:

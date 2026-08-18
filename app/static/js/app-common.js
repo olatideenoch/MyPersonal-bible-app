@@ -622,6 +622,98 @@
         return pref || (fallback || 'en-kjv');
     }
 
+    /* ---------- Shared reading-time tracker (books reader + profile) ----------
+       Stores per-day {chapters, minutes} in localStorage under 'bibleDailyActivity'.
+       The day key is the local date, so the counters reset automatically at
+       midnight. Time accrues while the tab is open and visible; it pauses when
+       the user leaves and continues on the next visit the same day. */
+    var READING_DAILY_KEY = 'bibleDailyActivity';
+    var readingTrackerStarted = false;
+    var readingLastFlush = Date.now();
+    var readingTickCallbacks = [];
+
+    function readingTodayKey() { return new Date().toISOString().slice(0, 10); }
+
+    function readingDailyLoad() {
+        try { return JSON.parse(localStorage.getItem(READING_DAILY_KEY) || '{}'); } catch (e) { return {}; }
+    }
+
+    function readingDailySave(d) {
+        try {
+            var cutoff = new Date(Date.now() - 60 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+            Object.keys(d).forEach(function (k) { if (k < cutoff) delete d[k]; });
+            localStorage.setItem(READING_DAILY_KEY, JSON.stringify(d));
+        } catch (e) { /* storage full or blocked */ }
+    }
+
+    function readingTodayEntry(d) {
+        var k = readingTodayKey();
+        if (!d[k]) d[k] = { chapters: 0, minutes: 0 };
+        return { key: k, entry: d[k] };
+    }
+
+    function readingGetToday() {
+        var d = readingDailyLoad();
+        var k = readingTodayKey();
+        var e = d[k] || { chapters: 0, minutes: 0 };
+        return { date: k, chapters: e.chapters || 0, minutes: e.minutes || 0 };
+    }
+
+    function readingFlushTime() {
+        try {
+            var elapsed = (Date.now() - readingLastFlush) / 60000;
+            readingLastFlush = Date.now();
+            if (elapsed < 0.03) return;
+            var d = readingDailyLoad();
+            var today = readingTodayEntry(d);
+            today.entry.minutes = Math.round(((today.entry.minutes || 0) + elapsed) * 10) / 10;
+            readingDailySave(d);
+            readingNotify(readingGetToday());
+        } catch (e) { /* ignore */ }
+    }
+
+    function readingNotify(today) {
+        readingTickCallbacks.forEach(function (cb) {
+            try { cb(today); } catch (e) { /* listener error */ }
+        });
+    }
+
+    function startReadingTracker(opts) {
+        if (readingTrackerStarted) return;
+        readingTrackerStarted = true;
+        opts = opts || {};
+        readingLastFlush = Date.now();
+        setInterval(function () { if (!document.hidden) readingFlushTime(); }, opts.intervalMs || 30000);
+        document.addEventListener('visibilitychange', function () {
+            if (document.hidden) readingFlushTime();
+            else readingLastFlush = Date.now();
+        });
+        window.addEventListener('beforeunload', readingFlushTime);
+    }
+
+    function trackChapterRead(slug, chapter) {
+        if (!slug || !chapter) return;
+        try {
+            var now = new Date();
+            var lastKey = localStorage.getItem('bibleLastChapterKey');
+            var lastTime = parseInt(localStorage.getItem('bibleLastChapterTime') || '0', 10);
+            var thisKey = slug + '_' + chapter;
+            var isSame = (lastKey === thisKey) && (now.getTime() - lastTime) < 5 * 60 * 1000;
+            if (isSame) return;
+            var d = readingDailyLoad();
+            var today = readingTodayEntry(d);
+            today.entry.chapters = (today.entry.chapters || 0) + 1;
+            readingDailySave(d);
+            localStorage.setItem('bibleLastChapterKey', thisKey);
+            localStorage.setItem('bibleLastChapterTime', String(now.getTime()));
+            readingNotify(readingGetToday());
+        } catch (e) { /* ignore */ }
+    }
+
+    function onReadingActivity(cb) {
+        if (typeof cb === 'function') readingTickCallbacks.push(cb);
+    }
+
     /* ---------- Expose API ---------- */
 
 
@@ -636,7 +728,11 @@
         jumpToReference: jumpToReference,
         getPreferredVersion: getPreferredVersion,
         pushToggle: pushToggle,
-        pushStatus: pushStatus
+        pushStatus: pushStatus,
+        startReadingTracker: startReadingTracker,
+        trackChapterRead: trackChapterRead,
+        getTodayActivity: readingGetToday,
+        onReadingActivity: onReadingActivity
     };
 
     /* ---------- Boot ---------- */

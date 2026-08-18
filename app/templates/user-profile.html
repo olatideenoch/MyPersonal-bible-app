@@ -451,6 +451,54 @@
         .stat-card .stat-value { font-family: 'Lora', serif; font-size: 1.8rem; font-weight: 600; color: var(--text-primary); line-height: 1.2; }
         .stat-card .stat-label { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
 
+        /* ===== Today's reading time stat card ===== */
+        #pfTodayStatCard { border-color: var(--accent-text); background: color-mix(in srgb, var(--accent-text) 7%, var(--card-bg)); }
+        #pfTodayStatCard i { color: var(--accent-text); }
+        .stat-sub { color: var(--text-muted); font-size: 0.78rem; margin-top: 2px; }
+
+        /* ===== Reading activity heatmap (GitHub-style) ===== */
+        .heatmap-scroll { overflow-x: auto; padding: 4px 2px; }
+        .heatmap-grid {
+            display: grid;
+            grid-template-rows: repeat(7, 13px);
+            grid-auto-flow: column;
+            grid-auto-columns: 13px;
+            gap: 3px;
+            width: max-content;
+            margin: 0 auto;
+        }
+        .heatmap-months {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: 13px;
+            gap: 3px;
+            width: max-content;
+            margin: 0 auto 5px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        .heatmap-months span { overflow: visible; white-space: nowrap; }
+        .hm-cell {
+            width: 13px; height: 13px;
+            border-radius: 3px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+        }
+        .hm-cell.hm-future { visibility: hidden; }
+        .hm-cell.hm-l0 { background: var(--bg-tertiary); }
+        .hm-cell.hm-l1 { background: rgba(201, 146, 58, 0.25); background: color-mix(in srgb, var(--accent-text) 25%, transparent); }
+        .hm-cell.hm-l2 { background: rgba(201, 146, 58, 0.5); background: color-mix(in srgb, var(--accent-text) 50%, transparent); }
+        .hm-cell.hm-l3 { background: rgba(201, 146, 58, 0.75); background: color-mix(in srgb, var(--accent-text) 75%, transparent); }
+        .hm-cell.hm-l4 { background: var(--accent-text); }
+        .heatmap-legend { display: flex; align-items: center; justify-content: center; gap: 3px; margin-top: 10px; }
+        .heatmap-legend .hm-cell { border: none; }
+        [data-theme="dark"] .hm-cell.hm-l1 { background: rgba(232, 184, 106, 0.25); background: color-mix(in srgb, var(--accent-text) 25%, transparent); }
+        [data-theme="dark"] .hm-cell.hm-l2 { background: rgba(232, 184, 106, 0.5); background: color-mix(in srgb, var(--accent-text) 50%, transparent); }
+        [data-theme="dark"] .hm-cell.hm-l3 { background: rgba(232, 184, 106, 0.75); background: color-mix(in srgb, var(--accent-text) 75%, transparent); }
+
+        /* ===== Monthly chart: compact on desktop ===== */
+        .monthly-chart-wrap { max-width: 620px; margin: 0 auto; height: 240px; }
+
         /* ===== Achievements ===== */
         .achievements-grid {
             display: grid;
@@ -836,13 +884,22 @@
                 <a href="{{ url_for('main.index') }}#books" class="btn-primary">Start Reading</a>
             </div>
 
-            <!-- Daily activity: last 14 days (chapters + minutes in app) -->
-            <div class="dash-card">
-                <h3><i class="fas fa-calendar-day"></i>Daily Activity &mdash; Last 14 Days</h3>
-                <p class="text-muted small mb-2">Chapters you read and time you spent in the app, day by day.</p>
-                <canvas id="pfDailyChart" height="120"></canvas>
-                <div class="d-flex flex-wrap justify-content-center gap-3 mt-2 small text-muted">
-                    <span id="pfDailySummary"></span>
+            <!-- Reading activity heatmap (GitHub-style contribution graph) -->
+            <div class="dash-card" id="pfHeatmapCard" style="display:none;">
+                <h3><i class="fas fa-table-cells-large"></i>Reading Activity</h3>
+                <p class="text-muted small mb-2">Chapters read per day over the last 16 weeks. Hover a day to see the details.</p>
+                <div class="heatmap-scroll">
+                    <div class="heatmap-months" id="pfHeatmapMonths"></div>
+                    <div class="heatmap-grid" id="pfHeatmapGrid"></div>
+                </div>
+                <div class="heatmap-legend">
+                    <span class="text-muted small me-2">Less</span>
+                    <span class="hm-cell hm-l0"></span>
+                    <span class="hm-cell hm-l1"></span>
+                    <span class="hm-cell hm-l2"></span>
+                    <span class="hm-cell hm-l3"></span>
+                    <span class="hm-cell hm-l4"></span>
+                    <span class="text-muted small ms-2">More</span>
                 </div>
             </div>
 
@@ -860,7 +917,9 @@
                 <div class="dash-row">
                     <div class="dash-col dash-card">
                         <h3><i class="fas fa-chart-column"></i>Monthly Activity</h3>
-                        <canvas id="pfMonthlyChart" height="220"></canvas>
+                        <div class="monthly-chart-wrap">
+                            <canvas id="pfMonthlyChart" height="220"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1046,7 +1105,6 @@
             let analytics = null;
             let selectedYear = null;
             let monthlyChart = null;
-            let dailyChart = null;
 
             const loadingEl = document.getElementById('pfLoading');
             const contentEl = document.getElementById('pfContent');
@@ -1068,6 +1126,14 @@
 
             function renderStatGrid() {
                 const o = analytics.overall;
+                const t = analytics.today || { chapters: 0, minutes: 0 };
+                const todayCard =
+                    '<div class="stat-card" id="pfTodayStatCard">' +
+                        '<i class="fas fa-clock"></i>' +
+                        '<div class="stat-value" id="pfTodayStatValue">' + formatMinutes(t.minutes) + '</div>' +
+                        '<div class="stat-label">Reading Time Today</div>' +
+                        '<div class="stat-sub" id="pfTodayStatSub">' + (t.chapters || 0) + ' chapter' + ((t.chapters || 0) === 1 ? '' : 's') + ' read today</div>' +
+                    '</div>';
                 const stats = [
                     { icon: 'fa-fire', value: o.current_streak, label: 'Current Streak' },
                     { icon: 'fa-trophy', value: o.longest_streak, label: 'Longest Streak' },
@@ -1076,7 +1142,7 @@
                     { icon: 'fa-highlighter', value: o.total_highlighted_verses, label: 'Verses Highlighted' },
                     { icon: 'fa-layer-group', value: o.years_active, label: 'Years Active' }
                 ];
-                statGridEl.innerHTML = stats.map(s =>
+                statGridEl.innerHTML = todayCard + stats.map(s =>
                     '<div class="stat-card">' +
                         '<i class="fas ' + s.icon + '"></i>' +
                         '<div class="stat-value">' + s.value + '</div>' +
@@ -1139,6 +1205,7 @@
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: {
                             x: { grid: { display: false }, ticks: { color: textColor } },
@@ -1149,86 +1216,83 @@
 
             }
 
-            // ── Daily activity: chapters read + minutes in the app, per day ──
-            function drawDailyChart() {
-                const canvas = document.getElementById('pfDailyChart');
-                if (!canvas) return;
-                const accent = cssVar('--accent-primary') || '#c9923a';
-                const accentDark = cssVar('--accent-secondary') || '#9a6a1e';
-                const gridColor = cssVar('--chart-grid') || 'rgba(0,0,0,0.08)';
-                const textColor = cssVar('--text-muted') || '#8a7256';
+            // ── GitHub-style reading activity heatmap (chapters per day) ──
+            function heatLevel(chapters) {
+                if (!chapters) return 0;
+                if (chapters === 1) return 1;
+                if (chapters <= 3) return 2;
+                if (chapters <= 6) return 3;
+                return 4;
+            }
+
+            function localDateKey(d) {
+                return d.getFullYear() + '-' +
+                    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(d.getDate()).padStart(2, '0');
+            }
+
+            function drawHeatmap() {
+                const card = document.getElementById('pfHeatmapCard');
+                const grid = document.getElementById('pfHeatmapGrid');
+                const months = document.getElementById('pfHeatmapMonths');
+                if (!card || !grid || !months) return;
                 const days = (analytics && analytics.daily_activity) ? analytics.daily_activity : [];
+                card.style.display = 'block';
+                grid.innerHTML = '';
+                months.innerHTML = '';
 
-                const ctx = canvas.getContext('2d');
-                if (dailyChart) dailyChart.destroy();
-                dailyChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: days.map(function (d) { return d.weekday + ' ' + d.label; }),
-                        datasets: [
-                            {
-                                label: 'Chapters read',
-                                data: days.map(function (d) { return d.chapters; }),
-                                backgroundColor: accent,
-                                borderRadius: 5,
-                                maxBarThickness: 26,
-                                yAxisID: 'y'
-                            },
-                            {
-                                label: 'Minutes in app',
-                                type: 'line',
-                                data: days.map(function (d) { return d.minutes; }),
-                                borderColor: accentDark,
-                                backgroundColor: accentDark,
-                                pointBackgroundColor: accentDark,
-                                pointRadius: 3,
-                                borderWidth: 2,
-                                tension: 0.35,
-                                yAxisID: 'y1'
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        interaction: { mode: 'index', intersect: false },
-                        plugins: {
-                            legend: { display: true, labels: { color: textColor, usePointStyle: true } },
-                            tooltip: {
-                                callbacks: {
-                                    afterBody: function (items) {
-                                        const idx = items[0] && items[0].dataIndex;
-                                        if (idx == null) return '';
-                                        const d = days[idx];
-                                        return 'Chapters: ' + d.chapters + ' · Time: ' + formatMinutes(d.minutes);
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: { grid: { display: false }, ticks: { color: textColor, maxRotation: 45, autoSkip: true, maxTicksLimit: 8 } },
-                            y: {
-                                beginAtZero: true, precision: 0, position: 'left',
-                                title: { display: true, text: 'Chapters', color: textColor },
-                                grid: { color: gridColor }, ticks: { color: textColor, precision: 0 }
-                            },
-                            y1: {
-                                beginAtZero: true, position: 'right',
-                                title: { display: true, text: 'Minutes', color: textColor },
-                                grid: { drawOnChartArea: false }, ticks: { color: textColor }
-                            }
-                        }
-                    }
-                });
-
-                // Summary line
-                const summaryEl = document.getElementById('pfDailySummary');
-                if (summaryEl) {
-                    const totChapters = days.reduce(function (a, d) { return a + d.chapters; }, 0);
-                    const totMinutes = days.reduce(function (a, d) { return a + d.minutes; }, 0);
-                    summaryEl.innerHTML =
-                        '<span><strong style="color: var(--accent-text);">' + totChapters + '</strong> chapters · </span>' +
-                        '<span><strong style="color: var(--accent-text);">' + formatMinutes(totMinutes) + '</strong> in the app — last 14 days</span>';
+                const byDate = {};
+                days.forEach(function (d) { byDate[d.date] = d; });
+                if (!days.length) {
+                    grid.innerHTML = '<span class="text-muted small">No reading activity yet &mdash; open a chapter to start your graph.</span>';
+                    return;
                 }
+
+                const firstParts = days[0].date.split('-');
+                const first = new Date(parseInt(firstParts[0], 10), parseInt(firstParts[1], 10) - 1, parseInt(firstParts[2], 10));
+                const dow = first.getDay(); // 0 = Sunday, GitHub-style columns
+                const anchor = new Date(first);
+                anchor.setDate(first.getDate() - dow);
+                const totalDays = days.length + dow;
+                const cols = Math.ceil(totalDays / 7);
+                const todayKey = days[days.length - 1].date;
+                const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                let cells = [];
+                let monthCells = [];
+                let prevMonth = -1;
+                for (let col = 0; col < cols; col++) {
+                    const colDate = new Date(anchor);
+                    colDate.setDate(anchor.getDate() + col * 7);
+                    let label = '';
+                    if (colDate.getMonth() !== prevMonth) {
+                        label = MONTH_SHORT[colDate.getMonth()];
+                        prevMonth = colDate.getMonth();
+                    }
+                    monthCells.push('<span>' + label + '</span>');
+                    for (let row = 0; row < 7; row++) {
+                        const d = new Date(anchor);
+                        d.setDate(anchor.getDate() + col * 7 + row);
+                        const key = localDateKey(d);
+                        if (key > todayKey) { cells.push('<span class="hm-cell hm-future"></span>'); continue; }
+                        const info = byDate[key] || { chapters: 0, minutes: 0 };
+                        const lvl = heatLevel(info.chapters);
+                        const ch = info.chapters || 0;
+                        const title = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) +
+                            ' · ' + ch + ' chapter' + (ch === 1 ? '' : 's') +
+                            ' · ' + formatMinutes(info.minutes || 0);
+                        cells.push('<span class="hm-cell hm-l' + lvl + '" title="' + title + '"></span>');
+                    }
+                }
+                grid.innerHTML = cells.join('');
+                months.innerHTML = monthCells.join('');
+            }
+
+            function updateTodayCard(minutes, chapters) {
+                const v = document.getElementById('pfTodayStatValue');
+                const s = document.getElementById('pfTodayStatSub');
+                if (v) v.textContent = formatMinutes(minutes);
+                if (s) s.textContent = (chapters || 0) + ' chapter' + ((chapters || 0) === 1 ? '' : 's') + ' read today';
             }
 
             function formatMinutes(mins) {
@@ -1344,7 +1408,32 @@
                     renderStatGrid();
                     renderBibleYear();
                     renderAchievements();
-                    drawDailyChart();
+                    drawHeatmap();
+
+                    // Live reading-time tracking on the profile page too:
+                    // the same day bucket the reader fills, counted while the
+                    // app is open and continued on every visit until midnight.
+                    if (window.MPB && window.MPB.startReadingTracker) {
+                        window.MPB.startReadingTracker({ intervalMs: 30000 });
+                        window.MPB.onReadingActivity(function (today) {
+                            updateTodayCard(today.minutes, today.chapters);
+                        });
+                        // Push the freshest dailyActivity to the server (merge-safe)
+                        const pushDaily = function () {
+                            try {
+                                fetch('/api/sync', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        dailyActivity: JSON.parse(localStorage.getItem('bibleDailyActivity') || '{}')
+                                    }),
+                                    keepalive: true
+                                });
+                            } catch (e) { /* ignore */ }
+                        };
+                        document.addEventListener('visibilitychange', function () { if (document.hidden) pushDaily(); });
+                        window.addEventListener('beforeunload', pushDaily);
+                    }
 
                     if (analytics.years && analytics.years.length) {
                         emptyStateEl.style.display = 'none';
