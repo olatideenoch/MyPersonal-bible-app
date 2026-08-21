@@ -2,7 +2,7 @@ name: Daily Verse Reminder
 
 on:
   schedule:
-    - cron: "0 10 * * *"   # 06:00 UTC = 07:00 Lagos time
+    - cron: "0 6 * * *"   # 06:00 UTC = 07:00 Lagos time
   workflow_dispatch:       # also lets you trigger it manually
 
 jobs:
