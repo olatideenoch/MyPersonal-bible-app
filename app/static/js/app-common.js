@@ -312,8 +312,320 @@
             verse: '#3d2205', verseFont: 'italic 50px Georgia, serif',
             ref: '#9a6a1e', refFont: '600 56px Georgia, serif',
             footer: 'rgba(61,34,5,0.7)', footerFont: '32px Georgia, serif'
-        }
+        },
+        {
+            id: 'parchment',
+            name: 'Parchment',
+            paint: function (ctx, w, h) {
+                ctx.fillStyle = '#f3e6c8';
+                ctx.fillRect(0, 0, w, h);
+                // aged blotches
+                const blotches = [[0.15, 0.2, 0.22], [0.6, 0.12, 0.18], [0.85, 0.3, 0.2], [0.2, 0.78, 0.25], [0.5, 0.85, 0.3], [0.8, 0.82, 0.2]];
+                blotches.forEach(function (b) {
+                    const g = ctx.createRadialGradient(b[0] * w, b[1] * h, 0, b[0] * w, b[1] * h, b[2] * w);
+                    g.addColorStop(0, 'rgba(154,116,60,0.10)');
+                    g.addColorStop(1, 'rgba(154,116,60,0)');
+                    ctx.fillStyle = g;
+                    ctx.fillRect(0, 0, w, h);
+                });
+                // double frame
+                ctx.strokeStyle = 'rgba(122,75,16,0.55)';
+                ctx.lineWidth = w * 0.005;
+                ctx.strokeRect(w * 0.045, h * 0.045, w * 0.91, h * 0.91);
+                ctx.strokeRect(w * 0.06, h * 0.06, w * 0.88, h * 0.88);
+                // corner dots
+                ctx.fillStyle = 'rgba(122,75,16,0.6)';
+                [[0.045, 0.045], [0.955, 0.045], [0.045, 0.955], [0.955, 0.955]].forEach(function (c) {
+                    ctx.beginPath(); ctx.arc(c[0] * w, c[1] * h, w * 0.012, 0, Math.PI * 2); ctx.fill();
+                });
+            },
+            label: '#7a4b10', labelFont: '700 42px Cinzel, Georgia, serif',
+            divider: 'rgba(122,75,16,0.6)',
+            verse: '#4a2d0c', verseFont: 'italic 50px Lora, Georgia, serif',
+            ref: '#7a4b10', refFont: '600 56px Georgia, serif',
+            footer: 'rgba(74,45,12,0.75)', footerFont: '32px Georgia, serif'
+        },
+        {
+            id: 'royal',
+            name: 'Royal Purple',
+            paint: function (ctx, w, h) {
+                const bg = ctx.createLinearGradient(0, 0, w, h);
+                bg.addColorStop(0, '#2a0a3a');
+                bg.addColorStop(1, '#5b1a6e');
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, w, h);
+                // soft center glow
+                const glow = ctx.createRadialGradient(w / 2, h * 0.42, 0, w / 2, h * 0.42, w * 0.5);
+                glow.addColorStop(0, 'rgba(232,184,106,0.16)');
+                glow.addColorStop(1, 'rgba(232,184,106,0)');
+                ctx.fillStyle = glow;
+                ctx.fillRect(0, 0, w, h);
+                // double gold frame
+                ctx.strokeStyle = 'rgba(232,184,106,0.7)';
+                ctx.lineWidth = w * 0.006;
+                ctx.strokeRect(w * 0.045, h * 0.045, w * 0.91, h * 0.91);
+                ctx.strokeRect(w * 0.055, h * 0.055, w * 0.89, h * 0.89);
+                // corner diamonds
+                ctx.fillStyle = 'rgba(232,184,106,0.9)';
+                const s = w * 0.028;
+                [[0.045, 0.045], [0.955, 0.045], [0.045, 0.955], [0.955, 0.955]].forEach(function (c) {
+                    ctx.save();
+                    ctx.translate(c[0] * w, c[1] * h);
+                    ctx.rotate(Math.PI / 4);
+                    ctx.fillRect(-s / 2, -s / 2, s, s);
+                    ctx.restore();
+                });
+            },
+            label: '#e8b86a', labelFont: '700 44px Cinzel, Georgia, serif',
+            divider: 'rgba(232,184,106,0.7)',
+            verse: '#f6e9d7', verseFont: 'italic 50px Lora, Georgia, serif',
+            ref: '#e8b86a', refFont: '600 56px Georgia, serif',
+            footer: 'rgba(246,233,215,0.7)', footerFont: '30px Georgia, serif'
+        },
+        {
+            id: 'sunset',
+            name: 'Sunset',
+            scrim: 'rgba(24,8,28,0.30)',
+            paint: function (ctx, w, h) {
+                const bg = ctx.createLinearGradient(0, 0, 0, h);
+                bg.addColorStop(0, '#3a1c4f');
+                bg.addColorStop(0.45, '#b23a6a');
+                bg.addColorStop(0.75, '#ef8a4a');
+                bg.addColorStop(1, '#f7c66a');
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, w, h);
+                // glowing sun
+                const sun = ctx.createRadialGradient(w * 0.5, h * 0.62, w * 0.01, w * 0.5, h * 0.62, w * 0.16);
+                sun.addColorStop(0, 'rgba(255,240,200,0.95)');
+                sun.addColorStop(1, 'rgba(255,240,200,0)');
+                ctx.fillStyle = sun;
+                ctx.fillRect(0, 0, w, h);
+                // hill silhouettes
+                ctx.fillStyle = 'rgba(35,10,40,0.55)';
+                ctx.beginPath();
+                ctx.moveTo(0, h * 0.78);
+                ctx.quadraticCurveTo(w * 0.25, h * 0.68, w * 0.5, h * 0.78);
+                ctx.quadraticCurveTo(w * 0.75, h * 0.88, w, h * 0.74);
+                ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath(); ctx.fill();
+            },
+            label: '#ffe9b3', labelFont: '600 42px Georgia, serif',
+            divider: 'rgba(255,233,179,0.8)',
+            verse: '#fff8ec', verseFont: 'italic 50px Georgia, serif',
+            ref: '#ffd98a', refFont: '600 56px Georgia, serif',
+            footer: 'rgba(255,248,236,0.8)', footerFont: '32px Georgia, serif'
+        },
+        {
+            id: 'stained',
+            name: 'Stained Glass',
+            scrim: 'rgba(8,10,14,0.62)',
+            paint: function (ctx, w, h) {
+                ctx.fillStyle = '#101418';
+                ctx.fillRect(0, 0, w, h);
+                const cols = ['rgba(201,146,58,0.5)', 'rgba(84,144,196,0.45)', 'rgba(153,84,166,0.45)', 'rgba(64,158,110,0.45)', 'rgba(196,84,84,0.45)'];
+                const rows = 3, per = 4;
+                const bw = w / per, bh = h / rows;
+                const lw = w * 0.006;
+                ctx.strokeStyle = 'rgba(12,12,14,0.9)';
+                ctx.lineWidth = lw;
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < per; c++) {
+                        const x = c * bw, y = r * bh;
+                        ctx.fillStyle = cols[(r * per + c) % cols.length];
+                        ctx.fillRect(x, y, bw, bh);
+                        // diagonal light streak
+                        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+                        ctx.beginPath();
+                        ctx.moveTo(x, y + bh);
+                        ctx.lineTo(x + bw, y);
+                        ctx.lineTo(x + bw * 0.7, y);
+                        ctx.lineTo(x, y + bh * 0.7);
+                        ctx.closePath(); ctx.fill();
+                        ctx.strokeRect(x + lw / 2, y + lw / 2, bw - lw, bh - lw);
+                    }
+                }
+            },
+            label: '#f0d9a8', labelFont: '700 44px Cinzel, Georgia, serif',
+            divider: 'rgba(240,217,168,0.8)',
+            verse: '#fdf6e3', verseFont: 'italic 50px Georgia, serif',
+            ref: '#e8b86a', refFont: '600 56px Georgia, serif',
+            footer: 'rgba(253,246,227,0.8)', footerFont: '30px Georgia, serif'
+        },
+        {
+            id: 'goldblack',
+            name: 'Gold & Black',
+            paint: function (ctx, w, h) {
+                ctx.fillStyle = '#0d0d0f';
+                ctx.fillRect(0, 0, w, h);
+                // diagonal gold foil streaks
+                for (let i = -1; i < 6; i++) {
+                    ctx.save();
+                    ctx.translate(i * w * 0.22, 0);
+                    ctx.rotate(-0.35);
+                    const g = ctx.createLinearGradient(0, -h, 0, h * 2);
+                    g.addColorStop(0, 'rgba(232,184,106,0)');
+                    g.addColorStop(0.5, 'rgba(232,184,106,0.14)');
+                    g.addColorStop(1, 'rgba(232,184,106,0)');
+                    ctx.fillStyle = g;
+                    ctx.fillRect(0, -h, w * 0.07, h * 3);
+                    ctx.restore();
+                }
+                // thin gold frame
+                ctx.strokeStyle = 'rgba(232,184,106,0.8)';
+                ctx.lineWidth = w * 0.004;
+                ctx.strokeRect(w * 0.05, h * 0.05, w * 0.9, h * 0.9);
+            },
+            label: '#e8b86a', labelFont: '700 44px Cinzel, Georgia, serif',
+            divider: 'rgba(232,184,106,0.8)',
+            verse: '#f5ead0', verseFont: 'italic 50px Georgia, serif',
+            ref: '#e8b86a', refFont: '600 56px Georgia, serif',
+            footer: 'rgba(245,234,208,0.65)', footerFont: '30px Georgia, serif'
+        },
+        {
+            id: 'aurora',
+            name: 'Aurora',
+            scrim: 'rgba(5,14,22,0.34)',
+            paint: function (ctx, w, h) {
+                const bg = ctx.createLinearGradient(0, 0, 0, h);
+                bg.addColorStop(0, '#07131f');
+                bg.addColorStop(1, '#0c2433');
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, w, h);
+                // stars
+                [[0.1, 0.15], [0.25, 0.08], [0.45, 0.2], [0.65, 0.1], [0.85, 0.18], [0.15, 0.35], [0.9, 0.4]].forEach(function (s) {
+                    ctx.globalAlpha = 0.5;
+                    ctx.fillStyle = '#dcecf5';
+                    ctx.beginPath(); ctx.arc(s[0] * w, s[1] * h, w * 0.005, 0, Math.PI * 2); ctx.fill();
+                });
+                ctx.globalAlpha = 1;
+                // aurora ribbons
+                ctx.save();
+                ctx.shadowBlur = w * 0.06;
+                [['#37d67a', 0.30], ['#7ae6b3', 0.20], ['#b57ae6', 0.16]].forEach(function (rb) {
+                    ctx.shadowColor = rb[0];
+                    ctx.strokeStyle = rb[0];
+                    ctx.globalAlpha = rb[1];
+                    ctx.lineWidth = w * 0.05;
+                    ctx.beginPath();
+                    ctx.moveTo(-w * 0.1, h * 0.55);
+                    ctx.bezierCurveTo(w * 0.3, h * 0.32, w * 0.6, h * 0.7, w * 1.1, h * 0.4);
+                    ctx.stroke();
+                });
+                ctx.restore();
+                ctx.globalAlpha = 1;
+            },
+            label: '#9fe8c8', labelFont: '600 42px Georgia, serif',
+            divider: 'rgba(159,232,200,0.7)',
+            verse: '#f0fbf6', verseFont: 'italic 50px Georgia, serif',
+            ref: '#9fe8c8', refFont: '600 56px Georgia, serif',
+            footer: 'rgba(240,251,246,0.7)', footerFont: '32px Georgia, serif'
+        },
+        {
+            id: 'bokeh',
+            name: 'Bokeh Lights',
+            paint: function (ctx, w, h) {
+                const bg = ctx.createLinearGradient(0, 0, w, h);
+                bg.addColorStop(0, '#10222b');
+                bg.addColorStop(1, '#1d3a3f');
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, w, h);
+                const lights = [
+                    [0.2, 0.2, 0.16, 'rgba(240,200,120,0.35)'],
+                    [0.8, 0.15, 0.12, 'rgba(240,200,120,0.28)'],
+                    [0.7, 0.72, 0.2, 'rgba(150,220,210,0.25)'],
+                    [0.25, 0.75, 0.14, 'rgba(150,220,210,0.3)'],
+                    [0.5, 0.5, 0.1, 'rgba(255,255,255,0.12)'],
+                    [0.9, 0.85, 0.1, 'rgba(240,200,120,0.22)'],
+                    [0.08, 0.5, 0.08, 'rgba(255,255,255,0.15)'],
+                    [0.55, 0.12, 0.06, 'rgba(255,255,255,0.18)']
+                ];
+                lights.forEach(function (l) {
+                    const g = ctx.createRadialGradient(l[0] * w, l[1] * h, 0, l[0] * w, l[1] * h, l[2] * w);
+                    g.addColorStop(0, l[3]);
+                    g.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = g;
+                    ctx.fillRect(0, 0, w, h);
+                });
+                // soft dark vignette behind the verse for contrast
+                const vg = ctx.createRadialGradient(w * 0.5, h * 0.5, 0, w * 0.5, h * 0.5, w * 0.34);
+                vg.addColorStop(0, 'rgba(0,0,0,0.35)');
+                vg.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = vg;
+                ctx.fillRect(0, 0, w, h);
+            },
+            label: '#f0c878', labelFont: '600 42px Georgia, serif',
+            divider: 'rgba(240,200,120,0.7)',
+            verse: '#fdf6e3', verseFont: 'italic 50px Georgia, serif',
+            ref: '#f0c878', refFont: '600 56px Georgia, serif',
+            footer: 'rgba(253,246,227,0.7)', footerFont: '32px Georgia, serif'
+        },
+        {
+            id: 'rose',
+            name: 'Rose',
+            paint: function (ctx, w, h) {
+                const bg = ctx.createLinearGradient(0, 0, 0, h);
+                bg.addColorStop(0, '#7a2f43');
+                bg.addColorStop(1, '#b85c72');
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, w, h);
+                // soft petal glow
+                const petals = [[0.15, 0.15, 0.12], [0.85, 0.1, 0.1], [0.12, 0.85, 0.14], [0.88, 0.88, 0.12], [0.5, 0.5, 0.2]];
+                petals.forEach(function (pt) {
+                    const g = ctx.createRadialGradient(pt[0] * w, pt[1] * h, 0, pt[0] * w, pt[1] * h, pt[2] * w);
+                    g.addColorStop(0, 'rgba(255,205,215,0.22)');
+                    g.addColorStop(1, 'rgba(255,205,215,0)');
+                    ctx.fillStyle = g;
+                    ctx.fillRect(0, 0, w, h);
+                });
+                // delicate frame
+                ctx.strokeStyle = 'rgba(255,214,222,0.55)';
+                ctx.lineWidth = w * 0.004;
+                ctx.strokeRect(w * 0.05, h * 0.05, w * 0.9, h * 0.9);
+            },
+            label: '#ffd6de', labelFont: '600 42px Georgia, serif',
+            divider: 'rgba(255,214,222,0.75)',
+            verse: '#fff3f5', verseFont: 'italic 50px Georgia, serif',
+            ref: '#ffd6de', refFont: '600 56px Georgia, serif',
+            footer: 'rgba(255,243,245,0.75)', footerFont: '32px Georgia, serif'
+        },
+        {
+            id: 'terracotta',
+            name: 'Terracotta',
+            paint: function (ctx, w, h) {
+                ctx.fillStyle = '#c96f4a';
+                ctx.fillRect(0, 0, w, h);
+                // outline circles
+                ctx.strokeStyle = 'rgba(255,244,230,0.22)';
+                ctx.lineWidth = w * 0.01;
+                ctx.beginPath(); ctx.arc(w * 0.5, h * 0.44, w * 0.26, 0, Math.PI * 2); ctx.stroke();
+                ctx.strokeStyle = 'rgba(255,244,230,0.14)';
+                ctx.beginPath(); ctx.arc(w * 0.5, h * 0.44, w * 0.31, 0, Math.PI * 2); ctx.stroke();
+                // accent dots
+                ctx.fillStyle = 'rgba(255,244,230,0.5)';
+                ctx.beginPath(); ctx.arc(w * 0.5, h * 0.2, w * 0.008, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(w * 0.5, h * 0.68, w * 0.008, 0, Math.PI * 2); ctx.fill();
+            },
+            label: '#fff0e0', labelFont: '700 42px Georgia, serif',
+            divider: 'rgba(255,240,224,0.7)',
+            verse: '#fff7ef', verseFont: 'italic 50px Georgia, serif',
+            ref: '#ffdfc2', refFont: '600 56px Georgia, serif',
+            footer: 'rgba(255,247,239,0.75)', footerFont: '32px Georgia, serif'
+        },
     ];
+
+    function drawRoundRect(ctx, x, y, w, h, r) {
+        if (typeof ctx.roundRect === 'function') {
+            ctx.beginPath();
+            ctx.roundRect(x, y, w, h, r);
+            return;
+        }
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+    }
 
     function getCardTemplate(id) {
         for (let i = 0; i < VERSE_CARD_TEMPLATES.length; i++) {
@@ -333,6 +645,26 @@
         const ctx = canvas.getContext('2d');
 
         tpl.paint(ctx, width, height);
+
+        // Web fonts for canvas are async; warm them up with graceful fallbacks
+        try {
+            if (document.fonts && document.fonts.load) {
+                ['600 42px Cinzel', '700 42px Cinzel', 'italic 50px Lora'].forEach(function (f) {
+                    document.fonts.load(f).catch(function () {});
+                });
+            }
+        } catch (e) { /* ignore */ }
+
+        // Readability scrim behind the text on busy backgrounds
+        if (tpl.scrim) {
+            ctx.save();
+            ctx.fillStyle = typeof tpl.scrim === 'string' ? tpl.scrim : 'rgba(10,12,16,0.32)';
+            drawRoundRect(ctx, width * 0.06, height * 0.065, width * 0.88, height * 0.79, width * 0.03);
+            ctx.fill();
+            drawRoundRect(ctx, width * 0.32, height * 0.885, width * 0.36, height * 0.055, width * 0.02);
+            ctx.fill();
+            ctx.restore();
+        }
 
         // Top label
         ctx.fillStyle = tpl.label;
