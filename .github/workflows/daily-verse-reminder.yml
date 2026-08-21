@@ -1,22 +1,8 @@
-# Sends the Daily Verse Reminder to every subscribed browser.
-# FREE scheduled trigger using GitHub Actions (no database needed).
-#
-# Schedule: every day at 06:00 UTC (07:00 in Lagos/WAT all year round).
-# Free tier notes:
-#   - The Render free web service wakes up on the first request (allow ~1 min).
-#   - GitHub may pause schedules on inactive repos after ~60 days;
-#     a free cron-job.org job hitting the same URL works as a backup.
-#
-# Setup:
-#   1. Generate a token: python -c "import secrets; print(secrets.token_urlsafe(24))"
-#   2. Add it on Render as APP_PUSH_TOKEN
-#   3. Add it here as a repo secret: GitHub -> Settings -> Secrets and variables ->
-#      Actions -> New repository secret: PUSH_TOKEN
 name: Daily Verse Reminder
 
 on:
   schedule:
-    - cron: "0 6 * * *"   # 06:00 UTC = 07:00 Lagos time
+    - cron: "0 10 * * *"   # 06:00 UTC = 07:00 Lagos time
   workflow_dispatch:       # also lets you trigger it manually
 
 jobs:
@@ -27,5 +13,5 @@ jobs:
         run: |
           curl -fsS --max-time 280 \
             -X POST \
-            "https://mypersonal-bible-app.onrender.com/api/push/send?token=${{ secrets.PUSH_TOKEN }}" \
+            "https://mypersonal-bible-app.onrender.com/api/push/send?token=${{ secrets.APP_PUSH_TOKEN }}" \
           || echo "Push request failed (app may be asleep or token missing) - will retry tomorrow"
