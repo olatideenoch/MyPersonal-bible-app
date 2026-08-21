@@ -1416,14 +1416,223 @@
         getLocalDateKey: readingTodayKey,
         getDailySyncPayload: readingBuildDailyPayload,
         applyServerDailyActivity: readingApplyServerDaily,
-        markDailyPosted: readingMarkPosted
+        markDailyPosted: readingMarkPosted,
+        openVersionPicker: showVersionPicker
     };
+
+    /* ---------- First-time preferred-version picker ----------
+       Shown once per session until the user picks a version or skips.
+       Skip = ask again in 7 days. Picking writes biblePreferredVersion
+       locally and syncs preferred_version to the account (same plumbing
+       as the profile card), so every device follows the choice. */
+    var VP_SKIP_KEY = 'bibleVersionPickerSkippedAt';
+    var VP_SESSION_KEY = 'bibleVersionPickerShown';
+    var VP_DESCRIPTIONS = {
+        'en-kjv': 'Traditional, the classic',
+        'en-web': 'Modern English, free',
+        'en-nkjv': 'Classic, modern words',
+        'en-niv': 'Easy modern English',
+        'en-nlt': 'Simple, everyday words',
+        'en-amp': 'Expanded meanings',
+        'en-nasb': 'Word-for-word literal',
+        'en-csb': 'Balanced and clear',
+        'en-asv': 'Literal, scholarly',
+        'en-bbe': 'Basic simple English',
+        'en-darby': 'Literal, older style',
+        'en-dra': 'Traditional Catholic',
+        'fr-ls1910': 'Français classique',
+        'yo-yoruba': 'Èdè Yorùbá',
+        'ro-rccv': 'Română clasică'
+    };
+
+    function vpShortName(versionStr) {
+        var m = String(versionStr || '').match(/\(([^)]+)\)\s*$/);
+        if (m) return m[1];
+        return String(versionStr || '').split(' ').slice(0, 3).join(' ');
+    }
+
+    function vpEnsureStyles() {
+        if (document.getElementById('mpb-version-picker-styles')) return;
+        var style = document.createElement('style');
+        style.id = 'mpb-version-picker-styles';
+        style.textContent =
+            '.vp-overlay{position:fixed;inset:0;background:rgba(20,10,0,0.55);z-index:2900;' +
+            'display:flex;align-items:center;justify-content:center;padding:18px;overflow-y:auto;}' +
+            '.vp-modal{background:var(--card-bg);border:1px solid var(--border-color);border-radius:18px;' +
+            'width:100%;max-width:660px;padding:26px;position:relative;margin:auto;' +
+            'box-shadow:0 24px 60px rgba(0,0,0,0.35);}' +
+            '.vp-close{position:absolute;top:12px;right:14px;background:none;border:none;' +
+            'font-size:1.4rem;color:var(--text-muted);cursor:pointer;line-height:1;}' +
+            '.vp-title{font-family:"Lora",serif;color:var(--text-primary);text-align:center;' +
+            'font-size:1.25rem;font-weight:700;margin:0 0 8px;}' +
+            '.vp-sub{text-align:center;color:var(--text-muted);font-size:0.9rem;margin:0 0 18px;line-height:1.5;}' +
+            '.vp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;' +
+            'max-height:320px;overflow-y:auto;padding:2px 4px 2px 2px;}' +
+            '.vp-card{border:2px solid var(--border-color);border-radius:12px;padding:12px 10px;' +
+            'text-align:center;cursor:pointer;position:relative;background:var(--input-bg);' +
+            'color:var(--text-primary);font-family:inherit;transition:border-color .15s ease,background .15s ease;}' +
+            '.vp-card:hover{border-color:var(--accent-primary);}' +
+            '.vp-card.selected{border-color:var(--accent-text);' +
+            'background:color-mix(in srgb, var(--accent-text) 12%, transparent);}' +
+            '.vp-name{font-family:"Lora",serif;font-weight:700;font-size:0.85rem;color:var(--text-primary);}' +
+            '.vp-desc{font-size:0.72rem;color:var(--text-muted);margin-top:3px;line-height:1.3;}' +
+            '.vp-check{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;' +
+            'background:var(--accent-primary);color:var(--accent-contrast);font-size:0.65rem;' +
+            'display:none;align-items:center;justify-content:center;}' +
+            '.vp-card.selected .vp-check{display:flex;}' +
+            '.vp-actions{display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap;}' +
+            '.vp-btn{border-radius:8px;padding:11px 26px;font-size:0.95rem;cursor:pointer;' +
+            'font-family:"Lora",serif;font-weight:600;border:1px solid transparent;}' +
+            '.vp-btn-primary{background:var(--accent-primary);color:var(--accent-contrast);}' +
+            '.vp-btn-primary:hover{opacity:0.92;}' +
+            '.vp-btn-ghost{background:transparent;border-color:var(--input-border);color:var(--text-primary);}' +
+            '.vp-btn-ghost:hover{border-color:var(--accent-text);color:var(--accent-text);}' +
+            '@media (max-width:480px){' +
+            '.vp-modal{padding:20px 16px;}' +
+            '.vp-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;max-height:300px;}' +
+            '.vp-name{font-size:0.78rem;}' +
+            '.vp-desc{font-size:0.68rem;}' +
+            '.vp-btn{padding:10px 20px;font-size:0.9rem;}}';
+        document.head.appendChild(style);
+    }
+
+    async function showVersionPicker() {
+        var versions = [];
+        try {
+            var res = await fetch('/api/versions');
+            var data = await res.json();
+            versions = data.versions || [];
+        } catch (e) { /* offline: skip this visit, retry next time */ }
+        if (!versions.length) return;
+
+        vpEnsureStyles();
+        var selected = 'en-web';
+        if (!versions.some(function (v) { return v.id === selected; })) {
+            selected = versions[0].id;
+        }
+
+        var cards = versions.map(function (v) {
+            var name = vpShortName(v.version);
+            var desc = VP_DESCRIPTIONS[v.id] || v.version;
+            return '<button type="button" class="vp-card' + (v.id === selected ? ' selected' : '') + '" data-id="' + v.id + '" data-name="' + name + '">' +
+                '<span class="vp-check">&#10003;</span>' +
+                '<div class="vp-name">' + name + '</div>' +
+                '<div class="vp-desc">' + desc + '</div>' +
+                '</button>';
+        }).join('');
+
+        var overlay = document.createElement('div');
+        overlay.className = 'vp-overlay';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-label', 'Pick your preferred Bible version');
+        overlay.innerHTML =
+            '<div class="vp-modal">' +
+            '  <button class="vp-close" id="vpCloseBtn" aria-label="Close">&times;</button>' +
+            '  <h3 class="vp-title">Pick your preferred Bible version</h3>' +
+            '  <p class="vp-sub">It will be used for every chapter you open, the daily verse and quick lookup. You can change it anytime from your profile.</p>' +
+            '  <div class="vp-grid">' + cards + '</div>' +
+            '  <div class="vp-actions">' +
+            '    <button type="button" class="vp-btn vp-btn-primary" id="vpSaveBtn">Save preference</button>' +
+            '    <button type="button" class="vp-btn vp-btn-ghost" id="vpSkipBtn">Skip for now</button>' +
+            '  </div>' +
+            '</div>';
+        document.body.appendChild(overlay);
+
+        function skip() {
+            try { localStorage.setItem(VP_SKIP_KEY, String(Date.now())); } catch (e) { /* ignore */ }
+            overlay.remove();
+            document.removeEventListener('keydown', escHandler);
+        }
+
+        function escHandler(e) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                skip();
+            }
+        }
+        document.addEventListener('keydown', escHandler);
+
+        overlay.querySelectorAll('.vp-card').forEach(function (card) {
+            card.addEventListener('click', function () {
+                selected = card.dataset.id;
+                overlay.querySelectorAll('.vp-card').forEach(function (c) {
+                    c.classList.toggle('selected', c.dataset.id === selected);
+                });
+            });
+        });
+
+        overlay.querySelector('#vpSaveBtn').addEventListener('click', async function () {
+            var name = overlay.querySelector('.vp-card.selected') ? overlay.querySelector('.vp-card.selected').dataset.name : '';
+            try { localStorage.setItem('biblePreferredVersion', selected); } catch (e) { /* ignore */ }
+            try {
+                await fetch('/api/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ preferred_version: selected })
+                });
+            } catch (e) { /* offline: the next sync picks it up */ }
+            overlay.remove();
+            document.removeEventListener('keydown', escHandler);
+            showToast(name + ' is now your preferred version', 'success');
+        });
+
+        overlay.querySelector('#vpSkipBtn').addEventListener('click', skip);
+        overlay.querySelector('#vpCloseBtn').addEventListener('click', skip);
+        overlay.addEventListener('click', function (e) { if (e.target === overlay) skip(); });
+    }
+
+    function vpPickerDue() {
+        try {
+            if (localStorage.getItem('biblePreferredVersion')) return false;
+            var skipAt = parseInt(localStorage.getItem(VP_SKIP_KEY) || '0', 10);
+            if (skipAt && (Date.now() - skipAt) < 7 * 24 * 3600 * 1000) return false;
+            return true;
+        } catch (e) { return false; }
+    }
+
+    function maybeShowVersionPicker() {
+        try {
+            if (sessionStorage.getItem(VP_SESSION_KEY)) return;
+        } catch (e) { /* ignore */ }
+        if (!vpPickerDue()) return;
+        try { sessionStorage.setItem(VP_SESSION_KEY, '1'); } catch (e) { /* ignore */ }
+
+        var opened = false;
+        var open = function () {
+            if (opened) return;
+            opened = true;
+            showVersionPicker();
+        };
+        var wm = document.getElementById('welcomeModal');
+        if (wm && wm.classList.contains('show')) {
+            // Wait for the welcome modal to close so the two never overlap,
+            // but never wait forever: open anyway after a grace period.
+            wm.addEventListener('hidden.bs.modal', function once() {
+                wm.removeEventListener('hidden.bs.modal', once);
+                open();
+            });
+            setTimeout(open, 12000);
+        } else {
+            open();
+        }
+    }
+
+    function scheduleVersionPicker() {
+        var run = function () { setTimeout(maybeShowVersionPicker, 1200); };
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', run);
+        } else {
+            run();
+        }
+    }
 
     /* ---------- Boot ---------- */
     initTheme();
     registerServiceWorker();
     initScrollReveal();
     initWelcomeModal();
+    scheduleVersionPicker();
     document.querySelectorAll('[data-push-reminders]').forEach(function (btn) {
         btn.addEventListener('click', function (e) { e.preventDefault(); pushToggle(); });
     });
