@@ -1441,9 +1441,21 @@
 
             window.pfLoadAnalytics = async function() {
                 try {
-                    const res = await fetch('/api/profile/analytics');
+                    const todayParam = (window.MPB && MPB.getLocalDateKey) ? MPB.getLocalDateKey() : '';
+                    const res = await fetch('/api/profile/analytics?today=' + encodeURIComponent(todayParam));
                     const data = await res.json();
                     analytics = data.analytics;
+
+                    // Feed the fresh server totals into the shared reading-time
+                    // tracker so the live "Reading Time Today" card and the
+                    // displayed minutes match every other device right away.
+                    if (window.MPB && MPB.applyServerDailyActivity && analytics.daily_activity) {
+                        var dailyMap = {};
+                        analytics.daily_activity.forEach(function (d) {
+                            dailyMap[d.date] = { chapters: d.chapters, minutes: d.minutes };
+                        });
+                        MPB.applyServerDailyActivity(dailyMap);
+                    }
 
                     loadingEl.style.display = 'none';
                     contentEl.style.display = 'block';
@@ -1461,21 +1473,14 @@
                         window.MPB.onReadingActivity(function (today) {
                             updateTodayCard(today.minutes, today.chapters);
                         });
-                        // Push the freshest dailyActivity to the server (merge-safe)
-                        const pushDaily = function () {
-                            try {
-                                fetch('/api/sync', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        dailyActivity: JSON.parse(localStorage.getItem('bibleDailyActivity') || '{}')
-                                    }),
-                                    keepalive: true
-                                });
-                            } catch (e) { /* ignore */ }
-                        };
-                        document.addEventListener('visibilitychange', function () { if (document.hidden) pushDaily(); });
-                        window.addEventListener('beforeunload', pushDaily);
+                        // Push this device's reading time on hide/unload so
+                        // every device's minutes add up on the server.
+                        document.addEventListener('visibilitychange', function () {
+                            if (document.hidden && window.MPB && MPB.pushDailyActivity) MPB.pushDailyActivity();
+                        });
+                        window.addEventListener('beforeunload', function () {
+                            if (window.MPB && MPB.pushDailyActivity) MPB.pushDailyActivity();
+                        });
                     }
 
                     if (analytics.years && analytics.years.length) {

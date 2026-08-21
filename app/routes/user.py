@@ -7,7 +7,12 @@ import json
 from requests_oauthlib import OAuth2Session
 from app.bible.plans import BIBLE_YEAR_PLAN, BIBLE_YEAR_TOTAL_DAYS
 from app.services.analytics import compute_bible_year_progress, compute_profile_analytics, compute_streak
-from app.services.storage import load_user_sync_data, merge_sync_data, save_user_sync_data
+from app.services.storage import (
+    effective_daily_activity,
+    load_user_sync_data,
+    merge_sync_data,
+    save_user_sync_data,
+)
 from app.config import Config
 
 bp = Blueprint('user', __name__)
@@ -101,7 +106,9 @@ def get_sync_data():
     data = load_user_sync_data(user_id)
     data['streak'] = compute_streak(data.get('readingLog', []))
     data['bibleYearProgress'] = compute_bible_year_progress(data.get('bibleYear', {}))
-    
+    # Resolve reading-time minutes across devices (sum of per-device contributions)
+    data['dailyActivity'] = effective_daily_activity(data)
+
     return jsonify(data)
 
 @bp.route('/api/log-reading', methods=['POST'])
@@ -206,7 +213,8 @@ def profile_analytics():
 
     user_id = session['user']['id']
     data = load_user_sync_data(user_id)
-    analytics = compute_profile_analytics(data)
+    today_param = request.args.get('today', '')
+    analytics = compute_profile_analytics(data, today=today_param)
     return jsonify({'authenticated': True, 'analytics': analytics})
 
 @bp.route('/api/user', methods=['GET'])

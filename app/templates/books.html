@@ -805,6 +805,35 @@
             color: var(--accent-text);
         }
 
+        /* Section headings (rendered for every version) */
+        .verse-heading {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: var(--accent-text);
+            font-family: 'Lora', serif;
+            font-weight: 700;
+            font-size: 1.05em;
+            letter-spacing: 0.03em;
+            text-align: center;
+            margin: 30px 0 6px;
+            padding: 0 4px;
+            line-height: 1.4;
+        }
+        .verse-heading::before,
+        .verse-heading::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-color));
+        }
+        .verse-heading::after {
+            background: linear-gradient(90deg, var(--border-color), transparent);
+        }
+        @media (max-width: 576px) {
+            .verse-heading { gap: 8px; font-size: 0.95em; margin: 22px 0 4px; }
+        }
+
         /* Multi-color highlights */
         .verse-item.hl-yellow { background: rgba(255, 213, 79, 0.22); border-left: 4px solid #ffd54f; }
         .verse-item.hl-green { background: rgba(129, 199, 132, 0.22); border-left: 4px solid #81c784; }
@@ -2025,6 +2054,9 @@
 
                     <div class="row g-0" id="versesContainer">
                         {% for verse in verses %}
+                            {% if headings.get(loop.index) %}
+                            <div class="col-12 verse-heading" data-heading-verse="{{ loop.index }}">{{ headings.get(loop.index) }}</div>
+                            {% endif %}
                             <div class="col-12 verse-item" id="verse-{{ loop.index }}" data-verse="{{ loop.index }}" data-reference="{{ book.name }} {{ selected_chapter }}:{{ loop.index }}">
                                 <div class="verse-content">
                                     <span class="verse-number">{{ loop.index }}.</span>
@@ -2044,6 +2076,11 @@
                             </div>
                         {% endfor %}
                     </div>
+                    {% if headings %}
+                    <div class="text-center mt-4 mb-1">
+                        <small class="text-muted heading-credit"><i class="fas fa-heading me-1"></i>Section headings from the Berean Standard Bible (public domain)</small>
+                    </div>
+                    {% endif %}
                     {% if selected_version in ['en-nasb', 'en-amp'] %}
                     <div class="copyright-notice mt-4">
                         <i class="fas fa-copyright"></i>
@@ -2279,6 +2316,14 @@
             if (typeof BOOK_SLUG !== 'undefined' && typeof CHAPTER_NUM !== 'undefined' && CHAPTER_NUM) {
                 window.MPB.trackChapterRead(BOOK_SLUG, CHAPTER_NUM);
             }
+            // Push this device's minutes to the server when the tab hides or
+            // closes, so all devices share the same day total.
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden && window.MPB.pushDailyActivity) window.MPB.pushDailyActivity();
+            });
+            window.addEventListener('beforeunload', function () {
+                if (window.MPB.pushDailyActivity) window.MPB.pushDailyActivity();
+            });
         }
 
         // ========== RECORD READING PROGRESS (powers Continue Reading) ==========
@@ -2360,6 +2405,11 @@
                     font_size: localStorage.getItem('bibleFontSize'),
                     theme: localStorage.getItem('bibleAppTheme')
                 };
+                // Include this device's reading-time contribution so minutes
+                // from every device add up on the server (never overwrite).
+                if (window.MPB && MPB.getDailySyncPayload) {
+                    Object.assign(localData, MPB.getDailySyncPayload());
+                }
                 
                 const response = await fetch('/api/sync', {
                     method: 'POST',
@@ -2368,6 +2418,7 @@
                 });
                 
                 if (response.ok) {
+                    if (window.MPB && MPB.markDailyPosted) MPB.markDailyPosted();
                     const syncResponse = await fetch('/api/sync');
                     const serverData = await syncResponse.json();
                     
@@ -2404,6 +2455,9 @@
                     }
                     if (serverData.theme) {
                         localStorage.setItem('bibleAppTheme', serverData.theme);
+                    }
+                    if (serverData.dailyActivity && window.MPB && MPB.applyServerDailyActivity) {
+                        MPB.applyServerDailyActivity(serverData.dailyActivity);
                     }
                     
                     showSyncToast('Sync completed successfully!', 'success');
@@ -2497,6 +2551,10 @@
             function updateFontSize() {
                 verseTexts.forEach(text => {
                     text.style.fontSize = currentFontSize + 'rem';
+                });
+                // section headings scale with the same control
+                document.querySelectorAll('.verse-heading').forEach(h => {
+                    h.style.fontSize = (0.875 * currentFontSize) + 'rem';
                 });
                 // The commentary panel scales with the same control
                 const commentaryContent = document.getElementById('commentaryContent');

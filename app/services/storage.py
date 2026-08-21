@@ -42,6 +42,7 @@ def load_user_sync_data(user_id: str) -> dict:
         "font_size": None,
         "preferred_version": None,
         "dailyActivity": {},
+        "dailyActivityContrib": {},
         "theme": None,
         "last_sync": None
     }
@@ -225,6 +226,30 @@ def merge_sync_data(local_data: dict, server_data: dict) -> dict:
             "minutes": round(max(float(s_entry.get("minutes", 0) or 0), float(l_entry.get("minutes", 0) or 0)), 1),
         }
 
+    # Per-device reading-time contributions: {date: {deviceId: minutes}}.
+    # Each device posts the minutes IT tracked for a day; the server keeps the
+    # latest (max) value per device, so re-sending the same value is harmless.
+    # The effective minutes for a day is the SUM across devices.
+    merged["dailyActivityContrib"] = {}
+    server_contrib = server_data.get("dailyActivityContrib", {}) or {}
+    local_contrib = local_data.get("dailyActivityContrib", {}) or {}
+    for date_key in set(server_contrib.keys()) | set(local_contrib.keys()):
+        s_devs = server_contrib.get(date_key, {}) or {}
+        l_devs = local_contrib.get(date_key, {}) or {}
+        devs = {}
+        for dev in set(s_devs.keys()) | set(l_devs.keys()):
+            try:
+                devs[dev] = round(max(float(s_devs.get(dev, 0) or 0), float(l_devs.get(dev, 0) or 0)), 1)
+            except (TypeError, ValueError):
+                devs[dev] = 0.0
+        merged["dailyActivityContrib"][date_key] = devs
+
+    # Bound the contribution history to ~13 months so files stay small
+    cutoff_date = (dt.datetime.now() - dt.timedelta(days=400)).date().isoformat()
+    merged["dailyActivityContrib"] = {
+        k: v for k, v in merged["dailyActivityContrib"].items() if k >= cutoff_date
+    }
+
     merged["font_size"] = local_data.get("font_size") or server_data.get("font_size")
     merged["theme"] = local_data.get("theme") or server_data.get("theme")
     
@@ -251,3 +276,34 @@ def _save_push_subs(subs: list) -> bool:
     except Exception as e:
         print(f"Error saving push subscriptions: {e}")
         return False
+
+def effective_daily_activity(data: dict) -> dict:
+    """Return dailyActivity with minutes resolved across devices.
+
+    Each device contributes its own tracked minutes for a day
+    (dailyActivityContrib: {date: {deviceId: minutes}}). The effective
+    minutes for a day is the SUM of all device contributions. Days without
+    any contributions fall back to the legacy merged minutes value.
+    """
+    daily = data.get("dailyActivity", {}) or {}
+    contrib = data.get("dailyActivityContrib", {}) or {}
+    effective = {}
+    for date_key, entry in daily.items():
+        entry = entry or {}
+        devs = contrib.get(date_key, {}) or {}
+        if devs:
+            minutes = round(sum(float(v or 0) for v in devs.values()), 1)
+        else:
+            minutes = round(float(entry.get("minutes", 0) or 0), 1)
+        effective[date_key] = {
+            "chapters": int(entry.get("chapters", 0) or 0),
+            "minutes": minutes,
+        }
+    # any contribution days missing from dailyActivity (edge case)
+    for date_key, devs in (contrib or {}).items():
+        if date_key not in effective and devs:
+            effective[date_key] = {
+                "chapters": 0,
+                "minutes": round(sum(float(v or 0) for v in devs.values()), 1),
+            }
+    return effective

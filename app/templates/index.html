@@ -3321,5 +3321,22 @@
             if (speechSynth) speechSynth.cancel();
         });
     </script>
+
+    <!-- Reading-time tracker: starts counting when the user enters the app,
+         pauses when the tab closes, continues on the next visit, and pushes
+         this device's minutes to the server on hide/unload. -->
+    <script>
+        (function () {
+            if (window.MPB && MPB.startReadingTracker) {
+                MPB.startReadingTracker();
+                document.addEventListener('visibilitychange', function () {
+                    if (document.hidden && MPB.pushDailyActivity) MPB.pushDailyActivity();
+                });
+                window.addEventListener('beforeunload', function () {
+                    if (MPB.pushDailyActivity) MPB.pushDailyActivity();
+                });
+            }
+        })();
+    </script>
 </body>
 </html>

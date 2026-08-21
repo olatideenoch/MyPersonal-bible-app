@@ -107,3 +107,23 @@ def get_commentary(book_slug: str, chapter: int):
     if not chapters:
         return None
     return chapters.get(str(chapter))
+
+
+# ------------------------------------------------------------- Verse headings
+
+def chapter_headings(book_slug: str, chapter: int):
+    """Section headings for one chapter as {verse_number: heading_text}.
+
+    Bundled from the Berean Standard Bible (public domain), see
+    build_headings.py. Returns {} when the book/chapter has no headings.
+    """
+    try:
+        chapter = int(chapter)
+    except (TypeError, ValueError):
+        return {}
+    data = _load("headings.json.gz")
+    if not data:
+        return {}
+    book = (data.get("books") or {}).get(book_slug) or {}
+    raw = book.get(str(chapter)) or {}
+    return {int(k): v for k, v in raw.items() if v}

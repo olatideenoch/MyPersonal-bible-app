@@ -53,6 +53,23 @@ def fetch_chapter_bibleapi(book_name: str, chapter: int, version_id: str = "en-k
             })
 
         verses = dedupe_verses(verses)
+
+        # Guard against partial chapter data from the API (e.g. Obadiah is
+        # served as a single verse). The bundled KJV has the full, verified
+        # chapter; use it whenever the API result is incomplete.
+        if translation == "kjv" and verses:
+            try:
+                kjv_books = bundled.get_kjv_books()
+                kjv_book = next((b for b in kjv_books if b["name"] == book_name), None)
+                if kjv_book and 1 <= chapter <= len(kjv_book["chapters"]):
+                    full_count = len([t for t in kjv_book["chapters"][chapter - 1] if t])
+                    if full_count > len(verses):
+                        print(f"Bible API returned partial data for {book_name} {chapter} "
+                              f"({len(verses)}/{full_count} verses); using bundled KJV")
+                        return fetch_chapter_local(book_name, chapter, "kjv")
+            except Exception as e:
+                print(f"Partial-chapter guard error: {e}")
+
         chapter_text = " ".join(v["text"] for v in verses)
         print(f"✅ Fetched from Bible API: {book_name} {chapter} ({len(verses)} verses)")
         return verses, chapter_text
@@ -204,8 +221,14 @@ def fetch_chapter_getbible(book_name: str, chapter: int, version_id: str) -> tup
         return [], ""
 
 def fetch_chapter_local(book_name: str, chapter: int, data_source: str = "yoruba") -> tuple:
-    """Fetch from the bundled data files (works offline, no API). Used for Yoruba."""
-    books = bundled.get_yoruba_books() if data_source == "yoruba" else []
+    """Fetch from the bundled data files (works offline, no API).
+    Used for Yoruba and as the authoritative KJV fallback."""
+    if data_source == "kjv":
+        books = bundled.get_kjv_books()
+    elif data_source == "yoruba":
+        books = bundled.get_yoruba_books()
+    else:
+        books = []
     book = next((b for b in books if b["name"] == book_name), None)
     if not book or chapter < 1 or chapter > len(book["chapters"]):
         return [], ""

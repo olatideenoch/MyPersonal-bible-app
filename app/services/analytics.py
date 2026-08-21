@@ -94,12 +94,16 @@ def compute_bible_year_progress(bible_year: dict) -> dict:
 
     return result
 
-def compute_profile_analytics(data: dict) -> dict:
+def compute_profile_analytics(data: dict, today=None) -> dict:
     """Build a per-year activity dashboard from a user's sync data using pandas.
     Looks at readingLog (dates the user opened a chapter) plus bookmarks/highlights
     to produce: an overall summary, and for every calendar year that has activity,
     a monthly breakdown, a day-of-week breakdown, the longest streak within that
-    year, and the count of bookmarks added that year."""
+    year, and the count of bookmarks added that year.
+
+    `today` optionally fixes the "current day" to the user's local calendar day
+    (ISO string or date). The daily-activity window then ends on that day, so
+    the graph and the "today" totals never mix a neighbouring day's data."""
     reading_log = data.get('readingLog', []) or []
     bookmarks = data.get('bookmarks', []) or []
     highlights = data.get('highlights', {}) or {}
@@ -209,7 +213,24 @@ def compute_profile_analytics(data: dict) -> dict:
     # Feeds the GitHub-style contribution heatmap on the profile (53 week
     # columns x 7 days). The last entry is today, exposed as result['today'].
     daily_activity_data = data.get('dailyActivity', {}) or {}
+    contrib_data = data.get('dailyActivityContrib', {}) or {}
     progress_data = data.get('progress', {}) or {}
+
+    # The client may send its local date so day boundaries match the user's
+    # timezone (server time is UTC and can be a day off around midnight).
+    if isinstance(today, str) and today:
+        try:
+            today = dt.date.fromisoformat(today[:10])
+        except ValueError:
+            today = dt.date.today()
+    if not isinstance(today, dt.date):
+        today = dt.date.today()
+
+    def _day_minutes(day_key, legacy_minutes):
+        devs = contrib_data.get(day_key, {}) or {}
+        if devs:
+            return round(sum(float(v or 0) for v in devs.values()), 1)
+        return round(float(legacy_minutes or 0), 1)
     # backfill chapter counts from per-chapter progress timestamps
     progress_by_day = {}
     for entry in progress_data.values():
@@ -221,14 +242,13 @@ def compute_profile_analytics(data: dict) -> dict:
                 progress_by_day[ts[:10]] = progress_by_day.get(ts[:10], 0) + 1
             except (TypeError, ValueError):
                 pass
-    today = dt.date.today()
     daily_activity = []
     for offset in range(370, -1, -1):
         day = today - dt.timedelta(days=offset)
         day_key = day.isoformat()
         entry = daily_activity_data.get(day_key, {}) or {}
         chapters = max(int(entry.get('chapters', 0) or 0), progress_by_day.get(day_key, 0))
-        minutes = round(float(entry.get('minutes', 0) or 0), 1)
+        minutes = _day_minutes(day_key, entry.get('minutes', 0))
         daily_activity.append({
             'date': day_key,
             'label': day.strftime('%b %d'),

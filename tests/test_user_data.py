@@ -174,3 +174,55 @@ def test_preferred_version_roundtrip(auth_client):
     # explicit version still wins
     html = auth_client.get("/books/john?chapter=1&version=en-kjv").get_data(as_text=True)
     assert "King James Version (KJV)" in html
+
+
+def test_daily_activity_contrib_sum(auth_client):
+    """Per-device reading-time contributions sum up; re-sends are idempotent."""
+    today = _today()
+    # phone contributes its own 12.5 minutes
+    auth_client.post("/api/sync", json={
+        "dailyActivity": {today: {"chapters": 2, "minutes": 12.5}},
+        "dailyActivityContrib": {today: {"dev-phone": 12.5}},
+    })
+    # computer contributes its own 30 minutes (chapters stay max-merged)
+    auth_client.post("/api/sync", json={
+        "dailyActivity": {today: {"chapters": 4, "minutes": 30.0}},
+        "dailyActivityContrib": {today: {"dev-computer": 30.0}},
+    })
+    # phone re-sends the same value (keepalive race) -> nothing changes
+    auth_client.post("/api/sync", json={
+        "dailyActivityContrib": {today: {"dev-phone": 12.5}},
+    })
+    data = auth_client.get("/api/sync").get_json()
+    eff = data["dailyActivity"].get(today)
+    assert eff == {"chapters": 4, "minutes": 42.5}, eff
+
+    # analytics uses the summed minutes for the heatmap and today card
+    analytics = auth_client.get("/api/profile/analytics").get_json()["analytics"]
+    assert analytics["today"]["minutes"] == 42.5
+    assert analytics["daily_activity"][-1]["minutes"] == 42.5
+
+
+def test_daily_activity_legacy_minutes_fallback(auth_client):
+    """Days without device contributions keep the legacy merged minutes."""
+    yesterday = (dt.date.today() - dt.timedelta(days=1)).isoformat()
+    auth_client.post("/api/sync", json={
+        "dailyActivity": {yesterday: {"chapters": 3, "minutes": 18.0}},
+    })
+    data = auth_client.get("/api/sync").get_json()
+    assert data["dailyActivity"].get(yesterday) == {"chapters": 3, "minutes": 18.0}
+    analytics = auth_client.get("/api/profile/analytics").get_json()["analytics"]
+    day_entry = [d for d in analytics["daily_activity"] if d["date"] == yesterday][0]
+    assert day_entry["minutes"] == 18.0
+
+
+def test_analytics_honors_client_today(auth_client):
+    """The analytics day window ends on the client's local date, not UTC."""
+    tomorrow = (dt.date.today() + dt.timedelta(days=1)).isoformat()
+    analytics = auth_client.get(f"/api/profile/analytics?today={tomorrow}").get_json()["analytics"]
+    assert analytics["today"]["date"] == tomorrow
+    assert analytics["daily_activity"][-1]["date"] == tomorrow
+
+    # invalid param falls back to the server date
+    analytics2 = auth_client.get("/api/profile/analytics?today=not-a-date").get_json()["analytics"]
+    assert analytics2["today"]["date"] == _today()

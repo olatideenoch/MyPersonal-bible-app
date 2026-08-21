@@ -15,7 +15,7 @@ from app.bible.books import (
     get_version_name,
 )
 from app.bible.verses import RANDOM_FALLBACK_VERSES, fetch_chapter_bibleapi_smart
-from app.content import get_commentary, search_kjv
+from app.content import chapter_headings, get_commentary, search_kjv
 from app.services.audio import text_to_speech_voicerss
 from app.services.daily_verse import get_daily_verse
 from app.utils import clean_text
@@ -64,6 +64,13 @@ def play_audio():
     
     return send_file(io.BytesIO(audio_data), mimetype="audio/mpeg")
 
+def version_uses_headings(version_id):
+    """Section headings are bundled in English (public-domain BSB), so they
+    only render for English versions. Non-English versions (Français,
+    Română, Yorùbá, ...) read without English headings mixed in."""
+    return bool(version_id) and version_id.startswith("en")
+
+
 @bp.route("/books/<book_slug>", methods=["GET", "POST"])
 def books(book_slug):
     book = get_book_by_slug(book_slug)
@@ -108,6 +115,10 @@ def books(book_slug):
             print(f"Chapter fetch error: {e}")
             error_message = f"Error loading chapter: {str(e)}"
 
+    headings = {}
+    if selected_chapter and verses and version_uses_headings(selected_version):
+        headings = chapter_headings(book["slug"], selected_chapter)
+
     return render_template(
         "books.html",
         current_year=dt.datetime.now().year,
@@ -117,6 +128,7 @@ def books(book_slug):
         selected_version=selected_version,
         chapter_text=chapter_text,
         verses=verses,
+        headings=headings,
         versions=VERSION_LIST,
         error_message=error_message,
         user=user
